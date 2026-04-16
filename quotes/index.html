@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MES Power — Quotes Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0d12;
+    --surface: #111520;
+    --surface2: #171d2e;
+    --border: #1e2640;
+    --accent: #00d4ff;
+    --accent2: #f5a623;
+    --green: #2ecc71;
+    --red: #e74c3c;
+    --text: #e8eaf0;
+    --muted: #5a6080;
+    --won: #2ecc71;
+    --inprogress: #00d4ff;
+    --pending: #f5a623;
+    --lost: #e74c3c;
+    --draft: #8892b0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Sora', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid noise texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  header {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,13,18,0.95);
+    backdrop-filter: blur(10px);
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-mark {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: var(--bg);
+    flex-shrink: 0;
+  }
+  .logo-text { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
+  .logo-sub { font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 1px; }
+  .header-right {
+    display: flex; align-items: center; gap: 20px;
+  }
+  .nav-link {
+    font-size: 13px; color: var(--muted); text-decoration: none;
+    padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .nav-link:hover, .nav-link.active {
+    color: var(--accent); border-color: var(--accent);
+    background: rgba(0,212,255,0.05);
+  }
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 8px var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; } 50% { opacity: 0.4; }
+  }
+  #last-updated { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
+
+  main {
+    position: relative; z-index: 1;
+    padding: 28px 32px;
+    max-width: 1600px; margin: 0 auto;
+  }
+
+  /* KPI Cards */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px 24px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s;
+    animation: fadeUp 0.4s ease both;
+  }
+  .kpi-card:hover { border-color: var(--accent); }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--card-accent, var(--accent));
+  }
+  .kpi-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--muted); margin-bottom: 10px;
+    font-family: 'DM Mono', monospace;
+  }
+  .kpi-value {
+    font-size: 32px; font-weight: 700; letter-spacing: -1px;
+    line-height: 1;
+    color: var(--text);
+  }
+  .kpi-sub {
+    font-size: 12px; color: var(--muted); margin-top: 6px;
+  }
+  .kpi-icon {
+    position: absolute; top: 20px; right: 20px;
+    font-size: 24px; opacity: 0.15;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .kpi-card:nth-child(1) { animation-delay: 0.05s; }
+  .kpi-card:nth-child(2) { animation-delay: 0.1s; }
+  .kpi-card:nth-child(3) { animation-delay: 0.15s; }
+  .kpi-card:nth-child(4) { animation-delay: 0.2s; }
+
+  /* Middle row: stage breakdown + top quotes */
+  .mid-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    animation: fadeUp 0.4s ease 0.25s both;
+  }
+  .panel-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .panel-title {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.5px;
+    text-transform: uppercase; color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+  .panel-badge {
+    font-size: 11px; font-family: 'DM Mono', monospace;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--muted); padding: 2px 8px; border-radius: 20px;
+  }
+
+  /* Stage breakdown */
+  .stage-list { padding: 16px; }
+  .stage-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 12px;
+  }
+  .stage-row:last-child { margin-bottom: 0; }
+  .stage-dot {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+  }
+  .stage-name { font-size: 13px; flex: 1; }
+  .stage-count { font-size: 12px; color: var(--muted); font-family: 'DM Mono', monospace; width: 30px; text-align: right; }
+  .stage-bar-wrap {
+    width: 80px; background: var(--surface2); border-radius: 4px; height: 6px; overflow: hidden;
+  }
+  .stage-bar {
+    height: 100%; border-radius: 4px;
+    transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+  }
+  .stage-val { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--text); min-width: 72px; text-align: right; }
+
+  /* Top quotes table */
+  .top-table { width: 100%; border-collapse: collapse; }
+  .top-table th {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--muted); font-family: 'DM Mono', monospace;
+    padding: 10px 16px; text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+  .top-table td {
+    padding: 12px 16px; font-size: 13px;
+    border-bottom: 1px solid rgba(30,38,64,0.5);
+    vertical-align: middle;
+  }
+  .top-table tr:last-child td { border-bottom: none; }
+  .top-table tr:hover td { background: rgba(0,212,255,0.02); }
+  .quote-name { font-weight: 500; color: var(--text); }
+  .quote-id { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+  .stage-chip {
+    font-size: 11px; padding: 3px 10px; border-radius: 20px;
+    font-family: 'DM Mono', monospace; white-space: nowrap;
+    font-weight: 500;
+  }
+  .amount-cell { font-family: 'DM Mono', monospace; font-size: 13px; text-align: right; }
+  .date-cell { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--muted); }
+
+  /* Main quotes table */
+  .table-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    animation: fadeUp 0.4s ease 0.3s both;
+  }
+  .table-controls {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  .search-box {
+    flex: 1; min-width: 200px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 14px;
+    color: var(--text); font-size: 13px; font-family: 'Sora', sans-serif;
+    outline: none; transition: border-color 0.2s;
+  }
+  .search-box:focus { border-color: var(--accent); }
+  .search-box::placeholder { color: var(--muted); }
+  .filter-btn {
+    padding: 7px 14px; border-radius: 8px; font-size: 12px;
+    border: 1px solid var(--border); background: var(--surface2);
+    color: var(--muted); cursor: pointer; font-family: 'Sora', sans-serif;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    border-color: var(--accent); color: var(--accent);
+    background: rgba(0,212,255,0.05);
+  }
+  .table-wrap { overflow-x: auto; max-height: 480px; overflow-y: auto; }
+  .quotes-table { width: 100%; border-collapse: collapse; min-width: 800px; }
+  .quotes-table th {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--muted); font-family: 'DM Mono', monospace;
+    padding: 10px 14px; text-align: left; font-weight: 500;
+    position: sticky; top: 0; background: var(--surface);
+    border-bottom: 1px solid var(--border); cursor: pointer;
+    user-select: none; white-space: nowrap;
+  }
+  .quotes-table th:hover { color: var(--accent); }
+  .quotes-table td {
+    padding: 11px 14px; font-size: 13px;
+    border-bottom: 1px solid rgba(30,38,64,0.4);
+    vertical-align: middle;
+  }
+  .quotes-table tr:hover td { background: rgba(0,212,255,0.02); }
+  .quotes-table tr:last-child td { border-bottom: none; }
+  .no-data { padding: 40px; text-align: center; color: var(--muted); font-size: 14px; }
+  .loading { padding: 60px; text-align: center; color: var(--muted); }
+  .spinner {
+    width: 28px; height: 28px; border: 2px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.8s linear infinite; margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  .error-banner {
+    background: rgba(231,76,60,0.1); border: 1px solid rgba(231,76,60,0.3);
+    border-radius: 8px; padding: 14px 18px; margin-bottom: 20px;
+    color: #e74c3c; font-size: 13px;
+  }
+
+  @media (max-width: 1100px) {
+    .kpi-grid { grid-template-columns: repeat(2,1fr); }
+    .mid-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    main { padding: 16px; }
+    header { padding: 14px 16px; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+    <div class="logo-mark">M</div>
+    <div>
+      <div class="logo-text">MES Power</div>
+      <div class="logo-sub">Engineering</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <a href="quotes-dashboard.html" class="nav-link active">Quotes Pipeline</a>
+    <a href="bd-dashboard.html" class="nav-link">BD Dashboard</a>
+    <div class="status-dot" title="Live data"></div>
+    <span id="last-updated">Loading…</span>
+  </div>
+</header>
+
+<main>
+  <div id="error-banner" class="error-banner" style="display:none"></div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card" style="--card-accent:#00d4ff">
+      <div class="kpi-icon">📋</div>
+      <div class="kpi-label">Total Pipeline</div>
+      <div class="kpi-value" id="kpi-total">—</div>
+      <div class="kpi-sub" id="kpi-count">— quotes</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:#2ecc71">
+      <div class="kpi-icon">✅</div>
+      <div class="kpi-label">Won Value</div>
+      <div class="kpi-value" id="kpi-won">—</div>
+      <div class="kpi-sub" id="kpi-won-count">— approved</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:#f5a623">
+      <div class="kpi-icon">⚡</div>
+      <div class="kpi-label">Active In-Progress</div>
+      <div class="kpi-value" id="kpi-active">—</div>
+      <div class="kpi-sub" id="kpi-active-count">— quotes</div>
+    </div>
+    <div class="kpi-card" style="--card-accent:#8892b0">
+      <div class="kpi-icon">📊</div>
+      <div class="kpi-label">Avg Quote Value</div>
+      <div class="kpi-value" id="kpi-avg">—</div>
+      <div class="kpi-sub">ex. VAT</div>
+    </div>
+  </div>
+
+  <div class="mid-grid">
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">By Stage</span>
+        <span class="panel-badge" id="stage-total-badge">—</span>
+      </div>
+      <div class="stage-list" id="stage-list">
+        <div class="loading"><div class="spinner"></div>Loading…</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">Top 8 by Value</span>
+        <span class="panel-badge">Ex. VAT</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="top-table">
+          <thead>
+            <tr>
+              <th>Quote</th>
+              <th>Stage</th>
+              <th style="text-align:right">Value</th>
+              <th>Issued</th>
+            </tr>
+          </thead>
+          <tbody id="top-tbody">
+            <tr><td colspan="4" class="no-data">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-panel">
+    <div class="table-controls">
+      <input class="search-box" id="search" placeholder="Search quotes by name or ID…" />
+      <button class="filter-btn active" data-stage="all">All</button>
+      <button class="filter-btn" data-stage="InProgress">In Progress</button>
+      <button class="filter-btn" data-stage="_won">Won</button>
+      <button class="filter-btn" data-stage="Pending">Pending</button>
+      <button class="filter-btn" data-stage="Draft">Draft</button>
+      <button class="filter-btn" data-stage="Lost">Lost</button>
+      <span class="panel-badge" id="table-count" style="margin-left:auto">—</span>
+    </div>
+    <div class="table-wrap">
+      <table class="quotes-table">
+        <thead>
+          <tr>
+            <th data-sort="ID">ID ↕</th>
+            <th data-sort="Name">Name ↕</th>
+            <th data-sort="Stage">Stage ↕</th>
+            <th data-sort="Total" style="text-align:right">Value (Ex VAT) ↕</th>
+            <th data-sort="DateIssued">Issued ↕</th>
+            <th data-sort="DateApproved">Approved ↕</th>
+          </tr>
+        </thead>
+        <tbody id="main-tbody">
+          <tr><td colspan="6" class="loading"><div class="spinner"></div>Fetching quotes…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+const API = 'https://mes-api.mes-bot.workers.dev/api/quotes';
+
+const STAGE_CONFIG = {
+  'Approved':   { color: '#2ecc71', label: 'Won' }, 
+  'InProgress': { color: '#00d4ff', label: 'In Progress' },
+  'Pending':    { color: '#f5a623', label: 'Pending' },
+  'Draft':      { color: '#8892b0', label: 'Draft' },
+  'Lost':       { color: '#e74c3c', label: 'Lost' },
+  'Declined':   { color: '#e74c3c', label: 'Declined' },
+};
+
+function stageLabel(s, isClosed) { if (isClosed) return 'Won'; return STAGE_CONFIG[s]?.label || s; }
+function stageColor2(s, isClosed) { if (isClosed) return '#2ecc71'; return stageColor(s); }
+function stageColor(s) { return STAGE_CONFIG[s]?.color || '#5a6080'; }
+
+function fmt(n) {
+  if (n >= 1e6) return '£' + (n/1e6).toFixed(2) + 'M';
+  if (n >= 1e3) return '£' + (n/1e3).toFixed(1) + 'k';
+  return '£' + n.toFixed(0);
+}
+function fmtFull(n) {
+  return '£' + n.toLocaleString('en-GB', {minimumFractionDigits:0, maximumFractionDigits:0});
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d);
+  if (isNaN(dt)) return '—';
+  return dt.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'2-digit'});
+}
+
+let allQuotes = [];
+let currentStage = 'all';
+let currentSearch = '';
+let sortKey = 'Total';
+let sortDir = -1;
+
+async function loadData() {
+  try {
+    const res = await fetch(API);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    allQuotes = await res.json();
+    if (!Array.isArray(allQuotes)) throw new Error('Unexpected response');
+    document.getElementById('last-updated').textContent =
+      'Updated ' + new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+    renderAll();
+  } catch(e) {
+    document.getElementById('error-banner').style.display = 'block';
+    document.getElementById('error-banner').textContent = 'Failed to load quotes: ' + e.message;
+    document.getElementById('main-tbody').innerHTML =
+      '<tr><td colspan="6" class="no-data">Error loading data</td></tr>';
+  }
+}
+
+function renderAll() {
+  renderKPIs();
+  renderStages();
+  renderTopTable();
+  renderMainTable();
+}
+
+function renderKPIs() {
+  const open = allQuotes.filter(q => !q.IsClosed);
+  const total = open.reduce((s,q) => s + (q.Total?.ExTax||0), 0);
+  const won = allQuotes.filter(q => q.IsClosed === true);
+  const wonVal = won.reduce((s,q) => s + (q.Total?.ExTax||0), 0);
+  const active = allQuotes.filter(q => q.Stage === 'InProgress');
+  const activeVal = active.reduce((s,q) => s + (q.Total?.ExTax||0), 0);
+  const nonZero = open.filter(q => (q.Total?.ExTax||0) > 0);
+  const avg = nonZero.length ? nonZero.reduce((s,q)=>s+(q.Total?.ExTax||0),0)/nonZero.length : 0;
+
+  document.getElementById('kpi-total').textContent = fmt(total);
+  document.getElementById('kpi-count').textContent = open.length + ' open quotes';
+  document.getElementById('kpi-won').textContent = fmt(wonVal);
+  document.getElementById('kpi-won-count').textContent = won.length + ' approved';
+  document.getElementById('kpi-active').textContent = fmt(activeVal);
+  document.getElementById('kpi-active-count').textContent = active.length + ' quotes';
+  document.getElementById('kpi-avg').textContent = fmt(avg);
+}
+
+function renderStages() {
+  const stages = {};
+  allQuotes.forEach(q => {
+    const s = q.Stage || 'Unknown';
+    if (!stages[s]) stages[s] = { count: 0, value: 0 };
+    stages[s].count++;
+    stages[s].value += q.Total?.ExTax || 0;
+  });
+  const sorted = Object.entries(stages).sort((a,b) => b[1].value - a[1].value);
+  const maxVal = sorted[0]?.[1].value || 1;
+
+  document.getElementById('stage-total-badge').textContent = allQuotes.length + ' total';
+
+  document.getElementById('stage-list').innerHTML = sorted.map(([stage, data]) => `
+    <div class="stage-row">
+      <div class="stage-dot" style="background:${stageColor(stage)}"></div>
+      <div class="stage-name">${stageLabel(stage)}</div>
+      <div class="stage-count">${data.count}</div>
+      <div class="stage-bar-wrap">
+        <div class="stage-bar" style="width:${(data.value/maxVal*100).toFixed(1)}%;background:${stageColor(stage)}"></div>
+      </div>
+      <div class="stage-val">${fmt(data.value)}</div>
+    </div>
+  `).join('');
+}
+
+function renderTopTable() {
+  const top = [...allQuotes]
+    .sort((a,b) => (b.Total?.ExTax||0) - (a.Total?.ExTax||0))
+    .slice(0, 8);
+
+  document.getElementById('top-tbody').innerHTML = top.map(q => `
+    <tr>
+      <td>
+        <div class="quote-name">${q.Name}</div>
+        <div class="quote-id">#${q.ID}</div>
+      </td>
+      <td>
+        <span class="stage-chip" style="background:${stageColor2(q.Stage, q.IsClosed)}22;color:${stageColor2(q.Stage, q.IsClosed)};border:1px solid ${stageColor2(q.Stage, q.IsClosed)}44">
+          ${stageLabel(q.Stage, q.IsClosed)}
+        </span>
+      </td>
+      <td class="amount-cell">${fmtFull(q.Total?.ExTax||0)}</td>
+      <td class="date-cell">${fmtDate(q.DateIssued)}</td>
+    </tr>
+  `).join('');
+}
+
+function getFiltered() {
+  return allQuotes.filter(q => {
+    const matchStage = currentStage === 'all' || (currentStage === '_won' ? q.IsClosed === true : q.Stage === currentStage);
+    const matchSearch = !currentSearch ||
+      q.Name?.toLowerCase().includes(currentSearch) ||
+      String(q.ID).includes(currentSearch);
+    return matchStage && matchSearch;
+  }).sort((a,b) => {
+    let av = a[sortKey], bv = b[sortKey];
+    if (sortKey === 'Total') { av = a.Total?.ExTax||0; bv = b.Total?.ExTax||0; }
+    if (typeof av === 'string') av = av.toLowerCase();
+    if (typeof bv === 'string') bv = bv.toLowerCase();
+    return av < bv ? sortDir : av > bv ? -sortDir : 0;
+  });
+}
+
+function renderMainTable() {
+  const rows = getFiltered();
+  document.getElementById('table-count').textContent = rows.length + ' quotes';
+  if (!rows.length) {
+    document.getElementById('main-tbody').innerHTML =
+      '<tr><td colspan="6" class="no-data">No quotes match filters</td></tr>';
+    return;
+  }
+  document.getElementById('main-tbody').innerHTML = rows.map(q => `
+    <tr>
+      <td><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)">#${q.ID}</span></td>
+      <td style="max-width:320px;font-weight:500">${q.Name}</td>
+      <td>
+        <span class="stage-chip" style="background:${stageColor2(q.Stage, q.IsClosed)}22;color:${stageColor2(q.Stage, q.IsClosed)};border:1px solid ${stageColor2(q.Stage, q.IsClosed)}44">
+          ${stageLabel(q.Stage, q.IsClosed)}
+        </span>
+      </td>
+      <td class="amount-cell">${fmtFull(q.Total?.ExTax||0)}</td>
+      <td class="date-cell">${fmtDate(q.DateIssued)}</td>
+      <td class="date-cell">${fmtDate(q.DateApproved)}</td>
+    </tr>
+  `).join('');
+}
+
+// Event listeners
+document.getElementById('search').addEventListener('input', e => {
+  currentSearch = e.target.value.toLowerCase().trim();
+  renderMainTable();
+});
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentStage = btn.dataset.stage;
+    renderMainTable();
+  });
+});
+
+document.querySelectorAll('.quotes-table th[data-sort]').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.sort;
+    if (sortKey === key) sortDir *= -1;
+    else { sortKey = key; sortDir = -1; }
+    renderMainTable();
+  });
+});
+
+loadData();
+setInterval(loadData, 5 * 60 * 1000); // refresh every 5 min
+</script>
+</body>
+</html>
