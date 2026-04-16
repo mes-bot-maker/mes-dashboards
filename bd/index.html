@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MES Power — BD Pipeline</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--bg:#f4f3f0;--surface:#fff;--surface2:#f0efe9;--border:rgba(0,0,0,0.1);--text:#1a1a1a;--muted:#666;--green:#0F6E56;--green-bg:#E1F5EE;--amber:#BA7517;--amber-bg:#FAEEDA;--red:#A32D2D;--red-bg:#FCEBEB;--blue:#185FA5;--blue-bg:#E6F1FB;--purple:#534AB7;--teal:#1D9E75;--radius:10px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+header h1{font-size:16px;font-weight:600;color:var(--text)}
+header .sub{font-size:12px;color:var(--muted);margin-top:2px}
+.status{display:flex;align-items:center;gap:8px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:#ccc}
+.status-dot.live{background:#1D9E75;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.status-text{font-size:12px;color:var(--muted)}
+.refresh-btn{background:none;border:0.5px solid var(--border);border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;color:var(--text)}
+.refresh-btn:hover{background:var(--surface2)}
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;gap:0}
+.nav-tab{padding:10px 16px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);background:none;border-top:none;border-left:none;border-right:none}
+.nav-tab.active{color:var(--text);border-bottom-color:var(--text);font-weight:500}
+.nav-tab:hover{color:var(--text)}
+.page{display:none;padding:20px 24px}
+.page.active{display:block}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:18px}
+.metric{background:var(--surface2);border-radius:var(--radius);padding:14px 16px}
+.metric .lbl{font-size:11px;color:var(--muted);margin-bottom:5px}
+.metric .val{font-size:26px;font-weight:600;line-height:1}
+.metric .sub{font-size:11px;color:var(--muted);margin-top:4px}
+.col-green{color:var(--green)}.col-amber{color:var(--amber)}.col-red{color:var(--red)}.col-blue{color:var(--blue)}
+.row{display:grid;gap:14px;margin-bottom:14px}
+.row-2{grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)}
+.row-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.row-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:16px}
+.card-title{font-size:13px;font-weight:500;margin-bottom:12px}
+.chart-wrap{position:relative}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{font-size:10px;font-weight:500;color:var(--muted);padding:7px 10px;border-bottom:0.5px solid var(--border);text-align:left;white-space:nowrap;background:var(--surface2)}
+td{padding:9px 10px;border-bottom:0.5px solid rgba(0,0,0,0.05);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+.pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;white-space:nowrap}
+.pill-warm{background:var(--amber-bg);color:var(--amber)}
+.pill-cold{background:var(--blue-bg);color:var(--blue)}
+.pill-strong{background:var(--green-bg);color:var(--green)}
+.pill-open{background:var(--green-bg);color:var(--green)}
+.pill-closed{background:var(--surface2);color:var(--muted)}
+.pill-approved{background:var(--green-bg);color:var(--green)}
+.pill-progress{background:var(--blue-bg);color:var(--blue)}
+.pill-complete{background:var(--surface2);color:var(--muted)}
+.alert-row td{background:#fff9f0}
+.overdue-date{color:var(--red);font-weight:500}
+.soon-date{color:var(--amber);font-weight:500}
+.ok-date{color:var(--green)}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.bar-lbl{font-size:11px;color:var(--muted);width:130px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-bg{flex:1;background:var(--surface2);border-radius:3px;height:16px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px}
+.bar-val{font-size:11px;color:var(--muted);width:70px;text-align:right;flex-shrink:0}
+.funnel{display:flex;flex-direction:column;gap:6px}
+.f-row{display:flex;align-items:center;gap:10px}
+.f-lbl{font-size:11px;color:var(--muted);width:120px;text-align:right;flex-shrink:0}
+.f-bg{flex:1;background:var(--surface2);border-radius:3px;height:26px;overflow:hidden}
+.f-bar{height:100%;display:flex;align-items:center;justify-content:flex-end;padding-right:8px;font-size:11px;font-weight:500;color:#fff;border-radius:3px;min-width:30px}
+.loading{text-align:center;padding:40px;color:var(--muted);font-size:14px}
+.error-box{background:var(--red-bg);border:1px solid #f09595;border-radius:8px;padding:16px;color:var(--red);font-size:13px;margin:20px 0}
+.api-setup{background:var(--amber-bg);border:1px solid #EF9F27;border-radius:8px;padding:16px;font-size:12px;margin-bottom:16px;color:#633806}
+.api-setup strong{display:block;margin-bottom:6px;font-size:13px}
+.api-setup input{width:100%;padding:7px 10px;border:0.5px solid #EF9F27;border-radius:6px;font-size:12px;background:#fffdf5;margin-top:6px}
+.api-setup button{margin-top:8px;background:#BA7517;color:#fff;border:none;padding:7px 16px;border-radius:6px;font-size:12px;cursor:pointer}
+.slicer{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.slicer label{font-size:11px;color:var(--muted)}
+.slicer select{font-size:12px;padding:5px 8px;border:0.5px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text)}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>MES Power — BD Pipeline</h1>
+    <div class="sub" id="lastUpdated">Loading data…</div>
+  </div>
+  <div class="status">
+    <div class="status-dot" id="statusDot"></div>
+    <span class="status-text" id="statusText">Connecting…</span>
+    <button class="refresh-btn" onclick="loadData()">Refresh</button>
+  </div>
+</header>
+
+<nav>
+  <button class="nav-tab active" onclick="showPage('summary',this)">Summary</button>
+  <button class="nav-tab" onclick="showPage('pipeline',this)">Pipeline</button>
+  <button class="nav-tab" onclick="showPage('followups',this)">Follow-ups</button>
+  <button class="nav-tab" onclick="showPage('leads',this)">All Leads</button>
+  <button class="nav-tab" onclick="showPage('settings',this)">Settings</button>
+</nav>
+
+<!-- SETTINGS PAGE -->
+<div class="page active" id="page-settings" style="display:none">
+  <div class="api-setup">
+    <strong>API Key Required</strong>
+    This dashboard connects to your Tugger data via the Anthropic API. Enter your Anthropic API key below — it is stored only in your browser (localStorage) and never sent anywhere except Anthropic.
+    <input type="password" id="apiKeyInput" placeholder="sk-ant-…" />
+    <button onclick="saveKey()">Save & Load Data</button>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <div class="card-title">About this dashboard</div>
+    <p style="font-size:12px;color:var(--muted);line-height:1.7">
+      Built for MES Power BD pipeline tracking. Pulls live data from simPRO via Tugger on each refresh.
+      Tracks leads, custom BD fields (Market Sector, Client Type, Estimated Value, Probability, Next Action, Relationship Status),
+      follow-up dates, and quote conversion.<br><br>
+      To host on GitHub Pages: create a repo, add this file as <code>index.html</code>, enable Pages in repo settings.
+    </p>
+  </div>
+</div>
+
+<!-- SUMMARY PAGE -->
+<div class="page" id="page-summary">
+  <div id="summary-content"><div class="loading">Loading pipeline data…</div></div>
+</div>
+
+<!-- PIPELINE PAGE -->
+<div class="page" id="page-pipeline">
+  <div id="pipeline-content"><div class="loading">Loading…</div></div>
+</div>
+
+<!-- FOLLOW-UPS PAGE -->
+<div class="page" id="page-followups">
+  <div id="followups-content"><div class="loading">Loading…</div></div>
+</div>
+
+<!-- ALL LEADS PAGE -->
+<div class="page" id="page-leads">
+  <div id="leads-content"><div class="loading">Loading…</div></div>
+</div>
+
+<script>
+const TUGGER_INTEGRATION_ID = 4782;
+const CF = {SECTOR:191,CLIENT_TYPE:192,HOW_RECEIVED:224,CLIENT_STATUS:290,OPP_TYPE:291,VALUE:293,PROB:294,NEXT_ACTION:295,ACTION_DATE:296,RELATIONSHIP:297};
+
+let allLeads=[], allQuotes=[], allUsers=[], allCustomers=[];
+
+function getKey(){return localStorage.getItem('mes_api_key')||'';}
+function saveKey(){const k=document.getElementById('apiKeyInput').value.trim();if(k){localStorage.setItem('mes_api_key',k);showPage('summary',document.querySelector('.nav-tab'));loadData();}}
+
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+}
+
+function parseCF(cfData){
+  const r={};
+  try{const arr=JSON.parse(cfData||'[]');arr.forEach(f=>{const id=f.CustomField?.CustomFieldID||f.ID;r[id]=f.Value;});}catch(e){}
+  return r;
+}
+function cfVal(cf,id){return cf[id]||null;}
+function cfNum(cf,id){const v=cfVal(cf,id);if(!v)return null;const n=parseFloat(String(v).replace('%','').trim());return isNaN(n)?null:n;}
+
+function fmt(n){if(n==null)return '—';if(n>=1000000)return '£'+Math.round(n/1000000*10)/10+'M';if(n>=1000)return '£'+Math.round(n/1000)+'k';return '£'+Math.round(n).toLocaleString();}
+function fmtFull(n){if(n==null)return '—';return '£'+Math.round(n).toLocaleString();}
+function userName(id){const u=allUsers.find(u=>u.id===id);return u?u.Name:'Unknown';}
+function custName(id){const c=allCustomers.find(c=>c.id===id);return c?c.CompanyName:'Unknown';}
+
+function dateStatus(dateStr){
+  if(!dateStr)return null;
+  const d=new Date(dateStr);const today=new Date();today.setHours(0,0,0,0);
+  const diff=Math.floor((d-today)/(1000*60*60*24));
+  return diff;
+}
+function dateLabel(dateStr){
+  if(!dateStr)return '—';
+  const d=new Date(dateStr);
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'});
+}
+function dateCellClass(dateStr){
+  const diff=dateStatus(dateStr);
+  if(diff===null)return '';
+  if(diff<0)return 'overdue-date';
+  if(diff<=7)return 'soon-date';
+  return 'ok-date';
+}
+
+function enrichLeads(leads){
+  return leads.map(l=>{
+    const cf=parseCF(l.CustomFieldsData);
+    return{...l,
+      cf,
+      sector:cfVal(cf,CF.SECTOR),
+      clientType:cfVal(cf,CF.CLIENT_TYPE),
+      howReceived:cfVal(cf,CF.HOW_RECEIVED),
+      clientStatus:cfVal(cf,CF.CLIENT_STATUS),
+      oppType:cfVal(cf,CF.OPP_TYPE),
+      estValue:cfNum(cf,CF.VALUE),
+      prob:cfNum(cf,CF.PROB),
+      nextAction:cfVal(cf,CF.NEXT_ACTION),
+      actionDate:cfVal(cf,CF.ACTION_DATE),
+      relationship:cfVal(cf,CF.RELATIONSHIP),
+      salesperson:userName(l.SalespersonID),
+      customer:custName(l.CustomerID),
+      quote:allQuotes.find(q=>q.ConvertedFromLeadID===l.id)||null,
+    };
+  });
+}
+
+function relationPill(rel){
+  if(!rel)return '<span class="pill pill-closed">—</span>';
+  const r=rel.toLowerCase();
+  if(r==='strong')return `<span class="pill pill-strong">${rel}</span>`;
+  if(r==='warm')return `<span class="pill pill-warm">${rel}</span>`;
+  return `<span class="pill pill-cold">${rel}</span>`;
+}
+function stagePill(stage){
+  if(stage==='Approved')return `<span class="pill pill-approved">Approved</span>`;
+  if(stage==='InProgress')return `<span class="pill pill-progress">In Progress</span>`;
+  if(stage==='Complete')return `<span class="pill pill-complete">Complete</span>`;
+  if(stage==='Open')return `<span class="pill pill-open">Open</span>`;
+  return `<span class="pill pill-closed">${stage||'—'}</span>`;
+}
+
+async function callClaude(prompt){
+  const key=getKey();
+  if(!key)throw new Error('NO_KEY');
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:4000,
+      system:`You are a data retrieval assistant. You have access to Tugger MCP which connects to simPRO data for MES Power (IntegrationId: ${TUGGER_INTEGRATION_ID}). When asked for data, use the Tugger tools to fetch it and return ONLY a valid JSON object with the requested data. No explanation, no markdown, just raw JSON.`,
+      messages:[{role:'user',content:prompt}],
+      mcp_servers:[{type:'url',url:'https://mcp.tuggerapp.com/mcp',name:'tugger'}]
+    })
+  });
+  if(!res.ok)throw new Error(`API ${res.status}`);
+  const data=await res.json();
+  const text=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+  const clean=text.replace(/```json|```/g,'').trim();
+  return JSON.parse(clean);
+}
+
+async function loadData(){
+  const key=getKey();
+  if(!key){
+    showPage('settings',null);
+    document.querySelector('[onclick*="settings"]').classList.add('active');
+    document.querySelector('[onclick*="summary"]').classList.remove('active');
+    return;
+  }
+  setStatus('loading');
+  document.getElementById('lastUpdated').textContent='Fetching live data…';
+  try{
+    const result=await callClaude(`Fetch the following data from Tugger for integrationId ${TUGGER_INTEGRATION_ID} and return as JSON:
+{
+  "leads": [from SimproLeads, all records from 2025-01-01 onwards, fields: id, LeadName, CustomerID, SalespersonID, Stage, DateCreated, FollowUpDate, ForecastEstimatedPrice, ForecastProbability, CustomFieldsData],
+  "quotes": [from SimproQuotes where ConvertedFromLeadID > 0, fields: id, ConvertedFromLeadID, Stage, TotalExTax, DateIssued, DateApproved, LinkedJobID, CustomerID, Name],
+  "users": [from SimproUsers, fields: id, Name, UserProfileIsSalesperson],
+  "customers": [from SimproCustomers, fields: id, CompanyName]
+}`);
+    allLeads=result.leads||[];
+    allQuotes=result.quotes||[];
+    allUsers=result.users||[];
+    allCustomers=result.customers||[];
+    renderAll();
+    setStatus('live');
+    document.getElementById('lastUpdated').textContent='Last updated: '+new Date().toLocaleTimeString('en-GB');
+  }catch(e){
+    if(e.message==='NO_KEY'){showPage('settings',null);return;}
+    setStatus('error');
+    document.getElementById('lastUpdated').textContent='Error loading data — check API key in Settings';
+    console.error(e);
+  }
+}
+
+function setStatus(s){
+  const dot=document.getElementById('statusDot');
+  const txt=document.getElementById('statusText');
+  dot.className='status-dot';
+  if(s==='live'){dot.classList.add('live');txt.textContent='Live';}
+  else if(s==='loading'){txt.textContent='Loading…';}
+  else{dot.style.background='#E24B4A';txt.textContent='Error';}
+}
+
+function renderAll(){
+  const leads=enrichLeads(allLeads);
+  renderSummary(leads);
+  renderPipeline(leads);
+  renderFollowups(leads);
+  renderAllLeads(leads);
+}
+
+function renderSummary(leads){
+  const open=leads.filter(l=>l.Stage==='Open');
+  const withQuote=leads.filter(l=>l.quote);
+  const won=leads.filter(l=>l.quote&&l.quote.Stage==='Approved');
+  const totalVal=leads.reduce((s,l)=>s+(l.estValue||0),0);
+  const wgtVal=leads.reduce((s,l)=>s+(l.estValue&&l.prob?l.estValue*l.prob/100:0),0);
+  const wonVal=won.reduce((s,l)=>s+(l.quote?.TotalExTax||0),0);
+  const quoteVal=withQuote.reduce((s,l)=>s+(l.quote?.TotalExTax||0),0);
+  const today=new Date();today.setHours(0,0,0,0);
+  const overdueFollowUp=leads.filter(l=>l.Stage==='Open'&&l.FollowUpDate&&new Date(l.FollowUpDate)<today);
+  const overdueAction=leads.filter(l=>l.Stage==='Open'&&l.actionDate&&new Date(l.actionDate.split('/').reverse().join('-'))<today);
+  const noFollowUp=open.filter(l=>!l.FollowUpDate&&!l.actionDate);
+  const winRate=withQuote.length?Math.round(won.length/withQuote.length*100):0;
+
+  // sector breakdown
+  const sectors={};
+  leads.forEach(l=>{const s=l.sector||'Unknown';sectors[s]=(sectors[s]||0)+1;});
+  const sectorKeys=Object.keys(sectors).sort((a,b)=>sectors[b]-sectors[a]);
+
+  // quote funnel
+  const inProg=leads.filter(l=>l.quote&&l.quote.Stage==='InProgress');
+  const complete=leads.filter(l=>l.quote&&l.quote.Stage==='Complete');
+
+  document.getElementById('summary-content').innerHTML=`
+<div class="metrics">
+  <div class="metric"><div class="lbl">Total leads</div><div class="val">${leads.length}</div><div class="sub">${open.length} open</div></div>
+  <div class="metric"><div class="lbl">Total pipeline</div><div class="val col-blue">${fmt(totalVal)}</div><div class="sub">estimated value</div></div>
+  <div class="metric"><div class="lbl">Weighted forecast</div><div class="val col-green">${fmt(wgtVal)}</div><div class="sub">probability-adjusted</div></div>
+  <div class="metric"><div class="lbl">Won value</div><div class="val col-green">${fmt(wonVal)}</div><div class="sub">${won.length} leads won · ${winRate}% win rate</div></div>
+  <div class="metric"><div class="lbl">Leads → quotes</div><div class="val">${withQuote.length}</div><div class="sub">of ${leads.length} leads</div></div>
+  <div class="metric"><div class="lbl">Quoted value</div><div class="val">${fmt(quoteVal)}</div><div class="sub">${withQuote.length} quotes raised</div></div>
+  <div class="metric"><div class="lbl">Overdue follow-ups</div><div class="val ${overdueFollowUp.length>0?'col-red':'col-green'}">${overdueFollowUp.length}</div><div class="sub">simPRO follow-up date</div></div>
+  <div class="metric"><div class="lbl">No date set</div><div class="val ${noFollowUp.length>5?'col-amber':''}">${noFollowUp.length}</div><div class="sub">open leads without dates</div></div>
+</div>
+<div class="row row-2">
+  <div class="card">
+    <div class="card-title">Pipeline funnel</div>
+    <div class="funnel">
+      ${funnelRow('Leads logged',leads.length,leads.length,'#378ADD')}
+      ${funnelRow('With CF data',leads.filter(l=>l.sector).length,leads.length,'#5DCAA5')}
+      ${funnelRow('Turned to quote',withQuote.length,leads.length,'#1D9E75')}
+      ${funnelRow('In progress',inProg.length,leads.length,'#BA7517')}
+      ${funnelRow('Approved / won',won.length,leads.length,'#0F6E56')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Leads by market sector</div>
+    ${sectorKeys.map(s=>`<div class="bar-row"><div class="bar-lbl">${s}</div><div class="bar-bg"><div class="bar-fill" style="width:${Math.round(sectors[s]/sectorKeys.reduce((m,k)=>Math.max(m,sectors[k]),0)*100)}%;background:#378ADD"></div></div><div class="bar-val">${sectors[s]} lead${sectors[s]>1?'s':''}</div></div>`).join('')}
+  </div>
+</div>
+<div class="row row-3">
+  <div class="card">
+    <div class="card-title">Leads by client type</div>
+    ${countBar(leads,'clientType','#7F77DD')}
+  </div>
+  <div class="card">
+    <div class="card-title">Leads by opportunity type</div>
+    ${countBar(leads,'oppType','#1D9E75')}
+  </div>
+  <div class="card">
+    <div class="card-title">Leads by relationship status</div>
+    ${countBar(leads,'relationship','#EF9F27')}
+  </div>
+</div>`;
+}
+
+function funnelRow(lbl,val,max,color){
+  const pct=max>0?Math.round(val/max*100):0;
+  return `<div class="f-row"><div class="f-lbl">${lbl}</div><div class="f-bg"><div class="f-bar" style="width:${pct}%;background:${color}">${val}</div></div></div>`;
+}
+function countBar(leads,field,color){
+  const counts={};leads.forEach(l=>{const v=l[field]||'Not set';counts[v]=(counts[v]||0)+1;});
+  const keys=Object.keys(counts).sort((a,b)=>counts[b]-counts[a]);
+  const max=Math.max(...Object.values(counts));
+  return keys.map(k=>`<div class="bar-row"><div class="bar-lbl">${k}</div><div class="bar-bg"><div class="bar-fill" style="width:${Math.round(counts[k]/max*100)}%;background:${color}"></div></div><div class="bar-val">${counts[k]}</div></div>`).join('');
+}
+
+function renderPipeline(leads){
+  const withVal=leads.filter(l=>l.estValue);
+  const rows=withVal.sort((a,b)=>(b.estValue||0)-(a.estValue||0)).map(l=>{
+    const wgt=l.estValue&&l.prob?Math.round(l.estValue*l.prob/100):null;
+    const qStage=l.quote?stagePill(l.quote.Stage):'<span class="pill pill-closed">No quote</span>';
+    const qVal=l.quote&&l.quote.TotalExTax?fmtFull(l.quote.TotalExTax):'—';
+    return`<tr>
+      <td><strong>${l.LeadName}</strong></td>
+      <td>${l.customer}</td>
+      <td>${l.sector||'—'}</td>
+      <td>${l.clientType||'—'}</td>
+      <td>${l.oppType||'—'}</td>
+      <td style="font-variant-numeric:tabular-nums">${fmtFull(l.estValue)}</td>
+      <td>${l.prob!=null?l.prob+'%':'—'}</td>
+      <td style="font-variant-numeric:tabular-nums;font-weight:500;color:var(--green)">${wgt?fmtFull(wgt):'—'}</td>
+      <td>${qStage}</td>
+      <td>${qVal}</td>
+      <td>${relationPill(l.relationship)}</td>
+      <td>${l.salesperson}</td>
+    </tr>`;
+  }).join('');
+  const noVal=leads.filter(l=>!l.estValue);
+  document.getElementById('pipeline-content').innerHTML=`
+<div style="margin-bottom:10px;font-size:12px;color:var(--muted)">${withVal.length} leads with estimated value · ${noVal.length} without</div>
+<div class="card" style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Lead</th><th>Customer</th><th>Market sector</th><th>Client type</th><th>Opp type</th><th>Est. value</th><th>Prob.</th><th>Wtd value</th><th>Quote stage</th><th>Quote value</th><th>Relationship</th><th>Salesperson</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--muted)">No leads with estimated value yet</td></tr>'}</tbody>
+  </table>
+</div>`;
+}
+
+function renderFollowups(leads){
+  const today=new Date();today.setHours(0,0,0,0);
+  const endWeek=new Date(today);endWeek.setDate(today.getDate()+7);
+  const endMonth=new Date(today.getFullYear(),today.getMonth()+1,0);
+
+  function parseActionDate(str){
+    if(!str)return null;
+    // handle DD/MM/YYYY
+    if(str.includes('/'))try{const[d,m,y]=str.split('/');return new Date(+y,+m-1,+d);}catch(e){}
+    return new Date(str);
+  }
+
+  const enriched=leads.map(l=>{
+    const fDate=l.FollowUpDate?new Date(l.FollowUpDate):null;
+    const aDate=parseActionDate(l.actionDate);
+    const earliest=fDate&&aDate?(fDate<aDate?fDate:aDate):fDate||aDate;
+    return{...l,fDate,aDate,earliest};
+  }).filter(l=>l.earliest);
+
+  const overdue=enriched.filter(l=>l.earliest<today).sort((a,b)=>a.earliest-b.earliest);
+  const thisWeek=enriched.filter(l=>l.earliest>=today&&l.earliest<=endWeek).sort((a,b)=>a.earliest-b.earliest);
+  const thisMonth=enriched.filter(l=>l.earliest>endWeek&&l.earliest<=endMonth).sort((a,b)=>a.earliest-b.earliest);
+
+  function tableRows(items){
+    if(!items.length)return '<tr><td colspan="8" style="text-align:center;padding:14px;color:var(--muted)">None</td></tr>';
+    return items.map(l=>{
+      const fd=l.fDate?l.fDate.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}):null;
+      const ad=l.aDate?l.aDate.toLocaleDateString('en-GB',{day:'2-digit',month:'short'}):null;
+      const fdClass=l.fDate&&l.fDate<today?'overdue-date':l.fDate&&l.fDate<=endWeek?'soon-date':'';
+      const adClass=l.aDate&&l.aDate<today?'overdue-date':l.aDate&&l.aDate<=endWeek?'soon-date':'';
+      const cls=l.earliest<today?'alert-row':'';
+      return`<tr class="${cls}">
+        <td><strong>${l.LeadName}</strong></td>
+        <td>${l.customer}</td>
+        <td>${fmtFull(l.estValue)}</td>
+        <td>${l.prob!=null?l.prob+'%':'—'}</td>
+        <td>${relationPill(l.relationship)}</td>
+        <td>${l.nextAction||'—'}</td>
+        <td class="${fdClass}">${fd||'—'}</td>
+        <td class="${adClass}">${ad||'—'}</td>
+        <td>${l.salesperson}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  const noDate=leads.filter(l=>l.Stage==='Open'&&!l.FollowUpDate&&!l.actionDate);
+
+  document.getElementById('followups-content').innerHTML=`
+<div class="metrics" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+  <div class="metric"><div class="lbl">Overdue</div><div class="val ${overdue.length?'col-red':''}">${overdue.length}</div><div class="sub">past follow-up date</div></div>
+  <div class="metric"><div class="lbl">Due this week</div><div class="val ${thisWeek.length?'col-amber':''}">${thisWeek.length}</div><div class="sub">${thisWeek.reduce((s,l)=>s+(l.estValue||0),0)?fmt(thisWeek.reduce((s,l)=>s+(l.estValue||0),0))+' at stake':''}</div></div>
+  <div class="metric"><div class="lbl">Due this month</div><div class="val">${thisMonth.length}</div><div class="sub">${fmt(thisMonth.reduce((s,l)=>s+(l.estValue||0),0))} at stake</div></div>
+  <div class="metric"><div class="lbl">No date set</div><div class="val ${noDate.length>3?'col-amber':''}">${noDate.length}</div><div class="sub">open leads</div></div>
+</div>
+${overdue.length?`<div class="card" style="margin-bottom:12px;border-color:#f09595"><div class="card-title" style="color:var(--red)">Overdue follow-ups</div><div style="overflow-x:auto"><table><thead><tr><th>Lead</th><th>Customer</th><th>Est. value</th><th>Prob.</th><th>Relationship</th><th>Next action</th><th>Follow-up date</th><th>Action date (CF)</th><th>Salesperson</th></tr></thead><tbody>${tableRows(overdue)}</tbody></table></div></div>`:''}
+<div class="card" style="margin-bottom:12px"><div class="card-title">Due this week</div><div style="overflow-x:auto"><table><thead><tr><th>Lead</th><th>Customer</th><th>Est. value</th><th>Prob.</th><th>Relationship</th><th>Next action</th><th>Follow-up date</th><th>Action date (CF)</th><th>Salesperson</th></tr></thead><tbody>${tableRows(thisWeek)}</tbody></table></div></div>
+<div class="card"><div class="card-title">Rest of this month</div><div style="overflow-x:auto"><table><thead><tr><th>Lead</th><th>Customer</th><th>Est. value</th><th>Prob.</th><th>Relationship</th><th>Next action</th><th>Follow-up date</th><th>Action date (CF)</th><th>Salesperson</th></tr></thead><tbody>${tableRows(thisMonth)}</tbody></table></div></div>`;
+}
+
+function renderAllLeads(leads){
+  const sorted=leads.sort((a,b)=>new Date(b.DateCreated)-new Date(a.DateCreated));
+  const rows=sorted.map(l=>`<tr>
+    <td>${new Date(l.DateCreated).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'})}</td>
+    <td><strong>${l.LeadName}</strong></td>
+    <td>${l.customer}</td>
+    <td>${l.sector||'—'}</td>
+    <td>${l.clientType||'—'}</td>
+    <td>${l.howReceived||'—'}</td>
+    <td>${fmtFull(l.estValue)}</td>
+    <td>${l.prob!=null?l.prob+'%':'—'}</td>
+    <td>${relationPill(l.relationship)}</td>
+    <td>${l.nextAction||'—'}</td>
+    <td class="${dateCellClass(l.FollowUpDate)}">${dateLabel(l.FollowUpDate)}</td>
+    <td>${stagePill(l.Stage)}</td>
+    <td>${l.quote?stagePill(l.quote.Stage):'<span class="pill pill-closed">No quote</span>'}</td>
+    <td>${l.salesperson}</td>
+  </tr>`).join('');
+  document.getElementById('leads-content').innerHTML=`
+<div style="margin-bottom:10px;font-size:12px;color:var(--muted)">${leads.length} total leads</div>
+<div class="card" style="overflow-x:auto">
+  <table>
+    <thead><tr><th>Created</th><th>Lead</th><th>Customer</th><th>Sector</th><th>Client type</th><th>How received</th><th>Est. value</th><th>Prob.</th><th>Relationship</th><th>Next action</th><th>Follow-up</th><th>Lead stage</th><th>Quote stage</th><th>Salesperson</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>
+</div>`;
+}
+
+// Init
+window.addEventListener('DOMContentLoaded',()=>{
+  showPage('summary',document.querySelector('.nav-tab'));
+  if(getKey()){loadData();}
+  else{
+    showPage('settings',document.querySelector('[onclick*="settings"]'));
+    document.querySelector('[onclick*="summary"]').classList.remove('active');
+  }
+});
+</script>
+</body>
+</html>
