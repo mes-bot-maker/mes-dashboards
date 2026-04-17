@@ -320,6 +320,7 @@ nav a.on { color:#fff; border-color:#fff; background:rgba(255,255,255,0.18); fon
 <script>
 var API_ALL   = 'https://mes-api.mes-bot.workers.dev/api/all';
 var API_LEADS = 'https://mes-api.mes-bot.workers.dev/api/leads';
+var API_JOBS  = 'https://mes-api.mes-bot.workers.dev/api/jobs';
 var MONTHS    = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 var NOW       = new Date();
 var CUR_YEAR  = NOW.getFullYear();
@@ -336,14 +337,25 @@ function fmtDate(d) {
   var dt=new Date(d); if(isNaN(dt)) return '—';
   return dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
 }
-function isWon(q) { return q.IsClosed===true && q.Stage==='Approved'; }
+function isWon(q, jobsLookup) { return jobsLookup ? !!jobsLookup[q.ID] : (q.IsClosed===true && (q.Stage==='Approved' || q.Stage==='Complete')); }
 function isLost(q) { return q.Stage==='Lost' || q.Stage==='Declined'; }
 
-function wonByMonth(quotes) {
+function buildJobsLookup(jobs) {
+  // Returns map of quoteId -> dateIssued for jobs converted from quotes
+  var map = {};
+  jobs.forEach(function(j) {
+    var qid = j.ConvertedFromQuote && j.ConvertedFromQuote.ID;
+    if(qid && j.DateIssued) map[qid] = j.DateIssued;
+  });
+  return map;
+}
+
+function wonByMonth(quotes, jobsLookup) {
   var map={};
   quotes.forEach(function(q) {
-    if(!isWon(q)||!q.DateApproved) return;
-    var d=new Date(q.DateApproved);
+    var jobDate = jobsLookup[q.ID];
+    if(!jobDate) return; // no job raised = not won
+    var d=new Date(jobDate);
     if(d.getFullYear()!==CUR_YEAR) return;
     var m=d.getMonth()+1;
     if(!map[m]) map[m]={count:0,value:0};
@@ -354,16 +366,23 @@ function wonByMonth(quotes) {
 
 async function loadData() {
   try {
-    var allData={}, leadsData=[];
-    try { var r1=await fetch(API_ALL); if(r1.ok) allData=await r1.json(); } catch(e){}
-    try { var r2=await fetch(API_LEADS); if(r2.ok) leadsData=await r2.json(); } catch(e){}
+    var allData={}, leadsData=[], jobsData=[];
+    var [r1, r2, r3] = await Promise.allSettled([
+      fetch(API_ALL),
+      fetch(API_LEADS),
+      fetch(API_JOBS)
+    ]);
+    if(r1.status==='fulfilled' && r1.value.ok) allData  = await r1.value.json();
+    if(r2.status==='fulfilled' && r2.value.ok) leadsData = await r2.value.json();
+    if(r3.status==='fulfilled' && r3.value.ok) jobsData  = await r3.value.json();
     var quotes  = Array.isArray(allData)?allData:(allData.quotes||[]);
     var targets = allData.targets||{};
-    var leads   = Array.isArray(leadsData)?leadsData:(Array.isArray(allData.leads)?allData.leads:[]);
+    var leads   = Array.isArray(leadsData)?leadsData:[];
+    var jobs    = Array.isArray(jobsData)?jobsData:[];
     if(!quotes.length && !targets.annual) throw new Error('No data — retrying in 10s');
     document.getElementById('err').style.display='none';
     document.getElementById('updated').textContent = NOW.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-    render(quotes, targets, leads);
+    render(quotes, targets, leads, jobs);
   } catch(e) {
     var el=document.getElementById('err');
     el.style.display='block'; el.textContent='Error: '+e.message;
@@ -371,9 +390,11 @@ async function loadData() {
   }
 }
 
-function render(quotes, targets, leads) {
+function render(quotes, targets, leads, jobs) {
+  jobs = jobs || [];
+  var jobsLookup = buildJobsLookup(jobs);
   var monthly=targets.monthly||{};
-  var won=wonByMonth(quotes);
+  var won=wonByMonth(quotes, jobsLookup);
 
   var ytdTarget=0;
   for(var m=1;m<=CUR_MONTH;m++) ytdTarget+=monthly[m]||0;
@@ -411,7 +432,7 @@ function render(quotes, targets, leads) {
   var monthVar=mtd.value-monthTarget;
   var monthPct=monthTarget>0?(mtd.value/monthTarget*100):0;
   var allClosed=quotes.filter(function(q){return q.IsClosed||isLost(q);});
-  var allWon=quotes.filter(isWon);
+  var allWon=quotes.filter(function(q){return isWon(q, jobsLookup);});
   var closedVal=allClosed.reduce(function(s,q){return s+(q.Total?q.Total.ExTax||0:0);},0);
   var wonVal=allWon.reduce(function(s,q){return s+(q.Total?q.Total.ExTax||0:0);},0);
   var winRateC=allClosed.length>0?(allWon.length/allClosed.length*100):0;
