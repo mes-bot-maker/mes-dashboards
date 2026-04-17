@@ -7,263 +7,207 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0d1117;
-    --surface: #161b22;
-    --surface2: #1c2230;
-    --border: #21262d;
-    --accent: #58a6ff;
-    --accent2: #f0883e;
-    --green: #3fb950;
-    --red: #f85149;
-    --amber: #d29922;
-    --text: #e6edf3;
-    --muted: #7d8590;
-    --subtle: #30363d;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; min-height: 100vh; }
+:root {
+  --mes: #007A3D;
+  --mes-dark: #005C2E;
+  --mes-mid: #009A4D;
+  --bg: #f2f6f3;
+  --surface: #ffffff;
+  --surface2: #edf4ef;
+  --border: #cce0d4;
+  --text: #1a2e1f;
+  --muted: #5a7a65;
+  --good: #007A3D;
+  --bad: #c62828;
+  --amber: #e65100;
+  --blue: #1565c0;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'Sora',sans-serif; min-height:100vh; }
 
-  header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 28px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-    position: sticky; top: 0; z-index: 100;
-  }
-  .logo { display: flex; align-items: center; gap: 10px; }
-  .logo-hex {
-    width: 32px; height: 32px;
-    background: var(--accent);
-    clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
-    display: grid; place-items: center;
-    font-size: 13px; font-weight: 700; color: #0d1117;
-  }
-  .logo-name { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
-  .logo-tag { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
-  .nav { display: flex; align-items: center; gap: 8px; }
-  .nav a {
-    font-size: 12px; color: var(--muted); text-decoration: none;
-    padding: 5px 12px; border-radius: 6px; border: 1px solid var(--border);
-    transition: all 0.15s;
-  }
-  .nav a:hover { color: var(--text); border-color: var(--subtle); }
-  .nav a.active { color: var(--accent); border-color: var(--accent); background: rgba(88,166,255,0.06); }
-  .live { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); animation: blink 2s infinite; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 28px;
+  background:var(--mes-dark);
+  border-bottom:3px solid var(--mes-mid);
+  position:sticky; top:0; z-index:100;
+  box-shadow:0 2px 8px rgba(0,0,0,0.2);
+}
+.logo-wrap { display:flex; align-items:center; gap:12px; }
+.logo-img { height:36px; }
+.logo-div { width:1px; height:26px; background:rgba(255,255,255,0.3); }
+.logo-name { font-size:15px; font-weight:700; color:#fff; }
+.logo-tag { font-size:10px; color:rgba(255,255,255,0.55); letter-spacing:2px; text-transform:uppercase; }
+nav { display:flex; gap:8px; }
+nav a { font-size:12px; color:rgba(255,255,255,0.75); text-decoration:none; padding:5px 14px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); transition:all .15s; }
+nav a:hover { color:#fff; background:rgba(255,255,255,0.12); }
+nav a.on { color:#fff; border-color:#fff; background:rgba(255,255,255,0.18); font-weight:600; }
+.hright { display:flex; align-items:center; gap:10px; }
+.live { display:flex; align-items:center; gap:6px; font-size:11px; color:rgba(255,255,255,0.6); font-family:'DM Mono',monospace; }
+.dot { width:7px; height:7px; border-radius:50%; background:#69f0ae; box-shadow:0 0 6px #69f0ae; animation:blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
 
-  main { max-width: 1500px; margin: 0 auto; padding: 24px 28px; }
+main { max-width:1600px; margin:0 auto; padding:20px 28px; }
+.err { background:#ffebee; border:1px solid #ffcdd2; border-radius:8px; padding:12px 16px; margin-bottom:14px; color:var(--bad); font-size:12px; }
 
-  /* KPI row */
-  .kpis { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
-  .kpi {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-    padding: 18px 20px; position: relative; overflow: hidden;
-    border-top: 2px solid var(--kpi-color, var(--accent));
-    animation: up .35s ease both;
-  }
-  .kpi:nth-child(1){animation-delay:.04s} .kpi:nth-child(2){animation-delay:.08s}
-  .kpi:nth-child(3){animation-delay:.12s} .kpi:nth-child(4){animation-delay:.16s}
-  @keyframes up { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
-  .kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-family: 'DM Mono',monospace; margin-bottom: 8px; }
-  .kpi-val { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
-  .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+/* KPIs */
+.kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
+.kpi { background:var(--surface); border-radius:10px; padding:18px 20px; border-top:3px solid var(--kc,var(--mes)); box-shadow:0 1px 4px rgba(0,0,0,0.07); }
+.klabel { font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:var(--muted); font-family:'DM Mono',monospace; margin-bottom:7px; }
+.kval { font-size:30px; font-weight:700; letter-spacing:-.5px; }
+.ksub { font-size:12px; color:var(--muted); margin-top:4px; }
 
-  /* Alert sections — due this week / this month */
-  .alert-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-  .alert-panel {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-    overflow: hidden; animation: up .35s ease .2s both;
-  }
-  .alert-panel.week { border-top: 2px solid var(--red); }
-  .alert-panel.month { border-top: 2px solid var(--amber); }
-  .ap-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 16px; border-bottom: 1px solid var(--border);
-  }
-  .ap-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-family: 'DM Mono',monospace; }
-  .alert-panel.week .ap-title { color: var(--red); }
-  .alert-panel.month .ap-title { color: var(--amber); }
-  .ap-badge { font-size: 11px; font-family: 'DM Mono',monospace; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 2px 8px; border-radius: 20px; }
-  .ap-table { width: 100%; border-collapse: collapse; }
-  .ap-table th { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-family: 'DM Mono',monospace; padding: 8px 14px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 500; }
-  .ap-table td { padding: 9px 14px; font-size: 12px; border-bottom: 1px solid rgba(33,38,45,0.6); vertical-align: middle; }
-  .ap-table tr:last-child td { border-bottom: none; }
-  .ap-table tr:hover td { background: rgba(88,166,255,0.03); }
-  .ap-empty { padding: 20px; text-align: center; color: var(--muted); font-size: 12px; }
-  .due-name { font-weight: 500; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .due-id { font-family: 'DM Mono',monospace; font-size: 10px; color: var(--muted); }
-  .due-date { font-family: 'DM Mono',monospace; font-size: 11px; }
-  .due-date.overdue { color: var(--red); font-weight: 600; }
-  .due-date.soon { color: var(--amber); }
-  .due-date.ok { color: var(--muted); }
-  .due-val { font-family: 'DM Mono',monospace; font-size: 12px; text-align: right; }
-  .ap-scroll { max-height: 220px; overflow-y: auto; }
+/* Alert panels */
+.alert-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+.alert-panel { background:var(--surface); border-radius:10px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.07); }
+.alert-panel.week { border-top:3px solid var(--bad); }
+.alert-panel.month { border-top:3px solid var(--amber); }
+.ap-header { display:flex; align-items:center; justify-content:space-between; padding:11px 16px; border-bottom:1px solid var(--border); background:var(--surface2); }
+.ap-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; font-family:'DM Mono',monospace; }
+.alert-panel.week .ap-title { color:var(--bad); }
+.alert-panel.month .ap-title { color:var(--amber); }
+.ap-badge { font-size:11px; font-family:'DM Mono',monospace; background:var(--surface); border:1px solid var(--border); color:var(--muted); padding:2px 8px; border-radius:20px; }
+.ap-scroll { max-height:220px; overflow-y:auto; }
+.ap-table { width:100%; border-collapse:collapse; }
+.ap-table th { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); font-family:'DM Mono',monospace; padding:8px 14px; text-align:left; border-bottom:1px solid var(--border); background:var(--surface2); }
+.ap-table td { padding:9px 14px; font-size:12px; border-bottom:1px solid var(--border); }
+.ap-table tr:last-child td { border-bottom:none; }
+.ap-table tr:hover td { background:#f5fbf7; }
+.due-name { font-weight:500; max-width:230px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.due-id { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); }
+.overdue { color:var(--bad); font-weight:700; font-family:'DM Mono',monospace; font-size:11px; }
+.soon { color:var(--amber); font-family:'DM Mono',monospace; font-size:11px; }
+.ok { color:var(--muted); font-family:'DM Mono',monospace; font-size:11px; }
+.due-val { font-family:'DM Mono',monospace; font-size:12px; text-align:right; font-weight:600; }
 
-  /* Middle row */
-  .mid { display: grid; grid-template-columns: 280px 1fr; gap: 12px; margin-bottom: 20px; }
-  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; animation: up .35s ease .25s both; }
-  .ph { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); }
-  .pt { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-family: 'DM Mono',monospace; }
-  .pb { font-size: 11px; font-family: 'DM Mono',monospace; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 2px 8px; border-radius: 20px; }
+/* Stage chip */
+.chip { font-size:10px; padding:2px 8px; border-radius:4px; font-family:'DM Mono',monospace; font-weight:600; white-space:nowrap; }
 
-  /* Stage list */
-  .stage-list { padding: 12px; }
-  .sr { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-  .sr:last-child { margin-bottom: 0; }
-  .sdot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .sname { font-size: 12px; flex: 1; }
-  .scount { font-size: 11px; color: var(--muted); font-family: 'DM Mono',monospace; width: 28px; text-align: right; }
-  .sbar-wrap { width: 70px; background: var(--surface2); border-radius: 3px; height: 5px; overflow: hidden; }
-  .sbar { height: 100%; border-radius: 3px; transition: width .8s cubic-bezier(.4,0,.2,1); }
-  .sval { font-size: 11px; font-family: 'DM Mono',monospace; min-width: 65px; text-align: right; }
+/* Mid row */
+.mid { display:grid; grid-template-columns:280px 1fr; gap:12px; margin-bottom:16px; }
+.panel { background:var(--surface); border-radius:10px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.07); }
+.ph { display:flex; align-items:center; justify-content:space-between; padding:11px 16px; border-bottom:1px solid var(--border); background:var(--surface2); }
+.pt { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:var(--muted); font-family:'DM Mono',monospace; }
+.pb { font-size:11px; font-family:'DM Mono',monospace; background:var(--surface); border:1px solid var(--border); color:var(--muted); padding:2px 8px; border-radius:20px; }
 
-  /* Top table */
-  .top-table { width: 100%; border-collapse: collapse; }
-  .top-table th { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-family: 'DM Mono',monospace; padding: 9px 14px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 500; }
-  .top-table td { padding: 10px 14px; font-size: 12px; border-bottom: 1px solid rgba(33,38,45,0.5); vertical-align: middle; }
-  .top-table tr:last-child td { border-bottom: none; }
-  .top-table tr:hover td { background: rgba(88,166,255,0.03); }
-  .qname { font-weight: 500; }
-  .qid { font-family: 'DM Mono',monospace; font-size: 10px; color: var(--muted); }
-  .chip { font-size: 10px; padding: 2px 8px; border-radius: 12px; font-family: 'DM Mono',monospace; font-weight: 500; white-space: nowrap; }
-  .aval { font-family: 'DM Mono',monospace; font-size: 12px; text-align: right; }
-  .dval { font-family: 'DM Mono',monospace; font-size: 11px; color: var(--muted); }
+/* Stage list */
+.slist-inner { padding:12px 14px; }
+.sr { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.sr:last-child { margin-bottom:0; }
+.sdot { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+.sname { font-size:13px; flex:1; }
+.scount { font-size:11px; color:var(--muted); font-family:'DM Mono',monospace; width:28px; text-align:right; }
+.sbar-wrap { width:70px; background:var(--surface2); border-radius:3px; height:6px; overflow:hidden; border:1px solid var(--border); }
+.sbar { height:100%; border-radius:3px; }
+.sval { font-size:11px; font-family:'DM Mono',monospace; min-width:65px; text-align:right; font-weight:600; }
 
-  /* Main table */
-  .table-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; animation: up .35s ease .3s both; }
-  .tcontrols { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
-  .search { flex: 1; min-width: 180px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; color: var(--text); font-size: 12px; font-family: 'Sora',sans-serif; outline: none; transition: border-color .15s; }
-  .search:focus { border-color: var(--accent); }
-  .search::placeholder { color: var(--muted); }
-  .fbtn { padding: 5px 12px; border-radius: 6px; font-size: 11px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: 'Sora',sans-serif; transition: all .15s; white-space: nowrap; }
-  .fbtn:hover, .fbtn.on { border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,0.06); }
-  .tcnt { font-size: 11px; font-family: 'DM Mono',monospace; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 2px 8px; border-radius: 20px; margin-left: auto; }
-  .twrap { overflow-x: auto; max-height: 500px; overflow-y: auto; }
-  .qtable { width: 100%; border-collapse: collapse; min-width: 780px; }
-  .qtable th { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-family: 'DM Mono',monospace; padding: 9px 13px; text-align: left; font-weight: 500; position: sticky; top: 0; background: var(--surface); border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; white-space: nowrap; }
-  .qtable th:hover { color: var(--accent); }
-  .qtable td { padding: 9px 13px; font-size: 12px; border-bottom: 1px solid rgba(33,38,45,0.5); vertical-align: middle; }
-  .qtable tr:hover td { background: rgba(88,166,255,0.03); }
-  .qtable tr:last-child td { border-bottom: none; }
-  .empty { padding: 32px; text-align: center; color: var(--muted); font-size: 13px; }
-  .spin { width: 22px; height: 22px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 10px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading { padding: 40px; text-align: center; color: var(--muted); font-size: 12px; }
-  .err { background: rgba(248,81,73,.08); border: 1px solid rgba(248,81,73,.25); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: var(--red); font-size: 12px; }
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: var(--surface); }
-  ::-webkit-scrollbar-thumb { background: var(--subtle); border-radius: 3px; }
-  @media(max-width:1100px) { .kpis{grid-template-columns:1fr 1fr} .alert-grid{grid-template-columns:1fr} .mid{grid-template-columns:1fr} }
-  @media(max-width:600px) { main{padding:14px} header{padding:12px 16px} }
+/* Top table */
+.top-table { width:100%; border-collapse:collapse; }
+.top-table th { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); font-family:'DM Mono',monospace; padding:9px 14px; text-align:left; border-bottom:1px solid var(--border); background:var(--surface2); }
+.top-table td { padding:10px 14px; font-size:12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.top-table tr:last-child td { border-bottom:none; }
+.top-table tr:hover td { background:#f5fbf7; }
+.qname { font-weight:600; }
+.qid { font-family:'DM Mono',monospace; font-size:10px; color:var(--muted); }
+.aval { font-family:'DM Mono',monospace; font-size:12px; text-align:right; font-weight:600; }
+.dval { font-family:'DM Mono',monospace; font-size:11px; color:var(--muted); }
+
+/* Main table */
+.table-panel { background:var(--surface); border-radius:10px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.07); }
+.tcontrols { display:flex; align-items:center; gap:8px; padding:11px 16px; border-bottom:1px solid var(--border); background:var(--surface2); flex-wrap:wrap; }
+.search { flex:1; min-width:180px; background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:6px 12px; color:var(--text); font-size:12px; font-family:'Sora',sans-serif; outline:none; transition:border-color .15s; }
+.search:focus { border-color:var(--mes); }
+.search::placeholder { color:var(--muted); }
+.fbtn { padding:5px 12px; border-radius:6px; font-size:11px; border:1px solid var(--border); background:var(--surface); color:var(--muted); cursor:pointer; font-family:'Sora',sans-serif; transition:all .15s; white-space:nowrap; }
+.fbtn:hover,.fbtn.on { border-color:var(--mes); color:var(--mes); background:#e8f5ee; font-weight:600; }
+.tcnt { font-size:11px; font-family:'DM Mono',monospace; background:var(--surface); border:1px solid var(--border); color:var(--muted); padding:2px 8px; border-radius:20px; margin-left:auto; }
+.twrap { overflow-x:auto; max-height:500px; overflow-y:auto; }
+.qtable { width:100%; border-collapse:collapse; min-width:780px; }
+.qtable th { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); font-family:'DM Mono',monospace; padding:9px 13px; text-align:left; font-weight:600; position:sticky; top:0; background:var(--surface2); border-bottom:1px solid var(--border); cursor:pointer; user-select:none; white-space:nowrap; }
+.qtable th:hover { color:var(--mes); }
+.qtable td { padding:9px 13px; font-size:12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.qtable tr:hover td { background:#f5fbf7; }
+.qtable tr:last-child td { border-bottom:none; }
+.empty { padding:32px; text-align:center; color:var(--muted); font-size:13px; }
+.spin { width:20px; height:20px; border:2px solid var(--border); border-top-color:var(--mes); border-radius:50%; animation:spin .7s linear infinite; margin:0 auto 8px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.loading { padding:30px; text-align:center; color:var(--muted); font-size:12px; }
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:var(--surface2); }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+@media(max-width:1100px) { .kpis{grid-template-columns:1fr 1fr} .alert-grid{grid-template-columns:1fr} .mid{grid-template-columns:1fr} }
+@media(max-width:600px) { main{padding:14px} header{padding:10px 14px} }
 </style>
 </head>
 <body>
 <header>
-  <div class="logo">
-    <div class="logo-hex">M</div>
+  <div class="logo-wrap">
+    <img src="https://raw.githubusercontent.com/mes-bot-maker/mes-dashboards/main/assets/mes-white.png" alt="MES" class="logo-img" onerror="this.style.display='none'">
+    <div class="logo-div"></div>
     <div>
-      <div class="logo-name">MES Power</div>
-      <div class="logo-tag">Engineering</div>
+      <div class="logo-name">MES Power Engineering</div>
+      <div class="logo-tag">Quotes Pipeline</div>
     </div>
   </div>
-  <nav class="nav">
-    <a href="../quotes/" class="active">Quotes Pipeline</a>
+  <nav>
+    <a href="../quotes/" class="on">Quotes Pipeline</a>
     <a href="../bd/">BD Dashboard</a>
   </nav>
-  <div class="live">
-    <div class="dot"></div>
-    <span id="updated">Loading…</span>
+  <div class="hright">
+    <div class="live"><div class="dot"></div><span id="updated">Loading...</span></div>
   </div>
 </header>
 
 <main>
   <div id="err" class="err" style="display:none"></div>
 
-  <!-- KPIs -->
   <div class="kpis">
-    <div class="kpi" style="--kpi-color:var(--accent)">
-      <div class="kpi-label">Open Pipeline</div>
-      <div class="kpi-val" id="k-pipeline">—</div>
-      <div class="kpi-sub" id="k-pipeline-n">— open quotes</div>
-    </div>
-    <div class="kpi" style="--kpi-color:var(--green)">
-      <div class="kpi-label">Won (Closed)</div>
-      <div class="kpi-val" id="k-won">—</div>
-      <div class="kpi-sub" id="k-won-n">— jobs raised</div>
-    </div>
-    <div class="kpi" style="--kpi-color:var(--accent2)">
-      <div class="kpi-label">Active In-Progress</div>
-      <div class="kpi-val" id="k-active">—</div>
-      <div class="kpi-sub" id="k-active-n">— quotes</div>
-    </div>
-    <div class="kpi" style="--kpi-color:var(--muted)">
-      <div class="kpi-label">Avg Quote Value</div>
-      <div class="kpi-val" id="k-avg">—</div>
-      <div class="kpi-sub">ex. VAT, open quotes</div>
-    </div>
+    <div class="kpi" style="--kc:var(--mes)"><div class="klabel">Open Pipeline</div><div class="kval" id="k-pipeline">—</div><div class="ksub" id="k-pipeline-n">—</div></div>
+    <div class="kpi" style="--kc:var(--good)"><div class="klabel">Won (Closed)</div><div class="kval" style="color:var(--good)" id="k-won">—</div><div class="ksub" id="k-won-n">—</div></div>
+    <div class="kpi" style="--kc:var(--amber)"><div class="klabel">Active In-Progress</div><div class="kval" id="k-active">—</div><div class="ksub" id="k-active-n">—</div></div>
+    <div class="kpi" style="--kc:var(--muted)"><div class="klabel">Avg Quote Value</div><div class="kval" id="k-avg">—</div><div class="ksub">ex. VAT, open quotes</div></div>
   </div>
 
-  <!-- Due this week / this month -->
   <div class="alert-grid">
     <div class="alert-panel week">
-      <div class="ap-header">
-        <span class="ap-title">⚠ Due This Week</span>
-        <span class="ap-badge" id="week-badge">—</span>
-      </div>
+      <div class="ap-header"><span class="ap-title">&#9888; Due This Week</span><span class="ap-badge" id="week-badge">—</span></div>
       <div class="ap-scroll">
         <table class="ap-table">
-          <thead><tr>
-            <th>Quote</th>
-            <th>Stage</th>
-            <th>Due</th>
-            <th style="text-align:right">Value</th>
-          </tr></thead>
-          <tbody id="week-body"><tr><td colspan="4" class="ap-empty">Loading…</td></tr></tbody>
+          <thead><tr><th>Quote</th><th>Stage</th><th>Due</th><th style="text-align:right">Value</th></tr></thead>
+          <tbody id="week-body"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
     <div class="alert-panel month">
-      <div class="ap-header">
-        <span class="ap-title">📅 Due This Month</span>
-        <span class="ap-badge" id="month-badge">—</span>
-      </div>
+      <div class="ap-header"><span class="ap-title">&#128197; Due This Month</span><span class="ap-badge" id="month-badge">—</span></div>
       <div class="ap-scroll">
         <table class="ap-table">
-          <thead><tr>
-            <th>Quote</th>
-            <th>Stage</th>
-            <th>Due</th>
-            <th style="text-align:right">Value</th>
-          </tr></thead>
-          <tbody id="month-body"><tr><td colspan="4" class="ap-empty">Loading…</td></tr></tbody>
+          <thead><tr><th>Quote</th><th>Stage</th><th>Due</th><th style="text-align:right">Value</th></tr></thead>
+          <tbody id="month-body"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- Stage breakdown + Top 8 -->
   <div class="mid">
     <div class="panel">
       <div class="ph"><span class="pt">By Stage</span><span class="pb" id="stage-total">—</span></div>
-      <div class="stage-list" id="stage-list"><div class="loading"><div class="spin"></div></div></div>
+      <div class="slist-inner" id="stage-list"><div class="loading"><div class="spin"></div></div></div>
     </div>
     <div class="panel">
       <div class="ph"><span class="pt">Top 8 by Value</span><span class="pb">Ex. VAT</span></div>
       <div style="overflow-x:auto">
         <table class="top-table">
           <thead><tr><th>Quote</th><th>Stage</th><th style="text-align:right">Value</th><th>Issued</th></tr></thead>
-          <tbody id="top-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+          <tbody id="top-body"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- Full table -->
   <div class="table-panel">
     <div class="tcontrols">
-      <input class="search" id="search" placeholder="Search by name or ID…">
+      <input class="search" id="search" placeholder="Search by name or ID...">
       <button class="fbtn on" data-f="all">All</button>
       <button class="fbtn" data-f="InProgress">In Progress</button>
       <button class="fbtn" data-f="_won">Won</button>
@@ -275,239 +219,192 @@
     <div class="twrap">
       <table class="qtable">
         <thead><tr>
-          <th data-s="ID">ID ↕</th>
-          <th data-s="Name">Name ↕</th>
-          <th data-s="Stage">Stage ↕</th>
-          <th data-s="Total" style="text-align:right">Value Ex VAT ↕</th>
-          <th data-s="DateIssued">Issued ↕</th>
-          <th data-s="DueDate">Due ↕</th>
+          <th data-s="ID">ID &#8597;</th>
+          <th data-s="Name">Name &#8597;</th>
+          <th data-s="Stage">Stage &#8597;</th>
+          <th data-s="Total" style="text-align:right">Value Ex VAT &#8597;</th>
+          <th data-s="DateIssued">Issued &#8597;</th>
+          <th data-s="DueDate">Due &#8597;</th>
         </tr></thead>
-        <tbody id="main-body"><tr><td colspan="6" class="loading"><div class="spin"></div>Fetching quotes…</td></tr></tbody>
+        <tbody id="main-body"><tr><td colspan="6" class="loading"><div class="spin"></div>Fetching quotes...</td></tr></tbody>
       </table>
     </div>
   </div>
 </main>
 
 <script>
-const API = 'https://mes-api.mes-bot.workers.dev/api/all';
-
-const STAGES = {
-  'InProgress': { color: '#58a6ff', label: 'In Progress' },
-  'Pending':    { color: '#d29922', label: 'Pending' },
-  'Draft':      { color: '#7d8590', label: 'Draft' },
-  'Lost':       { color: '#f85149', label: 'Lost' },
-  'Declined':   { color: '#f85149', label: 'Declined' },
-  'Approved':   { color: '#3fb950', label: 'Approved' },
+var API = 'https://mes-api.mes-bot.workers.dev/api/all';
+var STAGES = {
+  'InProgress': {color:'#1565c0',label:'In Progress'},
+  'Pending':    {color:'#e65100',label:'Pending'},
+  'Draft':      {color:'#5a7a65',label:'Draft'},
+  'Lost':       {color:'#c62828',label:'Lost'},
+  'Declined':   {color:'#c62828',label:'Declined'},
+  'Approved':   {color:'#007A3D',label:'Approved'},
+  'Complete':   {color:'#007A3D',label:'Complete'},
 };
+function sc(s,closed){ return closed?'#007A3D':(STAGES[s]?STAGES[s].color:'#5a7a65'); }
+function sl(s,closed){ return closed?'Won':(STAGES[s]?STAGES[s].label:s); }
+function fmt(n){
+  var a=Math.abs(n),s=n<0?'-':'';
+  if(a>=1e6) return s+'\u00a3'+(a/1e6).toFixed(2)+'M';
+  if(a>=1e3) return s+'\u00a3'+(a/1e3).toFixed(1)+'K';
+  return s+'\u00a3'+a.toFixed(0);
+}
+function fmtFull(n){ return '\u00a3'+n.toLocaleString('en-GB',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function fmtDate(d){
+  if(!d) return '—';
+  var dt=new Date(d); if(isNaN(dt)) return '—';
+  return dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'});
+}
 
-const sc = (s, closed) => closed ? '#3fb950' : (STAGES[s]?.color || '#7d8590');
-const sl = (s, closed) => closed ? 'Won' : (STAGES[s]?.label || s);
+var all=[], curF='all', curS='', sKey='Total', sDir=-1;
 
-const £ = n => {
-  if (n >= 1e6) return '£' + (n/1e6).toFixed(2) + 'M';
-  if (n >= 1e3) return '£' + (n/1e3).toFixed(1) + 'k';
-  return '£' + n.toFixed(0);
-};
-const £f = n => '£' + n.toLocaleString('en-GB', {minimumFractionDigits:0, maximumFractionDigits:0});
-const fd = d => {
-  if (!d) return '—';
-  const dt = new Date(d); if (isNaN(dt)) return '—';
-  return dt.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'});
-};
-
-let all = [], curF = 'all', curS = '', sKey = 'Total', sDir = -1;
-
-async function load() {
+async function load(){
   try {
-    const r = await fetch(API);
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    const raw = await r.json();
-    all = Array.isArray(raw) ? raw : (raw.quotes || []);
-    if (!all.length && raw.error) throw new Error(raw.error);
-    document.getElementById('updated').textContent =
-      new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+    var r = await fetch(API);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    var raw = await r.json();
+    all = Array.isArray(raw) ? raw : (raw.quotes||[]);
+    if(!all.length) throw new Error('No data — retrying');
+    document.getElementById('updated').textContent = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     render();
   } catch(e) {
-    const el = document.getElementById('err');
-    el.style.display = 'block';
-    el.textContent = 'Error: ' + e.message;
+    var el=document.getElementById('err');
+    el.style.display='block'; el.textContent='Error: '+e.message;
+    setTimeout(load, 10000);
   }
 }
 
-function render() {
-  renderKPIs();
-  renderDue();
-  renderStages();
-  renderTop();
-  renderTable();
+function render(){ renderKPIs(); renderDue(); renderStages(); renderTop(); renderTable(); }
+
+function renderKPIs(){
+  var open=all.filter(function(q){return !q.IsClosed;});
+  var won=all.filter(function(q){return q.JobNo && q.JobNo !== '';});
+  var active=all.filter(function(q){return q.Stage==='InProgress'&&!q.IsClosed;});
+  var pipeline=open.reduce(function(s,q){return s+(q.Total?q.Total.ExTax||0:0);},0);
+  var wonVal=won.reduce(function(s,q){return s+(q.Total?q.Total.ExTax||0:0);},0);
+  var activeVal=active.reduce(function(s,q){return s+(q.Total?q.Total.ExTax||0:0);},0);
+  var nz=open.filter(function(q){return (q.Total?q.Total.ExTax||0:0)>0;});
+  var avg=nz.length?nz.reduce(function(s,q){return s+(q.Total?q.Total.ExTax||0:0);},0)/nz.length:0;
+  document.getElementById('k-pipeline').textContent=fmt(pipeline);
+  document.getElementById('k-pipeline-n').textContent=open.length+' open quotes';
+  document.getElementById('k-won').textContent=fmt(wonVal);
+  document.getElementById('k-won-n').textContent=won.length+' jobs raised';
+  document.getElementById('k-active').textContent=fmt(activeVal);
+  document.getElementById('k-active-n').textContent=active.length+' quotes';
+  document.getElementById('k-avg').textContent=fmt(avg);
 }
 
-function renderKPIs() {
-  const open = all.filter(q => !q.IsClosed);
-  const won  = all.filter(q => q.IsClosed);
-  const active = all.filter(q => q.Stage === 'InProgress' && !q.IsClosed);
-  const pipeline = open.reduce((s,q) => s + (q.Total?.ExTax||0), 0);
-  const wonVal   = won.reduce((s,q) => s + (q.Total?.ExTax||0), 0);
-  const activeVal = active.reduce((s,q) => s + (q.Total?.ExTax||0), 0);
-  const nz = open.filter(q => (q.Total?.ExTax||0) > 0);
-  const avg = nz.length ? nz.reduce((s,q)=>s+(q.Total?.ExTax||0),0)/nz.length : 0;
-
-  document.getElementById('k-pipeline').textContent = £(pipeline);
-  document.getElementById('k-pipeline-n').textContent = open.length + ' open quotes';
-  document.getElementById('k-won').textContent = £(wonVal);
-  document.getElementById('k-won-n').textContent = won.length + ' jobs raised';
-  document.getElementById('k-active').textContent = £(activeVal);
-  document.getElementById('k-active-n').textContent = active.length + ' quotes';
-  document.getElementById('k-avg').textContent = £(avg);
-}
-
-function renderDue() {
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-  // End of this week (Sunday)
-  const dayOfWeek = today.getDay();
-  const daysToSunday = 7 - (dayOfWeek === 0 ? 7 : dayOfWeek);
-  const endOfWeek = new Date(today);
-  endOfWeek.setDate(today.getDate() + daysToSunday);
-
-  // End of this month
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-  const hasDue = q => q.DueDate && !q.IsClosed;
-  const dueDate = q => new Date(q.DueDate);
-
-  const weekQuotes = all
-    .filter(q => hasDue(q) && dueDate(q) <= endOfWeek)
-    .sort((a,b) => dueDate(a) - dueDate(b));
-
-  const monthQuotes = all
-    .filter(q => hasDue(q) && dueDate(q) > endOfWeek && dueDate(q) <= endOfMonth)
-    .sort((a,b) => dueDate(a) - dueDate(b));
-
-  document.getElementById('week-badge').textContent = weekQuotes.length + ' quotes';
-  document.getElementById('month-badge').textContent = monthQuotes.length + ' quotes';
-
-  const dueRow = q => {
-    const dd = dueDate(q);
-    const isOverdue = dd < today;
-    const daysOut = Math.ceil((dd - today) / 86400000);
-    const cls = isOverdue ? 'overdue' : daysOut <= 2 ? 'soon' : 'ok';
-    const label = isOverdue ? `${Math.abs(daysOut)}d overdue` : daysOut === 0 ? 'Today' : daysOut === 1 ? 'Tomorrow' : fd(q.DueDate);
-    return `<tr>
-      <td><div class="due-name" title="${q.Name}">${q.Name}</div><div class="due-id">#${q.ID}</div></td>
-      <td><span class="chip" style="background:${sc(q.Stage,q.IsClosed)}22;color:${sc(q.Stage,q.IsClosed)};border:1px solid ${sc(q.Stage,q.IsClosed)}44">${sl(q.Stage,q.IsClosed)}</span></td>
-      <td class="due-date ${cls}">${label}</td>
-      <td class="due-val">${£f(q.Total?.ExTax||0)}</td>
-    </tr>`;
-  };
-
-  document.getElementById('week-body').innerHTML = weekQuotes.length
-    ? weekQuotes.map(dueRow).join('')
-    : '<tr><td colspan="4" class="ap-empty">✓ No quotes due this week</td></tr>';
-
-  document.getElementById('month-body').innerHTML = monthQuotes.length
-    ? monthQuotes.map(dueRow).join('')
-    : '<tr><td colspan="4" class="ap-empty">No quotes due later this month</td></tr>';
-}
-
-function renderStages() {
-  const map = {};
-  all.forEach(q => {
-    const k = q.IsClosed ? '_won' : (q.Stage || 'Unknown');
-    if (!map[k]) map[k] = { count: 0, val: 0, color: k === '_won' ? '#3fb950' : sc(q.Stage, false), label: k === '_won' ? 'Won' : sl(q.Stage, false) };
-    map[k].count++;
-    map[k].val += q.Total?.ExTax || 0;
-  });
-  const sorted = Object.entries(map).sort((a,b) => b[1].val - a[1].val);
-  const max = sorted[0]?.[1].val || 1;
-  document.getElementById('stage-total').textContent = all.length + ' total';
-  document.getElementById('stage-list').innerHTML = sorted.map(([,d]) => `
-    <div class="sr">
-      <div class="sdot" style="background:${d.color}"></div>
-      <div class="sname">${d.label}</div>
-      <div class="scount">${d.count}</div>
-      <div class="sbar-wrap"><div class="sbar" style="width:${(d.val/max*100).toFixed(1)}%;background:${d.color}"></div></div>
-      <div class="sval">${£(d.val)}</div>
-    </div>`).join('');
-}
-
-function renderTop() {
-  const top = [...all].sort((a,b) => (b.Total?.ExTax||0)-(a.Total?.ExTax||0)).slice(0,8);
-  document.getElementById('top-body').innerHTML = top.map(q => `
-    <tr>
-      <td><div class="qname">${q.Name}</div><div class="qid">#${q.ID}</div></td>
-      <td><span class="chip" style="background:${sc(q.Stage,q.IsClosed)}22;color:${sc(q.Stage,q.IsClosed)};border:1px solid ${sc(q.Stage,q.IsClosed)}44">${sl(q.Stage,q.IsClosed)}</span></td>
-      <td class="aval">${£f(q.Total?.ExTax||0)}</td>
-      <td class="dval">${fd(q.DateIssued)}</td>
-    </tr>`).join('');
-}
-
-function filtered() {
-  return all.filter(q => {
-    const fs = curF === 'all' ? true
-      : curF === '_won' ? q.IsClosed === true
-      : q.Stage === curF;
-    const ft = !curS || q.Name?.toLowerCase().includes(curS) || String(q.ID).includes(curS);
-    return fs && ft;
-  }).sort((a,b) => {
-    let av = a[sKey], bv = b[sKey];
-    if (sKey === 'Total') { av = a.Total?.ExTax||0; bv = b.Total?.ExTax||0; }
-    if (sKey === 'DueDate') { av = a.DueDate ? new Date(a.DueDate).getTime() : 0; bv = b.DueDate ? new Date(b.DueDate).getTime() : 0; }
-    if (typeof av === 'string') av = av.toLowerCase();
-    if (typeof bv === 'string') bv = bv.toLowerCase();
-    return av < bv ? sDir : av > bv ? -sDir : 0;
-  });
-}
-
-function renderTable() {
-  const rows = filtered();
-  document.getElementById('tcnt').textContent = rows.length + ' quotes';
-  if (!rows.length) {
-    document.getElementById('main-body').innerHTML = '<tr><td colspan="6" class="empty">No quotes match</td></tr>';
-    return;
+function renderDue(){
+  var now=new Date();
+  var today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  var dow=today.getDay(), toSun=7-(dow===0?7:dow);
+  var eow=new Date(today); eow.setDate(today.getDate()+toSun);
+  var eom=new Date(now.getFullYear(),now.getMonth()+1,0);
+  var hasDue=function(q){return q.DueDate&&!q.IsClosed&&q.Stage!=='Approved'&&q.Stage!=='Complete';};
+  var dd=function(q){return new Date(q.DueDate);};
+  var weekQ=all.filter(function(q){return hasDue(q)&&dd(q)<=eow;}).sort(function(a,b){return dd(a)-dd(b);});
+  var monthQ=all.filter(function(q){return hasDue(q)&&dd(q)>eow&&dd(q)<=eom;}).sort(function(a,b){return dd(a)-dd(b);});
+  document.getElementById('week-badge').textContent=weekQ.length+' quotes';
+  document.getElementById('month-badge').textContent=monthQ.length+' quotes';
+  function dueRow(q){
+    var d=dd(q),isOv=d<today,days=Math.ceil((d-today)/86400000);
+    var cls=isOv?'overdue':days<=2?'soon':'ok';
+    var lbl=isOv?Math.abs(days)+'d overdue':days===0?'Today':days===1?'Tomorrow':fmtDate(q.DueDate);
+    var col=sc(q.Stage,q.IsClosed),lbl2=sl(q.Stage,q.IsClosed);
+    return '<tr>'+
+      '<td><div class="due-name" title="'+q.Name+'">'+q.Name+'</div><div class="due-id">#'+q.ID+'</div></td>'+
+      '<td><span class="chip" style="background:'+col+'22;color:'+col+';border:1px solid '+col+'55">'+lbl2+'</span></td>'+
+      '<td class="'+cls+'">'+lbl+'</td>'+
+      '<td class="due-val">'+fmtFull(q.Total?q.Total.ExTax||0:0)+'</td></tr>';
   }
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  document.getElementById('main-body').innerHTML = rows.map(q => {
-    let dueCls = '', dueLabel = fd(q.DueDate);
-    if (q.DueDate && !q.IsClosed) {
-      const dd = new Date(q.DueDate);
-      const days = Math.ceil((dd - today)/86400000);
-      if (days < 0) { dueCls = 'color:var(--red);font-weight:600'; dueLabel = Math.abs(days)+'d overdue'; }
-      else if (days <= 7) { dueCls = 'color:var(--amber)'; }
-    }
-    return `<tr>
-      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">#${q.ID}</td>
-      <td style="max-width:300px;font-weight:500">${q.Name}</td>
-      <td><span class="chip" style="background:${sc(q.Stage,q.IsClosed)}22;color:${sc(q.Stage,q.IsClosed)};border:1px solid ${sc(q.Stage,q.IsClosed)}44">${sl(q.Stage,q.IsClosed)}</span></td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px;text-align:right">${£f(q.Total?.ExTax||0)}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${fd(q.DateIssued)}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:11px;${dueCls}">${dueLabel}</td>
-    </tr>`;
+  document.getElementById('week-body').innerHTML=weekQ.length?weekQ.map(dueRow).join(''):'<tr><td colspan="4" class="empty">&#10003; No quotes due this week</td></tr>';
+  document.getElementById('month-body').innerHTML=monthQ.length?monthQ.map(dueRow).join(''):'<tr><td colspan="4" class="empty">No quotes due later this month</td></tr>';
+}
+
+function renderStages(){
+  var map={};
+  all.forEach(function(q){
+    var k=q.IsClosed?'_won':(q.Stage||'Unknown');
+    if(!map[k]) map[k]={count:0,val:0,color:k==='_won'?'#007A3D':sc(q.Stage,false),label:k==='_won'?'Won':sl(q.Stage,false)};
+    map[k].count++; map[k].val+=(q.Total?q.Total.ExTax||0:0);
+  });
+  var sorted=Object.entries(map).sort(function(a,b){return b[1].val-a[1].val;});
+  var mx=sorted[0]?sorted[0][1].val:1;
+  document.getElementById('stage-total').textContent=all.length+' total';
+  document.getElementById('stage-list').innerHTML=sorted.map(function(e){
+    var d=e[1];
+    return '<div class="sr">'+
+      '<div class="sdot" style="background:'+d.color+'"></div>'+
+      '<div class="sname">'+d.label+'</div>'+
+      '<div class="scount">'+d.count+'</div>'+
+      '<div class="sbar-wrap"><div class="sbar" style="width:'+(d.val/mx*100).toFixed(1)+'%;background:'+d.color+'"></div></div>'+
+      '<div class="sval">'+fmt(d.val)+'</div></div>';
   }).join('');
 }
 
-// Filters
-document.querySelectorAll('.fbtn').forEach(b => b.addEventListener('click', () => {
-  document.querySelectorAll('.fbtn').forEach(x => x.classList.remove('on'));
-  b.classList.add('on');
-  curF = b.dataset.f;
-  renderTable();
-}));
-document.getElementById('search').addEventListener('input', e => {
-  curS = e.target.value.toLowerCase().trim();
-  renderTable();
-});
-document.querySelectorAll('.qtable th[data-s]').forEach(th => th.addEventListener('click', () => {
-  const k = th.dataset.s;
-  sDir = sKey === k ? sDir * -1 : -1;
-  sKey = k;
-  renderTable();
-}));
+function renderTop(){
+  var top=[].concat(all).sort(function(a,b){return (b.Total?b.Total.ExTax||0:0)-(a.Total?a.Total.ExTax||0:0);}).slice(0,8);
+  document.getElementById('top-body').innerHTML=top.map(function(q){
+    var col=sc(q.Stage,q.IsClosed),lbl=sl(q.Stage,q.IsClosed);
+    return '<tr>'+
+      '<td><div class="qname">'+q.Name+'</div><div class="qid">#'+q.ID+'</div></td>'+
+      '<td><span class="chip" style="background:'+col+'22;color:'+col+';border:1px solid '+col+'55">'+lbl+'</span></td>'+
+      '<td class="aval">'+fmtFull(q.Total?q.Total.ExTax||0:0)+'</td>'+
+      '<td class="dval">'+fmtDate(q.DateIssued)+'</td></tr>';
+  }).join('');
+}
+
+function getFiltered(){
+  return all.filter(function(q){
+    var fs=curF==='all'?true:curF==='_won'?q.IsClosed===true:q.Stage===curF;
+    var ft=!curS||q.Name.toLowerCase().includes(curS)||String(q.ID).includes(curS);
+    return fs&&ft;
+  }).sort(function(a,b){
+    var av=a[sKey],bv=b[sKey];
+    if(sKey==='Total'){av=a.Total?a.Total.ExTax||0:0;bv=b.Total?b.Total.ExTax||0:0;}
+    if(sKey==='DueDate'){av=a.DueDate?new Date(a.DueDate).getTime():0;bv=b.DueDate?new Date(b.DueDate).getTime():0;}
+    if(typeof av==='string') av=av.toLowerCase();
+    if(typeof bv==='string') bv=bv.toLowerCase();
+    return av<bv?sDir:av>bv?-sDir:0;
+  });
+}
+
+function renderTable(){
+  var rows=getFiltered();
+  var now=new Date(),today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  document.getElementById('tcnt').textContent=rows.length+' quotes';
+  if(!rows.length){document.getElementById('main-body').innerHTML='<tr><td colspan="6" class="empty">No quotes match</td></tr>';return;}
+  document.getElementById('main-body').innerHTML=rows.map(function(q){
+    var col=sc(q.Stage,q.IsClosed),lbl=sl(q.Stage,q.IsClosed);
+    var dueStyle='',dueTxt=fmtDate(q.DueDate);
+    if(q.DueDate&&!q.IsClosed){
+      var d=new Date(q.DueDate),days=Math.ceil((d-today)/86400000);
+      if(days<0){dueStyle='color:var(--bad);font-weight:700';dueTxt=Math.abs(days)+'d overdue';}
+      else if(days<=7) dueStyle='color:var(--amber);font-weight:600';
+    }
+    return '<tr>'+
+      '<td style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--muted)">#'+q.ID+'</td>'+
+      '<td style="max-width:300px;font-weight:500">'+q.Name+'</td>'+
+      '<td><span class="chip" style="background:'+col+'22;color:'+col+';border:1px solid '+col+'55">'+lbl+'</span></td>'+
+      '<td style="font-family:\'DM Mono\',monospace;font-size:12px;text-align:right;font-weight:600">'+fmtFull(q.Total?q.Total.ExTax||0:0)+'</td>'+
+      '<td style="font-family:\'DM Mono\',monospace;font-size:11px;color:var(--muted)">'+fmtDate(q.DateIssued)+'</td>'+
+      '<td style="font-family:\'DM Mono\',monospace;font-size:11px;'+dueStyle+'">'+dueTxt+'</td></tr>';
+  }).join('');
+}
+
+document.querySelectorAll('.fbtn').forEach(function(b){b.addEventListener('click',function(){
+  document.querySelectorAll('.fbtn').forEach(function(x){x.classList.remove('on');});
+  b.classList.add('on'); curF=b.dataset.f; renderTable();
+});});
+document.getElementById('search').addEventListener('input',function(e){curS=e.target.value.toLowerCase().trim();renderTable();});
+document.querySelectorAll('.qtable th[data-s]').forEach(function(th){th.addEventListener('click',function(){
+  var k=th.dataset.s; sDir=sKey===k?sDir*-1:-1; sKey=k; renderTable();
+});});
 
 load();
-setInterval(load, 5 * 60 * 1000);
+setInterval(load,5*60*1000);
 </script>
 </body>
 </html>
