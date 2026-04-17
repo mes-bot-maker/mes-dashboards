@@ -1,117 +1,81 @@
-# MES Power Engineering — TV Dashboards
+const CORS = { headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' } };
+const TARGETS_FALLBACK = {
+  annual: 6750000,
+  monthly: { 1: 270000, 2: 472500, 3: 607500, 4: 675000, 5: 742500, 6: 810000, 7: 675000, 8: 472500, 9: 675000, 10: 675000, 11: 472500, 12: 202500 },
+  sectors: { 'EV Hubs': 2000000, '33kV Connections': 2000000, 'BESS': 750000, 'C&I Connections': 750000, 'Residential Connections': 250000, 'BoP (Private Network)': 500000, 'Small Works': 300000, 'O&M Contracts': 100000, 'Faults': 100000 }
+};
 
-## Architecture Overview
+export default {
+  async fetch(request, env) {
+    try {
+      const url = new URL(request.url);
+      if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
+      if (url.pathname === '/api/quotes')    return await handleQuotes(env);
+      if (url.pathname === '/api/leads')     return await handleLeads(env);
+      if (url.pathname === '/api/customers') return await handleCustomers(env);
+      if (url.pathname === '/api/users')     return await handleUsers(env);
+      if (url.pathname === '/api/targets')   return await handleTargets(env);
+      if (url.pathname === '/api/all')       return await handleAll(env);
+      return json({ error: 'Not found' }, 404);
+    } catch (e) { return json({ error: e.message }, 500); }
+  }
+};
 
-```
-TV Browser (GitHub Pages)
-    │  fetch("/api/quotes")  fetch("/api/leads")  fetch("/api/targets")
-    ▼
-Cloudflare Worker  ← holds all secrets securely as env variables
-    │                    SIMPRO_API_KEY
-    │                    SIMPRO_BASE_URL
-    │                    MS_GRAPH_TOKEN (for SharePoint targets)
-    ├──► simPRO REST API  (quotes, leads, customers, users)
-    └──► Microsoft Graph  (SharePoint Excel targets file)
-```
+async function simproGet(env, path) {
+  const res = await fetch(env.SIMPRO_BASE_URL + '/api/v1.0/companies/2' + path, {
+    headers: { 'Authorization': 'Bearer ' + env.SIMPRO_API_KEY, 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) { const b = await res.text().catch(() => ''); throw new Error('simPRO ' + res.status + ': ' + path + ' ' + b.slice(0, 300)); }
+  return res.json();
+}
 
-## Files in this repo
+async function getGraphToken(env) {
+  const p = new URLSearchParams({ grant_type: 'client_credentials', client_id: env.AZURE_CLIENT_ID, client_secret: env.AZURE_CLIENT_SECRET, scope: 'https://graph.microsoft.com/.default' });
+  const r = await fetch('https://login.microsoftonline.com/' + env.AZURE_TENANT_ID + '/oauth2/v2.0/token', { method: 'POST', body: p });
+  if (!r.ok) throw new Error('Azure token ' + r.status);
+  return (await r.json()).access_token;
+}
 
-| File | Purpose |
-|------|---------|
-| `quotes/index.html` | Quotes & Design Team TV dashboard |
-| `bd/index.html` | BD Pipeline TV dashboard |
-| `worker/worker.js` | Cloudflare Worker — API proxy (deploy to Cloudflare) |
-| `README.md` | This file |
+async function handleQuotes(env) {
+  const cols = 'ID,Name,Stage,Total,DateIssued,DateApproved,DueDate,IsClosed,Job';
+  return json(await simproGet(env, '/quotes/?dateFrom=2025-01-01&columns=' + cols + '&pageSize=250&page=1'));
+}
 
-## Key facts for future Claude sessions
+async function handleLeads(env) {
+  const cols = 'ID,Name,Stage,Total,DateIssued,DateApproved,DueDate,IsClosed';
+  return json(await simproGet(env, '/leads/?dateFrom=2025-01-01&columns=' + cols + '&pageSize=250&page=1'));
+}
 
-- **simPRO Integration ID (Tugger):** 4782
-- **simPRO company:** MES Power Engineering
-- **Tugger OData URL:** Available in Tugger portal under Connections
-- **Targets file:** SharePoint → Commercial → Targets (DO NOT DELETE) → 2026 Sales Targets North PBI.xlsx
-- **SharePoint file URI:** `file:///b!lqS9e4ABZEG8zi3gJ_wIpiQ6SCO-alRNodHfLjoj1fV1igdVlSgxRJ9wvEbU93fF/01RTE6GZ7VGX2FDM3NABGY3YXTZMFAQQA5`
+async function handleCustomers(env) { return json(await simproGet(env, '/customers/?columns=ID,CompanyName&pageSize=250')); }
+async function handleUsers(env) { return json(await simproGet(env, '/staff/?columns=ID,Name&pageSize=250&page=1')); }
 
-## MES Monthly Targets 2026 (from SharePoint)
+async function handleTargets(env) {
+  try {
+    const token = await getGraphToken(env);
+    const r = await fetch('https://graph.microsoft.com/v1.0/drives/' + env.SP_DRIVE_ID + '/items/' + env.SP_ITEM_ID + '/workbook/worksheets/Targets/usedRange', { headers: { Authorization: 'Bearer ' + token } });
+    if (!r.ok) throw new Error('Graph ' + r.status);
+    const rows = (await r.json()).values || [];
+    const monthly = {}, sectors = {}; let annual = 0;
+    for (const row of rows) {
+      if (!row[0] || !row[1]) continue;
+      const label = String(row[0]).trim(), val = Number(row[1]);
+      if (isNaN(val)) continue;
+      const m = label.match(/^Month\s*(\d+)$/i);
+      if (m) { monthly[parseInt(m[1])] = val; continue; }
+      if (/^Annual/i.test(label)) { annual = val; continue; }
+      sectors[label] = val;
+    }
+    if (!annual && !Object.keys(monthly).length) throw new Error('empty');
+    return json({ annual, monthly, sectors });
+  } catch (e) { console.error('Targets fallback:', e.message); return json(TARGETS_FALLBACK); }
+}
 
-| Month | MES Target | Cumulative |
-|-------|-----------|------------|
-| Jan   | £270,000  | £270,000   |
-| Feb   | £472,500  | £742,500   |
-| Mar   | £607,500  | £1,350,000 |
-| Apr   | £675,000  | £2,025,000 |
-| May   | £742,500  | £2,767,500 |
-| Jun   | £810,000  | £3,577,500 |
-| Jul   | £675,000  | £4,252,500 |
-| Aug   | £472,500  | £4,725,000 |
-| Sep   | £675,000  | £5,400,000 |
-| Oct   | £675,000  | £6,075,000 |
-| Nov   | £472,500  | £6,547,500 |
-| Dec   | £202,500  | £6,750,000 |
-| **Annual** | **£6,750,000** | |
+async function handleAll(env) {
+  const [qr, tr, lr] = await Promise.allSettled([handleQuotes(env), handleTargets(env), handleLeads(env)]);
+  const quotes = qr.status === 'fulfilled' ? await qr.value.clone().json() : { error: qr.reason?.message };
+  const targets = tr.status === 'fulfilled' ? await tr.value.clone().json() : TARGETS_FALLBACK;
+  const leads = (lr.status === 'fulfilled' && lr.value) ? await lr.value.clone().json() : [];
+  return json({ quotes, targets, leads, fetchedAt: new Date().toISOString() });
+}
 
-## Market Sector Targets 2026 (MES)
-
-| Sector | Annual Target |
-|--------|--------------|
-| EV Hubs | £2,000,000 |
-| 33kV Connections | £2,000,000 |
-| BESS | £750,000 |
-| C&I Connections | £750,000 |
-| Residential Connections | £250,000 |
-| BoP (Private Network) | £500,000 |
-| Small Works | £300,000 |
-| O&M Contracts | £100,000 |
-| Faults | £100,000 |
-
-## simPRO Key Fields
-
-### Quotes (SimproQuotes)
-- `Stage`: InProgress | Approved | Complete | Archived
-- `TotalExTax`: value ex VAT
-- `DateIssued`: when quote was sent
-- `DateApproved`: when customer approved (= won)
-- `DueDate`: quote due date
-- `IsClosed`: true = closed/lost
-- `ForecastPercent`: salesperson probability %
-- `JobNo`: populated when converted to job
-
-### Leads (SimproLeads)
-- `Stage`: Open | Closed
-- Custom Fields: 191=Market Sector, 192=Client Type, 224=How Received,
-  290=Client Status, 291=Opportunity Type, 293=Estimated Value,
-  294=CF Probability%, 295=Next Action, 296=Next Action Date, 297=Relationship Status
-
-## Cloudflare Worker Variables (set in Settings → Variables and Secrets)
-
-| Variable | Type | Value |
-|----------|------|-------|
-| `SIMPRO_BASE_URL` | Text | `https://mespower.simprocloud.com` |
-| `SIMPRO_API_KEY` | **Secret** | simPRO API key |
-| `AZURE_TENANT_ID` | Text | `18c43bd3-313f-4896-92cd-8a3b13451165` |
-| `AZURE_CLIENT_ID` | Text | `a3cef2b8-d6ae-402c-9c98-af8fa8fea802` |
-| `AZURE_CLIENT_SECRET` | **Secret** | Azure app client secret |
-
-**No GRAPH_TOKEN needed** — the Worker fetches its own token automatically using client credentials. Token is cached per Worker instance and renewed automatically. Never expires as long as the Azure app is active.
-
-| Endpoint | Returns |
-|----------|---------|
-| `GET /api/quotes` | All quotes from 2026-01-01 |
-| `GET /api/leads` | All leads from 2025-01-01 |
-| `GET /api/targets` | Monthly targets from SharePoint Excel |
-| `GET /api/customers` | Customer ID→Name lookup |
-| `GET /api/users` | User ID→Name lookup |
-
-## Setup Steps (for future reference)
-
-1. Create Cloudflare account at cloudflare.com
-2. Create Worker, paste `worker/worker.js`
-3. Add secrets: SIMPRO_API_KEY, SIMPRO_BASE_URL, GRAPH_TOKEN
-4. Note Worker URL (e.g. `https://mes-api.yourname.workers.dev`)
-5. Paste Worker URL into both dashboard HTML files
-6. Push all files to GitHub, enable Pages
-7. Open dashboard URL on TV micro PC, press F11
-
-## Data Refresh
-- Tugger syncs simPRO hourly
-- Dashboards auto-reload at :15 past each hour
-- Targets read live from SharePoint on each load
+function json(data, status = 200) { return new Response(JSON.stringify(data), { status, headers: CORS }); }
