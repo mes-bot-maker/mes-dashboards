@@ -356,17 +356,24 @@ function isLost(q) { return q.Stage === 'Lost' || q.Stage === 'Declined'; }
 
 async function loadData() {
   try {
-    var results = await Promise.all([
-      fetch(API_ALL).then(function(r) { return r.json(); }),
-      fetch(API_LEADS).then(function(r) { return r.json(); })
-    ]);
-
-    var allData = results[0];
-    var leadsData = results[1];
+    // Fetch independently so one failure doesn't break everything
+    var allData = {}, leadsData = [];
+    try {
+      var r1 = await fetch(API_ALL);
+      if (r1.ok) allData = await r1.json();
+    } catch(e1) { console.log('api/all failed:', e1.message); }
+    try {
+      var r2 = await fetch(API_LEADS);
+      if (r2.ok) leadsData = await r2.json();
+    } catch(e2) { console.log('api/leads failed:', e2.message); }
 
     var quotes = Array.isArray(allData) ? allData : (allData.quotes || []);
     var targets = allData.targets || {};
     var leads = Array.isArray(leadsData) ? leadsData : [];
+    
+    if (quotes.length === 0 && !allData.annual) {
+      throw new Error('No data returned - worker may be starting up, retrying in 10s...');
+    }
 
     document.getElementById('updated').textContent =
       new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
@@ -382,7 +389,9 @@ async function loadData() {
   } catch(e) {
     var el = document.getElementById('err');
     el.style.display = 'block';
-    el.textContent = 'Error loading data: ' + e.message;
+    el.textContent = 'Error: ' + e.message;
+    // Auto-retry after 10 seconds if worker is warming up
+    setTimeout(loadData, 10000);
   }
 }
 
