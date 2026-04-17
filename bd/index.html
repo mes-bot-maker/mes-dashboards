@@ -3,511 +3,503 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MES Power — Quotes Pipeline</title>
+<title>MES Power — BD Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
+    --mes-green: #007A3D;
+    --mes-green-dark: #005C2E;
+    --mes-green-light: #009A4D;
     --bg: #0d1117;
     --surface: #161b22;
     --surface2: #1c2230;
     --border: #21262d;
-    --accent: #58a6ff;
-    --accent2: #f0883e;
-    --green: #3fb950;
-    --red: #f85149;
-    --amber: #d29922;
     --text: #e6edf3;
     --muted: #7d8590;
     --subtle: #30363d;
+    --green: #3fb950;
+    --red: #f85149;
+    --amber: #d29922;
+    --blue: #58a6ff;
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; min-height: 100vh; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Sora',sans-serif; min-height:100vh; }
 
   header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px 28px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-    position: sticky; top: 0; z-index: 100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 28px;
+    background:var(--mes-green-dark);
+    border-bottom:2px solid var(--mes-green);
+    position:sticky; top:0; z-index:100;
   }
-  .logo { display: flex; align-items: center; gap: 10px; }
-  .logo-hex {
-    width: 32px; height: 32px;
-    background: var(--accent);
-    clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
-    display: grid; place-items: center;
-    font-size: 13px; font-weight: 700; color: #0d1117;
-  }
-  .logo-name { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
-  .logo-tag { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
-  .nav { display: flex; align-items: center; gap: 8px; }
+  .logo-area { display:flex; align-items:center; gap:14px; }
+  .logo-img { height:40px; width:auto; }
+  .logo-divider { width:1px; height:30px; background:rgba(255,255,255,0.2); }
+  .logo-text { font-size:15px; font-weight:600; color:white; letter-spacing:0.3px; }
+  .logo-sub { font-size:10px; color:rgba(255,255,255,0.6); letter-spacing:2px; text-transform:uppercase; }
+  .nav { display:flex; align-items:center; gap:8px; }
   .nav a {
-    font-size: 12px; color: var(--muted); text-decoration: none;
-    padding: 5px 12px; border-radius: 6px; border: 1px solid var(--border);
-    transition: all 0.15s;
+    font-size:12px; color:rgba(255,255,255,0.7); text-decoration:none;
+    padding:5px 14px; border-radius:6px; border:1px solid rgba(255,255,255,0.2);
+    transition:all 0.15s;
   }
-  .nav a:hover { color: var(--text); border-color: var(--subtle); }
-  .nav a.active { color: var(--accent); border-color: var(--accent); background: rgba(88,166,255,0.06); }
-  .live { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
-  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); animation: blink 2s infinite; }
+  .nav a:hover { color:white; border-color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.08); }
+  .nav a.active { color:white; border-color:white; background:rgba(255,255,255,0.12); }
+  .header-right { display:flex; align-items:center; gap:14px; }
+  .live { display:flex; align-items:center; gap:6px; font-size:11px; color:rgba(255,255,255,0.6); font-family:'DM Mono',monospace; }
+  .dot { width:7px; height:7px; border-radius:50%; background:#3fb950; box-shadow:0 0 6px #3fb950; animation:blink 2s infinite; }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-  main { max-width: 1500px; margin: 0 auto; padding: 24px 28px; }
+  main { max-width:1600px; margin:0 auto; padding:20px 28px; }
 
-  /* KPI row */
-  .kpis { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+  .err { background:rgba(248,81,73,.08); border:1px solid rgba(248,81,73,.25); border-radius:8px; padding:12px 16px; margin-bottom:16px; color:var(--red); font-size:12px; }
+
+  /* Top KPI row — matches Power BI layout */
+  .top-banner {
+    background:linear-gradient(135deg, var(--mes-green-dark) 0%, var(--mes-green) 100%);
+    border-radius:10px; padding:20px 24px;
+    display:flex; align-items:center; gap:0;
+    margin-bottom:16px;
+    border:1px solid var(--mes-green);
+    animation:up .35s ease both;
+  }
+  .banner-stat { flex:1; padding:0 20px; border-right:1px solid rgba(255,255,255,0.15); }
+  .banner-stat:first-child { padding-left:0; }
+  .banner-stat:last-child { border-right:none; }
+  .bs-label { font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:rgba(255,255,255,0.6); font-family:'DM Mono',monospace; margin-bottom:6px; }
+  .bs-val { font-size:30px; font-weight:700; letter-spacing:-0.5px; color:white; }
+  .bs-sub { font-size:11px; color:rgba(255,255,255,0.5); margin-top:3px; }
+  .bs-val.highlight { color:#7dff9e; }
+
+  @keyframes up { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+
+  /* KPI grid */
+  .kpis { display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin-bottom:16px; }
   .kpi {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-    padding: 18px 20px; position: relative; overflow: hidden;
-    border-top: 2px solid var(--kpi-color, var(--accent));
-    animation: up .35s ease both;
+    background:var(--surface); border:1px solid var(--border); border-radius:10px;
+    padding:16px 18px; position:relative; overflow:hidden;
+    border-top:2px solid var(--kpi-c, var(--mes-green));
+    animation:up .35s ease both;
   }
-  .kpi:nth-child(1){animation-delay:.04s} .kpi:nth-child(2){animation-delay:.08s}
-  .kpi:nth-child(3){animation-delay:.12s} .kpi:nth-child(4){animation-delay:.16s}
-  @keyframes up { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
-  .kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-family: 'DM Mono',monospace; margin-bottom: 8px; }
-  .kpi-val { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
-  .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .kpi:nth-child(1){animation-delay:.05s} .kpi:nth-child(2){animation-delay:.08s}
+  .kpi:nth-child(3){animation-delay:.11s} .kpi:nth-child(4){animation-delay:.14s}
+  .kpi:nth-child(5){animation-delay:.17s} .kpi:nth-child(6){animation-delay:.2s}
+  .kpi-label { font-size:10px; text-transform:uppercase; letter-spacing:1.2px; color:var(--muted); font-family:'DM Mono',monospace; margin-bottom:6px; }
+  .kpi-val { font-size:24px; font-weight:700; letter-spacing:-0.5px; }
+  .kpi-sub { font-size:11px; color:var(--muted); margin-top:3px; }
+  .kpi-trend { position:absolute; top:14px; right:14px; font-size:18px; opacity:0.2; }
 
-  /* Alert sections — due this week / this month */
-  .alert-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
-  .alert-panel {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
-    overflow: hidden; animation: up .35s ease .2s both;
-  }
-  .alert-panel.week { border-top: 2px solid var(--red); }
-  .alert-panel.month { border-top: 2px solid var(--amber); }
-  .ap-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 16px; border-bottom: 1px solid var(--border);
-  }
-  .ap-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-family: 'DM Mono',monospace; }
-  .alert-panel.week .ap-title { color: var(--red); }
-  .alert-panel.month .ap-title { color: var(--amber); }
-  .ap-badge { font-size: 11px; font-family: 'DM Mono',monospace; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 2px 8px; border-radius: 20px; }
-  .ap-table { width: 100%; border-collapse: collapse; }
-  .ap-table th { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-family: 'DM Mono',monospace; padding: 8px 14px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 500; }
-  .ap-table td { padding: 9px 14px; font-size: 12px; border-bottom: 1px solid rgba(33,38,45,0.6); vertical-align: middle; }
-  .ap-table tr:last-child td { border-bottom: none; }
-  .ap-table tr:hover td { background: rgba(88,166,255,0.03); }
-  .ap-empty { padding: 20px; text-align: center; color: var(--muted); font-size: 12px; }
-  .due-name { font-weight: 500; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .due-id { font-family: 'DM Mono',monospace; font-size: 10px; color: var(--muted); }
-  .due-date { font-family: 'DM Mono',monospace; font-size: 11px; }
-  .due-date.overdue { color: var(--red); font-weight: 600; }
-  .due-date.soon { color: var(--amber); }
-  .due-date.ok { color: var(--muted); }
-  .due-val { font-family: 'DM Mono',monospace; font-size: 12px; text-align: right; }
-  .ap-scroll { max-height: 220px; overflow-y: auto; }
+  /* Charts row */
+  .charts { display:grid; grid-template-columns:1fr 300px; gap:12px; margin-bottom:16px; }
+  .panel { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; animation:up .35s ease .2s both; }
+  .ph { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); background:var(--surface2); }
+  .pt { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:var(--muted); font-family:'DM Mono',monospace; }
+  .pb { font-size:11px; font-family:'DM Mono',monospace; background:var(--surface); border:1px solid var(--border); color:var(--muted); padding:2px 8px; border-radius:20px; }
 
-  /* Middle row */
-  .mid { display: grid; grid-template-columns: 280px 1fr; gap: 12px; margin-bottom: 20px; }
-  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; animation: up .35s ease .25s both; }
-  .ph { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); }
-  .pt { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-family: 'DM Mono',monospace; }
-  .pb { font-size: 11px; font-family: 'DM Mono',monospace; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 2px 8px; border-radius: 20px; }
+  /* Bar chart */
+  .chart-body { padding:16px; }
+  .bar-chart { display:flex; align-items:flex-end; gap:6px; height:180px; }
+  .bar-group { flex:1; display:flex; flex-direction:column; align-items:center; }
+  .bars { display:flex; align-items:flex-end; gap:2px; height:160px; width:100%; }
+  .bar { flex:1; border-radius:3px 3px 0 0; cursor:pointer; transition:filter .15s; min-width:0; position:relative; }
+  .bar:hover { filter:brightness(1.3); }
+  .bar.target { background:rgba(0,122,61,0.25); border:1px solid rgba(0,122,61,0.4); }
+  .bar.won { background:var(--mes-green); }
+  .bar.future { background:rgba(0,122,61,0.12); border:1px dashed rgba(0,122,61,0.3); }
+  .bar-month { font-size:9px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:4px; }
+  .bar-month.cur { color:var(--mes-green-light); font-weight:600; }
+  .chart-legend { display:flex; gap:16px; justify-content:center; margin-top:12px; }
+  .leg { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
+  .leg-dot { width:10px; height:10px; border-radius:2px; }
 
-  /* Stage list */
-  .stage-list { padding: 12px; }
-  .sr { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-  .sr:last-child { margin-bottom: 0; }
-  .sdot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .sname { font-size: 12px; flex: 1; }
-  .scount { font-size: 11px; color: var(--muted); font-family: 'DM Mono',monospace; width: 28px; text-align: right; }
-  .sbar-wrap { width: 70px; background: var(--surface2); border-radius: 3px; height: 5px; overflow: hidden; }
-  .sbar { height: 100%; border-radius: 3px; transition: width .8s cubic-bezier(.4,0,.2,1); }
-  .sval { font-size: 11px; font-family: 'DM Mono',monospace; min-width: 65px; text-align: right; }
+  /* Win rate */
+  .win-body { padding:20px; display:flex; flex-direction:column; align-items:center; }
+  .win-big { font-size:64px; font-weight:700; color:var(--mes-green-light); line-height:1; letter-spacing:-2px; }
+  .win-label { font-size:11px; color:var(--muted); margin-bottom:16px; text-align:center; }
+  .win-sub { font-size:10px; color:var(--muted); margin-top:4px; }
+  .win-by-val { font-size:22px; font-weight:700; color:var(--blue); }
+  .win-divider { width:100%; border:none; border-top:1px solid var(--border); margin:12px 0; }
+  .win-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; }
+  .ws { background:var(--surface2); border-radius:8px; padding:10px; text-align:center; }
+  .ws-val { font-size:18px; font-weight:700; font-family:'DM Mono',monospace; }
+  .ws-lbl { font-size:10px; color:var(--muted); margin-top:2px; text-transform:uppercase; letter-spacing:1px; }
 
-  /* Top table */
-  .top-table { width: 100%; border-collapse: collapse; }
-  .top-table th { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-family: 'DM Mono',monospace; padding: 9px 14px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 500; }
-  .top-table td { padding: 10px 14px; font-size: 12px; border-bottom: 1px solid rgba(33,38,45,0.5); vertical-align: middle; }
-  .top-table tr:last-child td { border-bottom: none; }
-  .top-table tr:hover td { background: rgba(88,166,255,0.03); }
-  .qname { font-weight: 500; }
-  .qid { font-family: 'DM Mono',monospace; font-size: 10px; color: var(--muted); }
-  .chip { font-size: 10px; padding: 2px 8px; border-radius: 12px; font-family: 'DM Mono',monospace; font-weight: 500; white-space: nowrap; }
-  .aval { font-family: 'DM Mono',monospace; font-size: 12px; text-align: right; }
-  .dval { font-family: 'DM Mono',monospace; font-size: 11px; color: var(--muted); }
+  /* Monthly table */
+  .bottom { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .mtable { width:100%; border-collapse:collapse; }
+  .mtable th { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); font-family:'DM Mono',monospace; padding:9px 14px; text-align:left; border-bottom:1px solid var(--border); font-weight:500; background:var(--surface2); }
+  .mtable td { padding:9px 14px; font-size:12px; border-bottom:1px solid rgba(33,38,45,0.5); font-family:'DM Mono',monospace; vertical-align:middle; }
+  .mtable tr:hover td { background:rgba(0,122,61,0.04); }
+  .mtable tr:last-child td { border-bottom:none; }
+  .mtable tr.cur td { background:rgba(0,122,61,0.06); }
+  .pct-pill { font-size:10px; padding:2px 7px; border-radius:4px; font-weight:500; }
+  .pct-over { background:rgba(63,185,80,.15); color:var(--green); }
+  .pct-mid { background:rgba(210,153,34,.15); color:var(--amber); }
+  .pct-low { background:rgba(248,81,73,.15); color:var(--red); }
 
-  /* Main table */
-  .table-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; animation: up .35s ease .3s both; }
-  .tcontrols { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
-  .search { flex: 1; min-width: 180px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; color: var(--text); font-size: 12px; font-family: 'Sora',sans-serif; outline: none; transition: border-color .15s; }
-  .search:focus { border-color: var(--accent); }
-  .search::placeholder { color: var(--muted); }
-  .fbtn { padding: 5px 12px; border-radius: 6px; font-size: 11px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: 'Sora',sans-serif; transition: all .15s; white-space: nowrap; }
-  .fbtn:hover, .fbtn.on { border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,0.06); }
-  .tcnt { font-size: 11px; font-family: 'DM Mono',monospace; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 2px 8px; border-radius: 20px; margin-left: auto; }
-  .twrap { overflow-x: auto; max-height: 500px; overflow-y: auto; }
-  .qtable { width: 100%; border-collapse: collapse; min-width: 780px; }
-  .qtable th { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-family: 'DM Mono',monospace; padding: 9px 13px; text-align: left; font-weight: 500; position: sticky; top: 0; background: var(--surface); border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; white-space: nowrap; }
-  .qtable th:hover { color: var(--accent); }
-  .qtable td { padding: 9px 13px; font-size: 12px; border-bottom: 1px solid rgba(33,38,45,0.5); vertical-align: middle; }
-  .qtable tr:hover td { background: rgba(88,166,255,0.03); }
-  .qtable tr:last-child td { border-bottom: none; }
-  .empty { padding: 32px; text-align: center; color: var(--muted); font-size: 13px; }
-  .spin { width: 22px; height: 22px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 10px; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .loading { padding: 40px; text-align: center; color: var(--muted); font-size: 12px; }
-  .err { background: rgba(248,81,73,.08); border: 1px solid rgba(248,81,73,.25); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: var(--red); font-size: 12px; }
-  ::-webkit-scrollbar { width: 5px; height: 5px; }
-  ::-webkit-scrollbar-track { background: var(--surface); }
-  ::-webkit-scrollbar-thumb { background: var(--subtle); border-radius: 3px; }
-  @media(max-width:1100px) { .kpis{grid-template-columns:1fr 1fr} .alert-grid{grid-template-columns:1fr} .mid{grid-template-columns:1fr} }
-  @media(max-width:600px) { main{padding:14px} header{padding:12px 16px} }
+  /* Sector */
+  .sector-list { padding:14px; }
+  .sec-row { margin-bottom:12px; }
+  .sec-row:last-child { margin-bottom:0; }
+  .sec-top { display:flex; justify-content:space-between; margin-bottom:4px; }
+  .sec-name { font-size:12px; }
+  .sec-val { font-size:11px; font-family:'DM Mono',monospace; color:var(--muted); }
+  .sec-track { background:var(--surface2); border-radius:3px; height:5px; overflow:hidden; }
+  .sec-fill { height:100%; border-radius:3px; background:var(--mes-green); transition:width .8s cubic-bezier(.4,0,.2,1); }
+
+  .spin { width:20px; height:20px; border:2px solid var(--border); border-top-color:var(--mes-green); border-radius:50%; animation:spin .7s linear infinite; margin:0 auto 8px; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .loading { padding:30px; text-align:center; color:var(--muted); font-size:12px; }
+
+  @media(max-width:1200px) { .kpis{grid-template-columns:repeat(3,1fr)} .charts{grid-template-columns:1fr} .bottom{grid-template-columns:1fr} }
+  @media(max-width:700px) { main{padding:12px} header{padding:10px 14px} .kpis{grid-template-columns:1fr 1fr} .top-banner{flex-direction:column;gap:14px} .banner-stat{border-right:none;border-bottom:1px solid rgba(255,255,255,.15);padding:0 0 12px} .banner-stat:last-child{border-bottom:none;padding-bottom:0} }
 </style>
 </head>
 <body>
 <header>
-  <div class="logo">
-    <div class="logo-hex">M</div>
+  <div class="logo-area">
+    <img src="https://raw.githubusercontent.com/mes-bot-maker/mes-dashboards/main/assets/mes-white.png" alt="MES Power Engineering" class="logo-img" onerror="this.style.display='none'">
+    <div class="logo-divider"></div>
     <div>
-      <div class="logo-name">MES Power</div>
-      <div class="logo-tag">Engineering</div>
+      <div class="logo-text">MES Power Engineering</div>
+      <div class="logo-sub">BD Dashboard</div>
     </div>
   </div>
   <nav class="nav">
-    <a href="../quotes/" class="active">Quotes Pipeline</a>
-    <a href="../bd/">BD Dashboard</a>
+    <a href="../quotes/">Quotes Pipeline</a>
+    <a href="../bd/" class="active">BD Dashboard</a>
   </nav>
-  <div class="live">
-    <div class="dot"></div>
-    <span id="updated">Loading…</span>
+  <div class="header-right">
+    <div class="live"><div class="dot"></div><span id="updated">Loading…</span></div>
   </div>
 </header>
 
 <main>
   <div id="err" class="err" style="display:none"></div>
 
-  <!-- KPIs -->
+  <!-- Top banner — mirrors Power BI top row -->
+  <div class="top-banner">
+    <div class="banner-stat">
+      <div class="bs-label">Open Pipeline £'s</div>
+      <div class="bs-val highlight" id="b-pipeline">—</div>
+      <div class="bs-sub" id="b-pipeline-n">— open quotes</div>
+    </div>
+    <div class="banner-stat">
+      <div class="bs-label">Target Orders Year</div>
+      <div class="bs-val" id="b-annual">—</div>
+      <div class="bs-sub">FY 2026</div>
+    </div>
+    <div class="banner-stat">
+      <div class="bs-label">Won £ YTD</div>
+      <div class="bs-val highlight" id="b-won-ytd">—</div>
+      <div class="bs-sub" id="b-won-ytd-n">— jobs raised</div>
+    </div>
+    <div class="banner-stat">
+      <div class="bs-label">Sales Target YTD</div>
+      <div class="bs-val" id="b-target-ytd">—</div>
+      <div class="bs-sub">cumulative to this month</div>
+    </div>
+    <div class="banner-stat">
+      <div class="bs-label">Sales Variance YTD</div>
+      <div class="bs-val" id="b-variance" style="color:var(--red)">—</div>
+      <div class="bs-sub">Won vs Target</div>
+    </div>
+    <div class="banner-stat">
+      <div class="bs-label">YTD Achieved</div>
+      <div class="bs-val" id="b-achieved">—</div>
+      <div class="bs-sub">% of YTD target</div>
+    </div>
+  </div>
+
+  <!-- KPI row -->
   <div class="kpis">
-    <div class="kpi" style="--kpi-color:var(--accent)">
-      <div class="kpi-label">Open Pipeline</div>
-      <div class="kpi-val" id="k-pipeline">—</div>
-      <div class="kpi-sub" id="k-pipeline-n">— open quotes</div>
+    <div class="kpi" style="--kpi-c:var(--mes-green)">
+      <div class="kpi-trend">🎯</div>
+      <div class="kpi-label">Target Current Month</div>
+      <div class="kpi-val" id="k-month-target">—</div>
+      <div class="kpi-sub" id="k-month-name">—</div>
     </div>
-    <div class="kpi" style="--kpi-color:var(--green)">
-      <div class="kpi-label">Won (Closed)</div>
-      <div class="kpi-val" id="k-won">—</div>
-      <div class="kpi-sub" id="k-won-n">— jobs raised</div>
+    <div class="kpi" style="--kpi-c:var(--green)">
+      <div class="kpi-trend">✅</div>
+      <div class="kpi-label">Won £ MTD</div>
+      <div class="kpi-val" style="color:var(--green)" id="k-won-mtd">—</div>
+      <div class="kpi-sub" id="k-won-mtd-n">— quotes approved</div>
     </div>
-    <div class="kpi" style="--kpi-color:var(--accent2)">
-      <div class="kpi-label">Active In-Progress</div>
-      <div class="kpi-val" id="k-active">—</div>
-      <div class="kpi-sub" id="k-active-n">— quotes</div>
+    <div class="kpi" style="--kpi-c:var(--red)">
+      <div class="kpi-trend">📊</div>
+      <div class="kpi-label">Monthly Variance</div>
+      <div class="kpi-val" style="color:var(--red)" id="k-month-var">—</div>
+      <div class="kpi-sub">Won vs Month Target</div>
     </div>
-    <div class="kpi" style="--kpi-color:var(--muted)">
-      <div class="kpi-label">Avg Quote Value</div>
-      <div class="kpi-val" id="k-avg">—</div>
-      <div class="kpi-sub">ex. VAT, open quotes</div>
+    <div class="kpi" style="--kpi-c:var(--amber)">
+      <div class="kpi-trend">📈</div>
+      <div class="kpi-label">Month Achieved</div>
+      <div class="kpi-val" id="k-month-pct">—</div>
+      <div class="kpi-sub">% of monthly target</div>
     </div>
-  </div>
-
-  <!-- Due this week / this month -->
-  <div class="alert-grid">
-    <div class="alert-panel week">
-      <div class="ap-header">
-        <span class="ap-title">⚠ Due This Week</span>
-        <span class="ap-badge" id="week-badge">—</span>
-      </div>
-      <div class="ap-scroll">
-        <table class="ap-table">
-          <thead><tr>
-            <th>Quote</th>
-            <th>Stage</th>
-            <th>Due</th>
-            <th style="text-align:right">Value</th>
-          </tr></thead>
-          <tbody id="week-body"><tr><td colspan="4" class="ap-empty">Loading…</td></tr></tbody>
-        </table>
-      </div>
+    <div class="kpi" style="--kpi-c:var(--blue)">
+      <div class="kpi-trend">🏆</div>
+      <div class="kpi-label">Win Rate by Count</div>
+      <div class="kpi-val" style="color:var(--blue)" id="k-win-count">—</div>
+      <div class="kpi-sub">Approved & closed ÷ all closed</div>
     </div>
-    <div class="alert-panel month">
-      <div class="ap-header">
-        <span class="ap-title">📅 Due This Month</span>
-        <span class="ap-badge" id="month-badge">—</span>
-      </div>
-      <div class="ap-scroll">
-        <table class="ap-table">
-          <thead><tr>
-            <th>Quote</th>
-            <th>Stage</th>
-            <th>Due</th>
-            <th style="text-align:right">Value</th>
-          </tr></thead>
-          <tbody id="month-body"><tr><td colspan="4" class="ap-empty">Loading…</td></tr></tbody>
-        </table>
-      </div>
+    <div class="kpi" style="--kpi-c:#9e6cf5">
+      <div class="kpi-trend">💰</div>
+      <div class="kpi-label">Win Rate by Value</div>
+      <div class="kpi-val" style="color:#9e6cf5" id="k-win-val">—</div>
+      <div class="kpi-sub">Won value ÷ all closed value</div>
     </div>
   </div>
 
-  <!-- Stage breakdown + Top 8 -->
-  <div class="mid">
+  <!-- Bar chart + Win rate -->
+  <div class="charts">
     <div class="panel">
-      <div class="ph"><span class="pt">By Stage</span><span class="pb" id="stage-total">—</span></div>
-      <div class="stage-list" id="stage-list"><div class="loading"><div class="spin"></div></div></div>
+      <div class="ph">
+        <span class="pt">Monthly Target vs Won (2026)</span>
+        <div style="display:flex;gap:12px">
+          <div class="leg"><div class="leg-dot" style="background:rgba(0,122,61,0.4)"></div>Target</div>
+          <div class="leg"><div class="leg-dot" style="background:var(--mes-green)"></div>Won</div>
+        </div>
+      </div>
+      <div class="chart-body">
+        <div class="bar-chart" id="bar-chart"><div class="loading"><div class="spin"></div></div></div>
+      </div>
     </div>
+
     <div class="panel">
-      <div class="ph"><span class="pt">Top 8 by Value</span><span class="pb">Ex. VAT</span></div>
+      <div class="ph"><span class="pt">Win Rates</span></div>
+      <div class="win-body" id="win-body"><div class="loading"><div class="spin"></div></div></div>
+    </div>
+  </div>
+
+  <!-- Monthly breakdown + Sector targets -->
+  <div class="bottom">
+    <div class="panel">
+      <div class="ph"><span class="pt">Monthly Breakdown</span><span class="pb">2026 YTD</span></div>
       <div style="overflow-x:auto">
-        <table class="top-table">
-          <thead><tr><th>Quote</th><th>Stage</th><th style="text-align:right">Value</th><th>Issued</th></tr></thead>
-          <tbody id="top-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+        <table class="mtable">
+          <thead><tr>
+            <th>Month</th>
+            <th>Target</th>
+            <th>Won (Approved+Closed)</th>
+            <th>Variance</th>
+            <th>% Achieved</th>
+          </tr></thead>
+          <tbody id="monthly-body"><tr><td colspan="5" class="loading"><div class="spin"></div></td></tr></tbody>
         </table>
       </div>
     </div>
-  </div>
 
-  <!-- Full table -->
-  <div class="table-panel">
-    <div class="tcontrols">
-      <input class="search" id="search" placeholder="Search by name or ID…">
-      <button class="fbtn on" data-f="all">All</button>
-      <button class="fbtn" data-f="InProgress">In Progress</button>
-      <button class="fbtn" data-f="_won">Won</button>
-      <button class="fbtn" data-f="Pending">Pending</button>
-      <button class="fbtn" data-f="Draft">Draft</button>
-      <button class="fbtn" data-f="Lost">Lost</button>
-      <span class="tcnt" id="tcnt">—</span>
-    </div>
-    <div class="twrap">
-      <table class="qtable">
-        <thead><tr>
-          <th data-s="ID">ID ↕</th>
-          <th data-s="Name">Name ↕</th>
-          <th data-s="Stage">Stage ↕</th>
-          <th data-s="Total" style="text-align:right">Value Ex VAT ↕</th>
-          <th data-s="DateIssued">Issued ↕</th>
-          <th data-s="DueDate">Due ↕</th>
-        </tr></thead>
-        <tbody id="main-body"><tr><td colspan="6" class="loading"><div class="spin"></div>Fetching quotes…</td></tr></tbody>
-      </table>
+    <div class="panel">
+      <div class="ph"><span class="pt">Sector Targets</span><span class="pb">Annual</span></div>
+      <div class="sector-list" id="sector-list"><div class="loading"><div class="spin"></div></div></div>
     </div>
   </div>
 </main>
 
 <script>
 const API = 'https://mes-api.mes-bot.workers.dev/api/all';
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-const STAGES = {
-  'InProgress': { color: '#58a6ff', label: 'In Progress' },
-  'Pending':    { color: '#d29922', label: 'Pending' },
-  'Draft':      { color: '#7d8590', label: 'Draft' },
-  'Lost':       { color: '#f85149', label: 'Lost' },
-  'Declined':   { color: '#f85149', label: 'Declined' },
-  'Approved':   { color: '#3fb950', label: 'Approved' },
+// Monthly targets from SharePoint (fallback)
+const TARGETS_FB = {
+  annual:6750000,
+  monthly:{1:270000,2:472500,3:607500,4:675000,5:742500,6:810000,7:675000,8:472500,9:675000,10:675000,11:472500,12:202500},
+  sectors:{'EV Hubs':2000000,'33kV Connections':2000000,'BESS':750000,'C&I Connections':750000,'Residential Connections':250000,'BoP (Private Network)':500000,'Small Works':300000,'O&M Contracts':100000,'Faults':100000}
 };
-
-const sc = (s, closed) => closed ? '#3fb950' : (STAGES[s]?.color || '#7d8590');
-const sl = (s, closed) => closed ? 'Won' : (STAGES[s]?.label || s);
 
 const £ = n => {
-  if (n >= 1e6) return '£' + (n/1e6).toFixed(2) + 'M';
-  if (n >= 1e3) return '£' + (n/1e3).toFixed(1) + 'k';
-  return '£' + n.toFixed(0);
+  const abs = Math.abs(n);
+  const sign = n < 0 ? '-' : '';
+  if (abs >= 1e6) return sign + '£' + (abs/1e6).toFixed(2) + 'M';
+  if (abs >= 1e3) return sign + '£' + (abs/1e3).toFixed(1) + 'K';
+  return sign + '£' + abs.toFixed(0);
 };
-const £f = n => '£' + n.toLocaleString('en-GB', {minimumFractionDigits:0, maximumFractionDigits:0});
-const fd = d => {
-  if (!d) return '—';
-  const dt = new Date(d); if (isNaN(dt)) return '—';
-  return dt.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'});
-};
+const pct = (a, b) => b > 0 ? (a/b*100).toFixed(1) + '%' : '—';
 
-let all = [], curF = 'all', curS = '', sKey = 'Total', sDir = -1;
+let quotes = [], targets = {};
 
 async function load() {
   try {
     const r = await fetch(API);
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const raw = await r.json();
-    all = Array.isArray(raw) ? raw : (raw.quotes || []);
-    if (!all.length && raw.error) throw new Error(raw.error);
+    quotes = Array.isArray(raw) ? raw : (raw.quotes || []);
+    targets = raw.targets || TARGETS_FB;
     document.getElementById('updated').textContent =
-      new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+      new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     render();
   } catch(e) {
     const el = document.getElementById('err');
     el.style.display = 'block';
-    el.textContent = 'Error: ' + e.message;
+    el.textContent = 'Error loading data: ' + e.message;
   }
+}
+
+// WON = Stage=Approved AND IsClosed=true (matches Power BI definition)
+const isWon = q => q.Stage === 'Approved' && q.IsClosed === true;
+// LOST = Stage=Lost or Stage=Declined
+const isLost = q => q.Stage === 'Lost' || q.Stage === 'Declined';
+
+function wonByMonth() {
+  const now = new Date(); const yr = now.getFullYear();
+  const map = {};
+  quotes.forEach(q => {
+    if (!isWon(q) || !q.DateApproved) return;
+    const d = new Date(q.DateApproved);
+    if (d.getFullYear() !== yr) return;
+    const m = d.getMonth() + 1;
+    if (!map[m]) map[m] = { count:0, value:0 };
+    map[m].count++;
+    map[m].value += q.Total?.ExTax || 0;
+  });
+  return map;
 }
 
 function render() {
-  renderKPIs();
-  renderDue();
-  renderStages();
-  renderTop();
-  renderTable();
-}
-
-function renderKPIs() {
-  const open = all.filter(q => !q.IsClosed);
-  const won  = all.filter(q => q.IsClosed);
-  const active = all.filter(q => q.Stage === 'InProgress' && !q.IsClosed);
-  const pipeline = open.reduce((s,q) => s + (q.Total?.ExTax||0), 0);
-  const wonVal   = won.reduce((s,q) => s + (q.Total?.ExTax||0), 0);
-  const activeVal = active.reduce((s,q) => s + (q.Total?.ExTax||0), 0);
-  const nz = open.filter(q => (q.Total?.ExTax||0) > 0);
-  const avg = nz.length ? nz.reduce((s,q)=>s+(q.Total?.ExTax||0),0)/nz.length : 0;
-
-  document.getElementById('k-pipeline').textContent = £(pipeline);
-  document.getElementById('k-pipeline-n').textContent = open.length + ' open quotes';
-  document.getElementById('k-won').textContent = £(wonVal);
-  document.getElementById('k-won-n').textContent = won.length + ' jobs raised';
-  document.getElementById('k-active').textContent = £(activeVal);
-  document.getElementById('k-active-n').textContent = active.length + ' quotes';
-  document.getElementById('k-avg').textContent = £(avg);
-}
-
-function renderDue() {
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const curMonth = now.getMonth() + 1;
+  const monthly = targets.monthly || {};
+  const won = wonByMonth();
 
-  // End of this week (Sunday)
-  const dayOfWeek = today.getDay();
-  const daysToSunday = 7 - (dayOfWeek === 0 ? 7 : dayOfWeek);
-  const endOfWeek = new Date(today);
-  endOfWeek.setDate(today.getDate() + daysToSunday);
+  // YTD cumulative target (sum of months 1..curMonth)
+  let ytdTarget = 0;
+  for (let m = 1; m <= curMonth; m++) ytdTarget += monthly[m] || 0;
 
-  // End of this month
-  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  // YTD won total
+  let ytdWon = 0, ytdWonCount = 0;
+  Object.values(won).forEach(w => { ytdWon += w.value; ytdWonCount += w.count; });
 
-  const hasDue = q => q.DueDate && !q.IsClosed;
-  const dueDate = q => new Date(q.DueDate);
+  // Open pipeline
+  const open = quotes.filter(q => !q.IsClosed && q.Stage !== 'Lost' && q.Stage !== 'Declined');
+  const openVal = open.reduce((s,q) => s + (q.Total?.ExTax||0), 0);
 
-  const weekQuotes = all
-    .filter(q => hasDue(q) && dueDate(q) <= endOfWeek)
-    .sort((a,b) => dueDate(a) - dueDate(b));
+  // Win rates — all closed quotes (approved+closed = won, lost/declined = lost)
+  const allClosed = quotes.filter(q => q.IsClosed || isLost(q));
+  const allWon = quotes.filter(isWon);
+  const allLost = quotes.filter(isLost);
+  const winRateCount = allClosed.length > 0 ? (allWon.length / allClosed.length * 100) : 0;
+  const closedVal = allClosed.reduce((s,q)=>s+(q.Total?.ExTax||0),0);
+  const wonVal = allWon.reduce((s,q)=>s+(q.Total?.ExTax||0),0);
+  const winRateVal = closedVal > 0 ? (wonVal / closedVal * 100) : 0;
 
-  const monthQuotes = all
-    .filter(q => hasDue(q) && dueDate(q) > endOfWeek && dueDate(q) <= endOfMonth)
-    .sort((a,b) => dueDate(a) - dueDate(b));
+  // MTD won
+  const mtdWon = won[curMonth] || { count:0, value:0 };
+  const monthTarget = monthly[curMonth] || 0;
+  const monthVar = mtdWon.value - monthTarget;
+  const monthPct = monthTarget > 0 ? (mtdWon.value/monthTarget*100) : 0;
 
-  document.getElementById('week-badge').textContent = weekQuotes.length + ' quotes';
-  document.getElementById('month-badge').textContent = monthQuotes.length + ' quotes';
+  // Banner
+  document.getElementById('b-pipeline').textContent = £(openVal);
+  document.getElementById('b-pipeline-n').textContent = open.length + ' open quotes';
+  document.getElementById('b-annual').textContent = £(targets.annual || 0);
+  document.getElementById('b-won-ytd').textContent = £(ytdWon);
+  document.getElementById('b-won-ytd-n').textContent = ytdWonCount + ' quotes approved & closed';
+  document.getElementById('b-target-ytd').textContent = £(ytdTarget);
+  const variance = ytdWon - ytdTarget;
+  const varEl = document.getElementById('b-variance');
+  varEl.textContent = (variance >= 0 ? '+' : '') + £(variance);
+  varEl.style.color = variance >= 0 ? 'var(--green)' : 'var(--red)';
+  const achEl = document.getElementById('b-achieved');
+  achEl.textContent = pct(ytdWon, ytdTarget);
+  achEl.style.color = ytdWon >= ytdTarget ? 'var(--green)' : '#7dff9e';
 
-  const dueRow = q => {
-    const dd = dueDate(q);
-    const isOverdue = dd < today;
-    const daysOut = Math.ceil((dd - today) / 86400000);
-    const cls = isOverdue ? 'overdue' : daysOut <= 2 ? 'soon' : 'ok';
-    const label = isOverdue ? `${Math.abs(daysOut)}d overdue` : daysOut === 0 ? 'Today' : daysOut === 1 ? 'Tomorrow' : fd(q.DueDate);
-    return `<tr>
-      <td><div class="due-name" title="${q.Name}">${q.Name}</div><div class="due-id">#${q.ID}</div></td>
-      <td><span class="chip" style="background:${sc(q.Stage,q.IsClosed)}22;color:${sc(q.Stage,q.IsClosed)};border:1px solid ${sc(q.Stage,q.IsClosed)}44">${sl(q.Stage,q.IsClosed)}</span></td>
-      <td class="due-date ${cls}">${label}</td>
-      <td class="due-val">${£f(q.Total?.ExTax||0)}</td>
-    </tr>`;
-  };
+  // KPIs
+  document.getElementById('k-month-target').textContent = £(monthTarget);
+  document.getElementById('k-month-name').textContent = MONTHS[curMonth-1] + ' 2026 target';
+  document.getElementById('k-won-mtd').textContent = £(mtdWon.value);
+  document.getElementById('k-won-mtd-n').textContent = mtdWon.count + ' quotes approved this month';
+  const varMtdEl = document.getElementById('k-month-var');
+  varMtdEl.textContent = (monthVar >= 0 ? '+' : '') + £(monthVar);
+  varMtdEl.style.color = monthVar >= 0 ? 'var(--green)' : 'var(--red)';
+  const pctEl = document.getElementById('k-month-pct');
+  pctEl.textContent = monthPct.toFixed(1) + '%';
+  pctEl.style.color = monthPct >= 100 ? 'var(--green)' : monthPct >= 70 ? 'var(--amber)' : 'var(--red)';
+  document.getElementById('k-win-count').textContent = winRateCount.toFixed(1) + '%';
+  document.getElementById('k-win-val').textContent = winRateVal.toFixed(1) + '%';
 
-  document.getElementById('week-body').innerHTML = weekQuotes.length
-    ? weekQuotes.map(dueRow).join('')
-    : '<tr><td colspan="4" class="ap-empty">✓ No quotes due this week</td></tr>';
-
-  document.getElementById('month-body').innerHTML = monthQuotes.length
-    ? monthQuotes.map(dueRow).join('')
-    : '<tr><td colspan="4" class="ap-empty">No quotes due later this month</td></tr>';
+  renderChart(won, monthly, curMonth);
+  renderWinRate(allWon, allLost, quotes.filter(q => !q.IsClosed && !isLost(q)), winRateCount, winRateVal);
+  renderMonthly(won, monthly, curMonth);
+  renderSectors();
 }
 
-function renderStages() {
-  const map = {};
-  all.forEach(q => {
-    const k = q.IsClosed ? '_won' : (q.Stage || 'Unknown');
-    if (!map[k]) map[k] = { count: 0, val: 0, color: k === '_won' ? '#3fb950' : sc(q.Stage, false), label: k === '_won' ? 'Won' : sl(q.Stage, false) };
-    map[k].count++;
-    map[k].val += q.Total?.ExTax || 0;
-  });
-  const sorted = Object.entries(map).sort((a,b) => b[1].val - a[1].val);
-  const max = sorted[0]?.[1].val || 1;
-  document.getElementById('stage-total').textContent = all.length + ' total';
-  document.getElementById('stage-list').innerHTML = sorted.map(([,d]) => `
-    <div class="sr">
-      <div class="sdot" style="background:${d.color}"></div>
-      <div class="sname">${d.label}</div>
-      <div class="scount">${d.count}</div>
-      <div class="sbar-wrap"><div class="sbar" style="width:${(d.val/max*100).toFixed(1)}%;background:${d.color}"></div></div>
-      <div class="sval">${£(d.val)}</div>
+function renderChart(won, monthly, curMonth) {
+  const allVals = [];
+  for (let m = 1; m <= 12; m++) allVals.push(monthly[m]||0, won[m]?.value||0);
+  const max = Math.max(...allVals, 1);
+
+  const html = Array.from({length:12}, (_,i) => {
+    const m = i+1;
+    const t = monthly[m] || 0;
+    const w = won[m]?.value || 0;
+    const tH = Math.max((t/max)*150, 2);
+    const wH = w > 0 ? Math.max((w/max)*150, 2) : 0;
+    const isFuture = m > curMonth;
+    const isCur = m === curMonth;
+    return `<div class="bar-group">
+      <div class="bars">
+        <div class="bar target" style="height:${tH}px" title="${MONTHS[i]} target: ${£(t)}"></div>
+        <div class="bar ${isFuture?'future':'won'}" style="height:${wH}px${!wH?';opacity:0':''}" title="${MONTHS[i]} won: ${£(w)}"></div>
+      </div>
+      <div class="bar-month ${isCur?'cur':''}">${MONTHS[i]}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('bar-chart').innerHTML = html;
+}
+
+function renderWinRate(allWon, allLost, active, countPct, valPct) {
+  document.getElementById('win-body').innerHTML = `
+    <div class="win-big">${countPct.toFixed(1)}<span style="font-size:32px;color:var(--muted)">%</span></div>
+    <div class="win-label">Win Rate by Count</div>
+    <div style="text-align:center;margin-bottom:8px">
+      <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:2px">WIN RATE BY VALUE</div>
+      <div class="win-by-val">${valPct.toFixed(1)}%</div>
+    </div>
+    <hr class="win-divider">
+    <div class="win-stats">
+      <div class="ws"><div class="ws-val" style="color:var(--mes-green-light)">${allWon.length}</div><div class="ws-lbl">Won</div></div>
+      <div class="ws"><div class="ws-val" style="color:var(--blue)">${active.length}</div><div class="ws-lbl">Active</div></div>
+      <div class="ws"><div class="ws-val" style="color:var(--red)">${allLost.length}</div><div class="ws-lbl">Lost</div></div>
+      <div class="ws"><div class="ws-val" style="color:var(--muted)">${allWon.length+allLost.length}</div><div class="ws-lbl">Closed</div></div>
+    </div>`;
+}
+
+function renderMonthly(won, monthly, curMonth) {
+  const rows = [];
+  for (let m = 1; m <= curMonth; m++) {
+    const t = monthly[m] || 0;
+    const w = won[m]?.value || 0;
+    const cnt = won[m]?.count || 0;
+    const v = w - t;
+    const p = t > 0 ? (w/t*100) : 0;
+    const cls = p >= 100 ? 'pct-over' : p >= 70 ? 'pct-mid' : 'pct-low';
+    const isCur = m === curMonth;
+    rows.push(`<tr${isCur?' class="cur"':''}>
+      <td style="${isCur?'color:var(--mes-green-light);font-weight:600':''}">${MONTHS[m-1]}${isCur?' ◄':''}</td>
+      <td>${£(t)}</td>
+      <td style="color:${w>0?'var(--green)':'var(--muted)'}">${£(w)}${cnt?' ('+cnt+')':''}</td>
+      <td style="color:${v>=0?'var(--green)':'var(--red)'}">${v>=0?'+':''}${£(v)}</td>
+      <td><span class="pct-pill ${cls}">${p.toFixed(1)}%</span></td>
+    </tr>`);
+  }
+  document.getElementById('monthly-body').innerHTML = rows.join('') || '<tr><td colspan="5" style="padding:20px;text-align:center;color:var(--muted)">No data</td></tr>';
+}
+
+function renderSectors() {
+  const sectors = targets.sectors || {};
+  const sorted = Object.entries(sectors).sort((a,b)=>b[1]-a[1]);
+  const max = sorted[0]?.[1] || 1;
+  document.getElementById('sector-list').innerHTML = sorted.map(([name, val]) => `
+    <div class="sec-row">
+      <div class="sec-top"><span class="sec-name">${name}</span><span class="sec-val">£${(val/1000).toFixed(0)}K</span></div>
+      <div class="sec-track"><div class="sec-fill" style="width:${(val/max*100).toFixed(1)}%"></div></div>
     </div>`).join('');
 }
 
-function renderTop() {
-  const top = [...all].sort((a,b) => (b.Total?.ExTax||0)-(a.Total?.ExTax||0)).slice(0,8);
-  document.getElementById('top-body').innerHTML = top.map(q => `
-    <tr>
-      <td><div class="qname">${q.Name}</div><div class="qid">#${q.ID}</div></td>
-      <td><span class="chip" style="background:${sc(q.Stage,q.IsClosed)}22;color:${sc(q.Stage,q.IsClosed)};border:1px solid ${sc(q.Stage,q.IsClosed)}44">${sl(q.Stage,q.IsClosed)}</span></td>
-      <td class="aval">${£f(q.Total?.ExTax||0)}</td>
-      <td class="dval">${fd(q.DateIssued)}</td>
-    </tr>`).join('');
-}
-
-function filtered() {
-  return all.filter(q => {
-    const fs = curF === 'all' ? true
-      : curF === '_won' ? q.IsClosed === true
-      : q.Stage === curF;
-    const ft = !curS || q.Name?.toLowerCase().includes(curS) || String(q.ID).includes(curS);
-    return fs && ft;
-  }).sort((a,b) => {
-    let av = a[sKey], bv = b[sKey];
-    if (sKey === 'Total') { av = a.Total?.ExTax||0; bv = b.Total?.ExTax||0; }
-    if (sKey === 'DueDate') { av = a.DueDate ? new Date(a.DueDate).getTime() : 0; bv = b.DueDate ? new Date(b.DueDate).getTime() : 0; }
-    if (typeof av === 'string') av = av.toLowerCase();
-    if (typeof bv === 'string') bv = bv.toLowerCase();
-    return av < bv ? sDir : av > bv ? -sDir : 0;
-  });
-}
-
-function renderTable() {
-  const rows = filtered();
-  document.getElementById('tcnt').textContent = rows.length + ' quotes';
-  if (!rows.length) {
-    document.getElementById('main-body').innerHTML = '<tr><td colspan="6" class="empty">No quotes match</td></tr>';
-    return;
-  }
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  document.getElementById('main-body').innerHTML = rows.map(q => {
-    let dueCls = '', dueLabel = fd(q.DueDate);
-    if (q.DueDate && !q.IsClosed) {
-      const dd = new Date(q.DueDate);
-      const days = Math.ceil((dd - today)/86400000);
-      if (days < 0) { dueCls = 'color:var(--red);font-weight:600'; dueLabel = Math.abs(days)+'d overdue'; }
-      else if (days <= 7) { dueCls = 'color:var(--amber)'; }
-    }
-    return `<tr>
-      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">#${q.ID}</td>
-      <td style="max-width:300px;font-weight:500">${q.Name}</td>
-      <td><span class="chip" style="background:${sc(q.Stage,q.IsClosed)}22;color:${sc(q.Stage,q.IsClosed)};border:1px solid ${sc(q.Stage,q.IsClosed)}44">${sl(q.Stage,q.IsClosed)}</span></td>
-      <td style="font-family:'DM Mono',monospace;font-size:12px;text-align:right">${£f(q.Total?.ExTax||0)}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${fd(q.DateIssued)}</td>
-      <td style="font-family:'DM Mono',monospace;font-size:11px;${dueCls}">${dueLabel}</td>
-    </tr>`;
-  }).join('');
-}
-
-// Filters
-document.querySelectorAll('.fbtn').forEach(b => b.addEventListener('click', () => {
-  document.querySelectorAll('.fbtn').forEach(x => x.classList.remove('on'));
-  b.classList.add('on');
-  curF = b.dataset.f;
-  renderTable();
-}));
-document.getElementById('search').addEventListener('input', e => {
-  curS = e.target.value.toLowerCase().trim();
-  renderTable();
-});
-document.querySelectorAll('.qtable th[data-s]').forEach(th => th.addEventListener('click', () => {
-  const k = th.dataset.s;
-  sDir = sKey === k ? sDir * -1 : -1;
-  sKey = k;
-  renderTable();
-}));
-
 load();
-setInterval(load, 5 * 60 * 1000);
+setInterval(load, 5*60*1000);
 </script>
 </body>
 </html>
