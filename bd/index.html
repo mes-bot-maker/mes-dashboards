@@ -3,159 +3,163 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MES Power - BD Dashboard</title>
+<title>MES Power — BD Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --green: #007A3D;
-  --green-dark: #005C2E;
-  --green-light: #009A4D;
-  --bg: #0d1117;
-  --surface: #161b22;
-  --surface2: #1c2230;
-  --border: #21262d;
-  --text: #e6edf3;
-  --muted: #7d8590;
-  --good: #3fb950;
-  --bad: #f85149;
-  --amber: #d29922;
-  --blue: #58a6ff;
+  --mes: #007A3D;
+  --mes-dark: #005C2E;
+  --mes-mid: #009A4D;
+  --bg: #f2f6f3;
+  --surface: #ffffff;
+  --surface2: #edf4ef;
+  --border: #cce0d4;
+  --text: #1a2e1f;
+  --muted: #5a7a65;
+  --good: #007A3D;
+  --bad: #c62828;
+  --amber: #e65100;
+  --blue: #1565c0;
+  --purple: #6a1b9a;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body { background:var(--bg); color:var(--text); font-family:'Sora',sans-serif; min-height:100vh; }
 
 header {
   display:flex; align-items:center; justify-content:space-between;
-  padding:12px 28px;
-  background:var(--green-dark);
-  border-bottom:2px solid var(--green);
+  padding:10px 28px;
+  background:var(--mes-dark);
+  border-bottom:3px solid var(--mes-mid);
   position:sticky; top:0; z-index:100;
+  box-shadow:0 2px 8px rgba(0,0,0,0.2);
 }
-.logo-wrap { display:flex; align-items:center; gap:14px; }
-.logo-img { height:38px; }
-.logo-div { width:1px; height:28px; background:rgba(255,255,255,0.2); }
-.logo-name { font-size:15px; font-weight:600; color:white; }
+.logo-wrap { display:flex; align-items:center; gap:12px; }
+.logo-img { height:36px; }
+.logo-div { width:1px; height:26px; background:rgba(255,255,255,0.3); }
+.logo-name { font-size:15px; font-weight:700; color:#fff; }
 .logo-tag { font-size:10px; color:rgba(255,255,255,0.55); letter-spacing:2px; text-transform:uppercase; }
 nav { display:flex; gap:8px; }
-nav a {
-  font-size:12px; color:rgba(255,255,255,0.7); text-decoration:none;
-  padding:5px 14px; border-radius:6px; border:1px solid rgba(255,255,255,0.2);
-  transition:all .15s;
-}
-nav a:hover { color:white; background:rgba(255,255,255,0.1); }
-nav a.on { color:white; border-color:white; background:rgba(255,255,255,0.12); }
+nav a { font-size:12px; color:rgba(255,255,255,0.75); text-decoration:none; padding:5px 14px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); transition:all .15s; }
+nav a:hover { color:#fff; background:rgba(255,255,255,0.12); }
+nav a.on { color:#fff; border-color:#fff; background:rgba(255,255,255,0.18); font-weight:600; }
 .hright { display:flex; align-items:center; gap:10px; }
-.live { display:flex; align-items:center; gap:6px; font-size:11px; color:rgba(255,255,255,0.55); font-family:'DM Mono',monospace; }
-.dot { width:7px; height:7px; border-radius:50%; background:#3fb950; box-shadow:0 0 6px #3fb950; animation:blink 2s infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.live { display:flex; align-items:center; gap:6px; font-size:11px; color:rgba(255,255,255,0.6); font-family:'DM Mono',monospace; }
+.dot { width:7px; height:7px; border-radius:50%; background:#69f0ae; box-shadow:0 0 6px #69f0ae; animation:blink 2s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.35} }
 
 main { max-width:1600px; margin:0 auto; padding:20px 28px; }
 
-.err { background:rgba(248,81,73,.08); border:1px solid rgba(248,81,73,.3); border-radius:8px; padding:12px 16px; margin-bottom:14px; color:var(--bad); font-size:12px; }
+.err { background:#ffebee; border:1px solid #ffcdd2; border-radius:8px; padding:12px 16px; margin-bottom:14px; color:var(--bad); font-size:12px; }
 
 /* Green banner */
 .banner {
-  background:linear-gradient(135deg,var(--green-dark),var(--green));
-  border-radius:10px; padding:18px 24px;
-  display:flex; gap:0; margin-bottom:14px;
-  border:1px solid var(--green);
+  background:linear-gradient(135deg, var(--mes-dark) 0%, var(--mes) 60%, var(--mes-mid) 100%);
+  border-radius:12px; padding:20px 28px;
+  display:flex; gap:0; margin-bottom:16px;
+  box-shadow:0 4px 16px rgba(0,122,61,0.25);
 }
-.bstat { flex:1; padding:0 18px; border-right:1px solid rgba(255,255,255,0.15); }
+.bstat { flex:1; padding:0 20px; border-right:1px solid rgba(255,255,255,0.18); }
 .bstat:first-child { padding-left:0; }
 .bstat:last-child { border:none; }
-.blabel { font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:rgba(255,255,255,0.55); font-family:'DM Mono',monospace; margin-bottom:5px; }
-.bval { font-size:26px; font-weight:700; color:white; letter-spacing:-.5px; }
-.bval.hi { color:#7dff9e; }
-.bsub { font-size:11px; color:rgba(255,255,255,0.45); margin-top:2px; }
+.blabel { font-size:10px; text-transform:uppercase; letter-spacing:1.5px; color:rgba(255,255,255,0.6); font-family:'DM Mono',monospace; margin-bottom:5px; }
+.bval { font-size:26px; font-weight:700; color:#fff; letter-spacing:-.5px; }
+.bval.hi { color:#b9f6ca; }
+.bsub { font-size:11px; color:rgba(255,255,255,0.5); margin-top:2px; }
 
-/* KPI grid */
-.kpis { display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin-bottom:14px; }
+/* KPI cards */
+.kpis { display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin-bottom:16px; }
 .kpi {
-  background:var(--surface); border:1px solid var(--border); border-radius:10px;
-  padding:15px 16px; border-top:2px solid var(--kc, var(--green));
+  background:var(--surface); border-radius:10px; padding:15px 16px;
+  border-top:3px solid var(--kc, var(--mes));
+  box-shadow:0 1px 4px rgba(0,0,0,0.07);
 }
 .klabel { font-size:10px; text-transform:uppercase; letter-spacing:1.2px; color:var(--muted); font-family:'DM Mono',monospace; margin-bottom:5px; }
 .kval { font-size:22px; font-weight:700; letter-spacing:-.5px; }
 .ksub { font-size:11px; color:var(--muted); margin-top:3px; }
 
-/* Charts row */
-.charts { display:grid; grid-template-columns:1fr 280px; gap:12px; margin-bottom:14px; }
-.panel { background:var(--surface); border:1px solid var(--border); border-radius:10px; overflow:hidden; }
-.ph { display:flex; align-items:center; justify-content:space-between; padding:11px 15px; border-bottom:1px solid var(--border); background:var(--surface2); }
+/* Charts */
+.charts { display:grid; grid-template-columns:1fr 280px; gap:12px; margin-bottom:16px; }
+.panel { background:var(--surface); border-radius:10px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.07); }
+.ph { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); background:var(--surface2); }
 .pt { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:var(--muted); font-family:'DM Mono',monospace; }
 .pb { font-size:11px; font-family:'DM Mono',monospace; background:var(--surface); border:1px solid var(--border); color:var(--muted); padding:2px 8px; border-radius:20px; }
 
 /* Bar chart */
-.cbody { padding:14px; }
+.cbody { padding:14px 16px 10px; }
 .bars { display:flex; align-items:flex-end; gap:5px; height:160px; }
 .bg { flex:1; display:flex; flex-direction:column; align-items:center; }
 .bpair { display:flex; align-items:flex-end; gap:2px; height:140px; width:100%; }
-.b { flex:1; border-radius:3px 3px 0 0; min-width:0; cursor:pointer; }
-.b:hover { filter:brightness(1.25); }
-.b.tgt { background:rgba(0,122,61,0.3); border:1px solid rgba(0,122,61,0.5); }
-.b.won { background:var(--green); }
-.b.fut { background:rgba(0,122,61,0.1); border:1px dashed rgba(0,122,61,0.3); }
+.b { flex:1; border-radius:3px 3px 0 0; min-width:0; cursor:pointer; transition:filter .15s; }
+.b:hover { filter:brightness(1.1); }
+.b.tgt { background:rgba(0,122,61,0.15); border:1px solid rgba(0,122,61,0.3); }
+.b.won { background:var(--mes); }
+.b.fut { background:rgba(0,122,61,0.07); border:1px dashed rgba(0,122,61,0.25); }
 .bm { font-size:9px; color:var(--muted); font-family:'DM Mono',monospace; margin-top:4px; }
-.bm.cur { color:var(--green-light); font-weight:600; }
-.leg { display:flex; gap:14px; justify-content:center; margin-top:10px; }
+.bm.cur { color:var(--mes); font-weight:700; }
+.leg { display:flex; gap:14px; justify-content:center; margin-top:8px; }
 .li { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--muted); }
 .ld { width:10px; height:10px; border-radius:2px; }
 
-/* Win rate panel */
+/* Win rate */
 .wbody { padding:18px; display:flex; flex-direction:column; align-items:center; }
-.wbig { font-size:56px; font-weight:700; color:var(--green-light); line-height:1; letter-spacing:-2px; }
-.wlabel { font-size:11px; color:var(--muted); margin-bottom:12px; text-align:center; }
+.wbig { font-size:56px; font-weight:700; color:var(--mes); line-height:1; letter-spacing:-2px; }
+.wlabel { font-size:11px; color:var(--muted); margin-bottom:10px; text-align:center; }
 .wval { font-size:20px; font-weight:700; color:var(--blue); }
-.wvlabel { font-size:10px; color:var(--muted); text-align:center; margin-bottom:10px; font-family:'DM Mono',monospace; text-transform:uppercase; }
+.wvlabel { font-size:10px; color:var(--muted); text-align:center; margin-bottom:8px; font-family:'DM Mono',monospace; text-transform:uppercase; }
 .wdiv { width:100%; border:none; border-top:1px solid var(--border); margin:10px 0; }
 .wstats { display:grid; grid-template-columns:1fr 1fr; gap:8px; width:100%; }
-.ws { background:var(--surface2); border-radius:8px; padding:10px; text-align:center; }
+.ws { background:var(--surface2); border-radius:8px; padding:10px; text-align:center; border:1px solid var(--border); }
 .wsv { font-size:18px; font-weight:700; font-family:'DM Mono',monospace; }
 .wsl { font-size:10px; color:var(--muted); margin-top:2px; text-transform:uppercase; letter-spacing:1px; }
 
-/* Bottom row */
-.bottom { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+/* Bottom */
+.bottom { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
 .mtable { width:100%; border-collapse:collapse; }
-.mtable th { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); font-family:'DM Mono',monospace; padding:9px 14px; text-align:left; border-bottom:1px solid var(--border); font-weight:500; background:var(--surface2); }
-.mtable td { padding:9px 14px; font-size:12px; border-bottom:1px solid rgba(33,38,45,0.5); font-family:'DM Mono',monospace; }
-.mtable tr.cur td { background:rgba(0,122,61,0.06); }
+.mtable th { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); font-family:'DM Mono',monospace; padding:9px 14px; text-align:left; border-bottom:2px solid var(--border); font-weight:600; background:var(--surface2); }
+.mtable td { padding:9px 14px; font-size:12px; border-bottom:1px solid var(--border); font-family:'DM Mono',monospace; }
+.mtable tr.cur td { background:#e8f5ee; font-weight:600; }
 .mtable tr:last-child td { border-bottom:none; }
-.pill { font-size:10px; padding:2px 7px; border-radius:4px; font-weight:500; }
-.pill.hi { background:rgba(63,185,80,.15); color:var(--good); }
-.pill.mid { background:rgba(210,153,34,.15); color:var(--amber); }
-.pill.lo { background:rgba(248,81,73,.15); color:var(--bad); }
+.mtable tr:hover td { background:#f5fbf7; }
+.pill { font-size:10px; padding:2px 8px; border-radius:4px; font-weight:600; }
+.pill.hi { background:#c8e6c9; color:#1b5e20; }
+.pill.mid { background:#ffe0b2; color:#bf360c; }
+.pill.lo { background:#ffcdd2; color:#b71c1c; }
 
 /* Sectors */
-.slist { padding:14px; }
+.slist { padding:14px 16px; }
 .srow { margin-bottom:12px; }
 .srow:last-child { margin-bottom:0; }
 .stop { display:flex; justify-content:space-between; margin-bottom:4px; }
-.sname { font-size:12px; }
+.sname { font-size:12px; font-weight:500; }
 .sval { font-size:11px; font-family:'DM Mono',monospace; color:var(--muted); }
-.strack { background:var(--surface2); border-radius:3px; height:5px; overflow:hidden; }
-.sfill { height:100%; border-radius:3px; background:var(--green); }
+.strack { background:var(--surface2); border-radius:3px; height:7px; overflow:hidden; border:1px solid var(--border); }
+.sfill { height:100%; border-radius:3px; background:var(--mes); }
 
-/* Leads section */
-.leads-row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:14px; }
-.lkpi { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:15px 16px; border-top:2px solid var(--green); text-align:center; }
-.lkval { font-size:28px; font-weight:700; color:var(--green-light); }
-.lklabel { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-family:'DM Mono',monospace; margin-top:4px; }
-.leads-bottom { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+/* Leads */
+.leads-section { background:var(--surface); border-radius:10px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,0.07); margin-bottom:16px; }
+.leads-kpis { display:grid; grid-template-columns:repeat(3,1fr); gap:0; }
+.lkpi { padding:20px; text-align:center; border-right:1px solid var(--border); }
+.lkpi:last-child { border-right:none; }
+.lkval { font-size:40px; font-weight:700; color:var(--mes); line-height:1; }
+.lklabel { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; font-family:'DM Mono',monospace; margin-top:4px; }
+.leads-tables { display:grid; grid-template-columns:1fr 1fr; }
+.leads-tables .panel { border-radius:0; box-shadow:none; border-top:1px solid var(--border); }
 .ltable { width:100%; border-collapse:collapse; }
-.ltable th { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); font-family:'DM Mono',monospace; padding:8px 12px; text-align:left; border-bottom:1px solid var(--border); background:var(--surface2); }
-.ltable td { padding:8px 12px; font-size:12px; border-bottom:1px solid rgba(33,38,45,0.4); }
+.ltable th { font-size:10px; text-transform:uppercase; letter-spacing:1px; color:var(--muted); font-family:'DM Mono',monospace; padding:8px 14px; text-align:left; border-bottom:1px solid var(--border); background:var(--surface2); }
+.ltable td { padding:9px 14px; font-size:12px; border-bottom:1px solid var(--border); }
 .ltable tr:last-child td { border-bottom:none; }
-.ltable tr:hover td { background:rgba(0,122,61,0.03); }
-.open-chip { font-size:10px; padding:2px 7px; border-radius:4px; background:rgba(0,122,61,0.15); color:var(--green-light); font-family:'DM Mono',monospace; }
-.closed-chip { font-size:10px; padding:2px 7px; border-radius:4px; background:rgba(88,166,255,0.12); color:var(--blue); font-family:'DM Mono',monospace; }
+.ltable tr:hover td { background:#f5fbf7; }
+.chip-open { font-size:10px; padding:2px 8px; border-radius:4px; background:#c8e6c9; color:#1b5e20; font-family:'DM Mono',monospace; font-weight:600; }
+.chip-conv { font-size:10px; padding:2px 8px; border-radius:4px; background:#bbdefb; color:#0d47a1; font-family:'DM Mono',monospace; font-weight:600; }
 
-.spin { width:20px; height:20px; border:2px solid var(--border); border-top-color:var(--green); border-radius:50%; animation:spin .7s linear infinite; margin:0 auto 8px; }
+.spin { width:20px; height:20px; border:2px solid var(--border); border-top-color:var(--mes); border-radius:50%; animation:spin .7s linear infinite; margin:0 auto 8px; }
 @keyframes spin { to { transform:rotate(360deg); } }
 .loading { padding:28px; text-align:center; color:var(--muted); font-size:12px; }
+.empty { padding:20px; text-align:center; color:var(--muted); font-size:12px; }
 
-@media(max-width:1200px) { .kpis{grid-template-columns:repeat(3,1fr)} .charts{grid-template-columns:1fr} .bottom{grid-template-columns:1fr} .leads-row{grid-template-columns:1fr 1fr} .leads-bottom{grid-template-columns:1fr} }
-@media(max-width:700px) { main{padding:12px} header{padding:10px 14px} .kpis{grid-template-columns:1fr 1fr} .banner{flex-direction:column;gap:12px} .bstat{border:none;padding:0} .leads-row{grid-template-columns:1fr} }
+@media(max-width:1200px) { .kpis{grid-template-columns:repeat(3,1fr)} .charts{grid-template-columns:1fr} .bottom{grid-template-columns:1fr} .leads-tables{grid-template-columns:1fr} }
+@media(max-width:700px) { main{padding:12px} header{padding:10px 14px} .kpis{grid-template-columns:1fr 1fr} .banner{flex-wrap:wrap} .bstat{border-right:none;border-bottom:1px solid rgba(255,255,255,.15);padding:8px 0} .leads-kpis{grid-template-columns:1fr} .lkpi{border-right:none;border-bottom:1px solid var(--border)} }
 </style>
 </head>
 <body>
@@ -180,87 +184,34 @@ main { max-width:1600px; margin:0 auto; padding:20px 28px; }
 <main>
   <div id="err" class="err" style="display:none"></div>
 
-  <!-- Top green banner -->
   <div class="banner">
-    <div class="bstat">
-      <div class="blabel">Open Pipeline</div>
-      <div class="bval hi" id="b-pipeline">-</div>
-      <div class="bsub" id="b-pipeline-n">- open quotes</div>
-    </div>
-    <div class="bstat">
-      <div class="blabel">Target Orders Year</div>
-      <div class="bval" id="b-annual">-</div>
-      <div class="bsub">FY 2026</div>
-    </div>
-    <div class="bstat">
-      <div class="blabel">Won GBP YTD</div>
-      <div class="bval hi" id="b-won-ytd">-</div>
-      <div class="bsub" id="b-won-ytd-n">- quotes approved &amp; closed</div>
-    </div>
-    <div class="bstat">
-      <div class="blabel">Sales Target YTD</div>
-      <div class="bval" id="b-target-ytd">-</div>
-      <div class="bsub">cumulative to this month</div>
-    </div>
-    <div class="bstat">
-      <div class="blabel">Sales Variance YTD</div>
-      <div class="bval" id="b-variance">-</div>
-      <div class="bsub">Won vs Target</div>
-    </div>
-    <div class="bstat">
-      <div class="blabel">YTD Achieved</div>
-      <div class="bval" id="b-achieved">-</div>
-      <div class="bsub">% of YTD target</div>
-    </div>
+    <div class="bstat"><div class="blabel">Open Pipeline</div><div class="bval hi" id="b-pipeline">—</div><div class="bsub" id="b-pipeline-n">—</div></div>
+    <div class="bstat"><div class="blabel">Target Orders Year</div><div class="bval" id="b-annual">—</div><div class="bsub" id="b-year-label">—</div></div>
+    <div class="bstat"><div class="blabel">Won £ YTD</div><div class="bval hi" id="b-won-ytd">—</div><div class="bsub" id="b-won-ytd-n">—</div></div>
+    <div class="bstat"><div class="blabel">Sales Target YTD</div><div class="bval" id="b-target-ytd">—</div><div class="bsub">cumulative to this month</div></div>
+    <div class="bstat"><div class="blabel">Sales Variance YTD</div><div class="bval" id="b-variance">—</div><div class="bsub">Won vs Target</div></div>
+    <div class="bstat"><div class="blabel">YTD Achieved</div><div class="bval" id="b-achieved">—</div><div class="bsub">% of YTD target</div></div>
   </div>
 
-  <!-- KPI row -->
   <div class="kpis">
-    <div class="kpi" style="--kc:var(--green)">
-      <div class="klabel">Target This Month</div>
-      <div class="kval" id="k-month-target">-</div>
-      <div class="ksub" id="k-month-name">-</div>
-    </div>
-    <div class="kpi" style="--kc:var(--good)">
-      <div class="klabel">Won GBP MTD</div>
-      <div class="kval" style="color:var(--good)" id="k-won-mtd">-</div>
-      <div class="ksub" id="k-won-mtd-n">- quotes this month</div>
-    </div>
-    <div class="kpi" style="--kc:var(--bad)">
-      <div class="klabel">Monthly Variance</div>
-      <div class="kval" id="k-month-var">-</div>
-      <div class="ksub">Won vs Month Target</div>
-    </div>
-    <div class="kpi" style="--kc:var(--amber)">
-      <div class="klabel">Month Achieved</div>
-      <div class="kval" id="k-month-pct">-</div>
-      <div class="ksub">% of monthly target</div>
-    </div>
-    <div class="kpi" style="--kc:var(--blue)">
-      <div class="klabel">Win Rate by Count</div>
-      <div class="kval" style="color:var(--blue)" id="k-win-count">-</div>
-      <div class="ksub">Approved+closed / all closed</div>
-    </div>
-    <div class="kpi" style="--kc:#9e6cf5">
-      <div class="klabel">Win Rate by Value</div>
-      <div class="kval" style="color:#9e6cf5" id="k-win-val">-</div>
-      <div class="ksub">Won value / all closed value</div>
-    </div>
+    <div class="kpi" style="--kc:var(--mes)"><div class="klabel">Target This Month</div><div class="kval" id="k-month-target">—</div><div class="ksub" id="k-month-name">—</div></div>
+    <div class="kpi" style="--kc:var(--good)"><div class="klabel">Won £ MTD</div><div class="kval" style="color:var(--good)" id="k-won-mtd">—</div><div class="ksub" id="k-won-mtd-n">—</div></div>
+    <div class="kpi" style="--kc:var(--bad)"><div class="klabel">Monthly Variance</div><div class="kval" id="k-month-var">—</div><div class="ksub">Won vs Month Target</div></div>
+    <div class="kpi" style="--kc:var(--amber)"><div class="klabel">Month Achieved</div><div class="kval" id="k-month-pct">—</div><div class="ksub">% of monthly target</div></div>
+    <div class="kpi" style="--kc:var(--blue)"><div class="klabel">Win Rate by Count</div><div class="kval" style="color:var(--blue)" id="k-win-count">—</div><div class="ksub">Approved+closed / all closed</div></div>
+    <div class="kpi" style="--kc:var(--purple)"><div class="klabel">Win Rate by Value</div><div class="kval" style="color:var(--purple)" id="k-win-val">—</div><div class="ksub">Won value / all closed value</div></div>
   </div>
 
-  <!-- Bar chart + Win rate -->
   <div class="charts">
     <div class="panel">
       <div class="ph">
-        <span class="pt">Monthly Target vs Won (2026)</span>
+        <span class="pt" id="chart-title">Monthly Target vs Won</span>
         <div class="leg">
-          <div class="li"><div class="ld" style="background:rgba(0,122,61,0.4)"></div>Target</div>
-          <div class="li"><div class="ld" style="background:var(--green)"></div>Won</div>
+          <div class="li"><div class="ld" style="background:rgba(0,122,61,0.25);border:1px solid rgba(0,122,61,0.4)"></div>Target</div>
+          <div class="li"><div class="ld" style="background:var(--mes)"></div>Won</div>
         </div>
       </div>
-      <div class="cbody">
-        <div class="bars" id="bar-chart"><div class="loading"><div class="spin"></div></div></div>
-      </div>
+      <div class="cbody"><div class="bars" id="bar-chart"><div class="loading"><div class="spin"></div></div></div></div>
     </div>
     <div class="panel">
       <div class="ph"><span class="pt">Win Rates</span></div>
@@ -268,15 +219,12 @@ main { max-width:1600px; margin:0 auto; padding:20px 28px; }
     </div>
   </div>
 
-  <!-- Monthly + Sectors -->
   <div class="bottom">
     <div class="panel">
-      <div class="ph"><span class="pt">Monthly Breakdown</span><span class="pb">2026 YTD</span></div>
+      <div class="ph"><span class="pt">Monthly Breakdown</span><span class="pb" id="ytd-label">YTD</span></div>
       <div style="overflow-x:auto">
         <table class="mtable">
-          <thead><tr>
-            <th>Month</th><th>Target</th><th>Won</th><th>Variance</th><th>% Hit</th>
-          </tr></thead>
+          <thead><tr><th>Month</th><th>Target</th><th>Won</th><th>Variance</th><th>% Hit</th></tr></thead>
           <tbody id="monthly-body"><tr><td colspan="5" class="loading"><div class="spin"></div></td></tr></tbody>
         </table>
       </div>
@@ -287,29 +235,19 @@ main { max-width:1600px; margin:0 auto; padding:20px 28px; }
     </div>
   </div>
 
-  <!-- Leads section -->
-  <div class="ph" style="border-radius:10px 10px 0 0;border:1px solid var(--border);margin-bottom:0">
-    <span class="pt">BD Leads Pipeline (2026)</span>
-    <span class="pb">Lead to Quote Funnel</span>
-  </div>
-  <div style="background:var(--surface);border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;padding:14px;margin-bottom:14px">
-    <div class="leads-row" style="margin-bottom:12px">
-      <div class="lkpi">
-        <div class="lkval" id="l-total">-</div>
-        <div class="lklabel">Leads Created 2026</div>
-      </div>
-      <div class="lkpi">
-        <div class="lkval" style="color:var(--good)" id="l-converted">-</div>
-        <div class="lklabel">Converted to Quote</div>
-      </div>
-      <div class="lkpi">
-        <div class="lkval" style="color:var(--blue)" id="l-open">-</div>
-        <div class="lklabel">Still Open</div>
-      </div>
+  <div class="leads-section">
+    <div class="ph" style="border-radius:0">
+      <span class="pt" id="leads-title">BD Leads Pipeline</span>
+      <span class="pb">Lead to Quote Funnel</span>
     </div>
-    <div class="leads-bottom">
+    <div class="leads-kpis">
+      <div class="lkpi"><div class="lkval" id="l-total">—</div><div class="lklabel">Leads Created</div></div>
+      <div class="lkpi"><div class="lkval" style="color:var(--blue)" id="l-converted">—</div><div class="lklabel">Converted to Quote</div></div>
+      <div class="lkpi"><div class="lkval" style="color:var(--amber)" id="l-open">—</div><div class="lklabel">Still Open</div></div>
+    </div>
+    <div class="leads-tables">
       <div class="panel">
-        <div class="ph"><span class="pt">Open Leads</span><span class="pb" id="open-leads-count">-</span></div>
+        <div class="ph"><span class="pt">Open Leads</span><span class="pb" id="open-leads-count">—</span></div>
         <div style="overflow-x:auto;max-height:220px;overflow-y:auto">
           <table class="ltable">
             <thead><tr><th>Lead</th><th>Created</th></tr></thead>
@@ -318,7 +256,7 @@ main { max-width:1600px; margin:0 auto; padding:20px 28px; }
         </div>
       </div>
       <div class="panel">
-        <div class="ph"><span class="pt">New Leads This Month</span><span class="pb" id="month-leads-count">-</span></div>
+        <div class="ph"><span class="pt">New Leads This Month</span><span class="pb" id="month-leads-count">—</span></div>
         <div style="overflow-x:auto;max-height:220px;overflow-y:auto">
           <table class="ltable">
             <thead><tr><th>Lead</th><th>Status</th></tr></thead>
@@ -328,300 +266,230 @@ main { max-width:1600px; margin:0 auto; padding:20px 28px; }
       </div>
     </div>
   </div>
-
 </main>
 
 <script>
-var API_ALL = 'https://mes-api.mes-bot.workers.dev/api/all';
+var API_ALL   = 'https://mes-api.mes-bot.workers.dev/api/all';
 var API_LEADS = 'https://mes-api.mes-bot.workers.dev/api/leads';
-var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var MONTHS    = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var NOW       = new Date();
+var CUR_YEAR  = NOW.getFullYear();
+var CUR_MONTH = NOW.getMonth() + 1;
 
-function fmtMoney(n) {
-  var abs = Math.abs(n);
-  var sign = n < 0 ? '-' : '';
-  if (abs >= 1000000) return sign + 'GBP' + (abs/1000000).toFixed(2) + 'M';
-  if (abs >= 1000) return sign + 'GBP' + (abs/1000).toFixed(1) + 'K';
-  return sign + 'GBP' + abs.toFixed(0);
+function fmt(n) {
+  var a = Math.abs(n), s = n < 0 ? '-' : '';
+  if (a >= 1e6) return s + '\u00a3' + (a/1e6).toFixed(2) + 'M';
+  if (a >= 1e3) return s + '\u00a3' + (a/1e3).toFixed(1) + 'K';
+  return s + '\u00a3' + a.toFixed(0);
 }
-
 function fmtDate(d) {
-  if (!d) return '-';
-  var dt = new Date(d);
-  if (isNaN(dt)) return '-';
-  return dt.toLocaleDateString('en-GB', {day:'2-digit', month:'short'});
+  if (!d) return '—';
+  var dt = new Date(d); if (isNaN(dt)) return '—';
+  return dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
 }
-
-function isWon(q) { return q.Stage === 'Approved' && q.IsClosed === true; }
+function isWon(q)  { return q.JobNo && q.JobNo !== ''; }
 function isLost(q) { return q.Stage === 'Lost' || q.Stage === 'Declined'; }
 
-async function loadData() {
-  try {
-    // Fetch independently so one failure doesn't break everything
-    var allData = {}, leadsData = [];
-    try {
-      var r1 = await fetch(API_ALL);
-      if (r1.ok) allData = await r1.json();
-    } catch(e1) { console.log('api/all failed:', e1.message); }
-    try {
-      var r2 = await fetch(API_LEADS);
-      if (r2.ok) leadsData = await r2.json();
-    } catch(e2) { console.log('api/leads failed:', e2.message); }
-
-    var quotes = Array.isArray(allData) ? allData : (allData.quotes || []);
-    var targets = allData.targets || {};
-    var leads = Array.isArray(leadsData) ? leadsData : [];
-    
-    if (quotes.length === 0 && !allData.annual) {
-      throw new Error('No data returned - worker may be starting up, retrying in 10s...');
-    }
-
-    document.getElementById('updated').textContent =
-      new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
-
-    renderBanner(quotes, targets);
-    renderKPIs(quotes, targets);
-    renderChart(quotes, targets);
-    renderWinRate(quotes);
-    renderMonthly(quotes, targets);
-    renderSectors(targets);
-    renderLeads(leads);
-
-  } catch(e) {
-    var el = document.getElementById('err');
-    el.style.display = 'block';
-    el.textContent = 'Error: ' + e.message;
-    // Auto-retry after 10 seconds if worker is warming up
-    setTimeout(loadData, 10000);
-  }
-}
-
 function wonByMonth(quotes) {
-  var now = new Date();
-  var yr = now.getFullYear();
   var map = {};
   quotes.forEach(function(q) {
     if (!isWon(q) || !q.DateApproved) return;
     var d = new Date(q.DateApproved);
-    if (d.getFullYear() !== yr) return;
-    var m = d.getMonth() + 1;
-    if (!map[m]) map[m] = {count:0, value:0};
-    map[m].count++;
-    map[m].value += q.Total ? (q.Total.ExTax || 0) : 0;
+    if (d.getFullYear() !== CUR_YEAR) return;
+    var m = d.getMonth()+1;
+    if (!map[m]) map[m] = {count:0,value:0};
+    map[m].count++; map[m].value += (q.Total ? q.Total.ExTax||0 : 0);
   });
   return map;
 }
 
-function renderBanner(quotes, targets) {
-  var now = new Date();
-  var curMonth = now.getMonth() + 1;
+async function loadData() {
+  try {
+    var allData = {}, leadsData = [];
+    try { var r1 = await fetch(API_ALL);   if (r1.ok) allData   = await r1.json(); } catch(e) {}
+    try { var r2 = await fetch(API_LEADS); if (r2.ok) leadsData = await r2.json(); } catch(e) {}
+    var quotes  = Array.isArray(allData) ? allData : (allData.quotes || []);
+    var targets = allData.targets || {};
+    var leads   = Array.isArray(leadsData) ? leadsData : (Array.isArray(allData.leads) ? allData.leads : []);
+    if (!quotes.length && !targets.annual) throw new Error('No data — retrying in 10s');
+    document.getElementById('updated').textContent = NOW.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    render(quotes, targets, leads);
+  } catch(e) {
+    var el = document.getElementById('err');
+    el.style.display = 'block'; el.textContent = 'Error: ' + e.message;
+    setTimeout(loadData, 10000);
+  }
+}
+
+function render(quotes, targets, leads) {
   var monthly = targets.monthly || {};
+  var won     = wonByMonth(quotes);
 
+  // YTD cumulative target
   var ytdTarget = 0;
-  for (var m = 1; m <= curMonth; m++) ytdTarget += monthly[m] || 0;
+  for (var m = 1; m <= CUR_MONTH; m++) ytdTarget += monthly[m]||0;
 
-  var won = wonByMonth(quotes);
   var ytdWon = 0, ytdCount = 0;
-  Object.values(won).forEach(function(w) { ytdWon += w.value; ytdCount += w.count; });
+  Object.values(won).forEach(function(w){ytdWon+=w.value;ytdCount+=w.count;});
 
-  var open = quotes.filter(function(q) { return !q.IsClosed && q.Stage !== 'Lost' && q.Stage !== 'Declined'; });
-  var openVal = open.reduce(function(s,q) { return s + (q.Total ? q.Total.ExTax || 0 : 0); }, 0);
-
+  var open    = quotes.filter(function(q){return !q.IsClosed && q.Stage!=='Lost' && q.Stage!=='Declined';});
+  var openVal = open.reduce(function(s,q){return s+(q.Total?q.Total.ExTax||0:0);},0);
   var variance = ytdWon - ytdTarget;
-  var achPct = ytdTarget > 0 ? (ytdWon / ytdTarget * 100) : 0;
+  var achPct  = ytdTarget>0 ? (ytdWon/ytdTarget*100) : 0;
 
-  document.getElementById('b-pipeline').textContent = fmtMoney(openVal);
+  // Banner
+  document.getElementById('b-pipeline').textContent   = fmt(openVal);
   document.getElementById('b-pipeline-n').textContent = open.length + ' open quotes';
-  document.getElementById('b-annual').textContent = fmtMoney(targets.annual || 0);
-  document.getElementById('b-won-ytd').textContent = fmtMoney(ytdWon);
-  document.getElementById('b-won-ytd-n').textContent = ytdCount + ' approved & closed';
-  document.getElementById('b-target-ytd').textContent = fmtMoney(ytdTarget);
-
+  document.getElementById('b-annual').textContent     = fmt(targets.annual||0);
+  document.getElementById('b-year-label').textContent = 'FY ' + CUR_YEAR;
+  document.getElementById('b-won-ytd').textContent    = fmt(ytdWon);
+  document.getElementById('b-won-ytd-n').textContent  = ytdCount + ' approved & closed';
+  document.getElementById('b-target-ytd').textContent = fmt(ytdTarget);
   var varEl = document.getElementById('b-variance');
-  varEl.textContent = (variance >= 0 ? '+' : '') + fmtMoney(variance);
-  varEl.style.color = variance >= 0 ? '#3fb950' : '#f85149';
-
+  varEl.textContent = (variance>=0?'+':'') + fmt(variance);
+  varEl.style.color = variance>=0 ? '#b9f6ca' : '#ff8a80';
   var achEl = document.getElementById('b-achieved');
   achEl.textContent = achPct.toFixed(1) + '%';
-  achEl.style.color = achPct >= 100 ? '#3fb950' : '#7dff9e';
+  achEl.style.color = achPct>=100 ? '#b9f6ca' : '#fff';
+
+  // Chart title
+  document.getElementById('chart-title').textContent = 'Monthly Target vs Won (' + CUR_YEAR + ')';
+  document.getElementById('ytd-label').textContent   = CUR_YEAR + ' YTD';
+  document.getElementById('leads-title').textContent = 'BD Leads Pipeline (' + CUR_YEAR + ')';
+
+  // KPIs
+  var monthTarget = monthly[CUR_MONTH]||0;
+  var mtd         = won[CUR_MONTH] || {count:0,value:0};
+  var monthVar    = mtd.value - monthTarget;
+  var monthPct    = monthTarget>0 ? (mtd.value/monthTarget*100) : 0;
+
+  var allClosed  = quotes.filter(function(q){return q.IsClosed||isLost(q);});
+  var allWon     = quotes.filter(isWon);
+  var closedVal  = allClosed.reduce(function(s,q){return s+(q.Total?q.Total.ExTax||0:0);},0);
+  var wonVal     = allWon.reduce(function(s,q){return s+(q.Total?q.Total.ExTax||0:0);},0);
+  var winRateC   = allClosed.length>0 ? (allWon.length/allClosed.length*100) : 0;
+  var winRateV   = closedVal>0 ? (wonVal/closedVal*100) : 0;
+
+  document.getElementById('k-month-target').textContent = fmt(monthTarget);
+  document.getElementById('k-month-name').textContent   = MONTHS[CUR_MONTH-1] + ' ' + CUR_YEAR + ' target';
+  document.getElementById('k-won-mtd').textContent      = fmt(mtd.value);
+  document.getElementById('k-won-mtd-n').textContent    = mtd.count + ' quotes this month';
+  var mv = document.getElementById('k-month-var');
+  mv.textContent = (monthVar>=0?'+':'') + fmt(monthVar);
+  mv.style.color = monthVar>=0 ? 'var(--good)' : 'var(--bad)';
+  var mp = document.getElementById('k-month-pct');
+  mp.textContent = monthPct.toFixed(1)+'%';
+  mp.style.color = monthPct>=100 ? 'var(--good)' : monthPct>=70 ? 'var(--amber)' : 'var(--bad)';
+  document.getElementById('k-win-count').textContent = winRateC.toFixed(1)+'%';
+  document.getElementById('k-win-val').textContent   = winRateV.toFixed(1)+'%';
+
+  renderChart(won, monthly);
+  renderWinRate(allWon, allLost(quotes), open, winRateC, winRateV);
+  renderMonthly(won, monthly);
+  renderSectors(targets);
+  renderLeads(leads);
 }
 
-function renderKPIs(quotes, targets) {
-  var now = new Date();
-  var curMonth = now.getMonth() + 1;
-  var monthly = targets.monthly || {};
-  var monthTarget = monthly[curMonth] || 0;
+function allLost(quotes) { return quotes.filter(isLost); }
 
-  var won = wonByMonth(quotes);
-  var mtd = won[curMonth] || {count:0, value:0};
-  var monthVar = mtd.value - monthTarget;
-  var monthPct = monthTarget > 0 ? (mtd.value / monthTarget * 100) : 0;
-
-  var allClosed = quotes.filter(function(q) { return q.IsClosed || isLost(q); });
-  var allWon = quotes.filter(isWon);
-  var closedVal = allClosed.reduce(function(s,q){ return s+(q.Total?q.Total.ExTax||0:0);},0);
-  var wonVal = allWon.reduce(function(s,q){ return s+(q.Total?q.Total.ExTax||0:0);},0);
-  var winRateCount = allClosed.length > 0 ? (allWon.length / allClosed.length * 100) : 0;
-  var winRateVal = closedVal > 0 ? (wonVal / closedVal * 100) : 0;
-
-  document.getElementById('k-month-target').textContent = fmtMoney(monthTarget);
-  document.getElementById('k-month-name').textContent = MONTHS[curMonth-1] + ' 2026 target';
-  document.getElementById('k-won-mtd').textContent = fmtMoney(mtd.value);
-  document.getElementById('k-won-mtd-n').textContent = mtd.count + ' quotes this month';
-
-  var varEl = document.getElementById('k-month-var');
-  varEl.textContent = (monthVar >= 0 ? '+' : '') + fmtMoney(monthVar);
-  varEl.style.color = monthVar >= 0 ? '#3fb950' : '#f85149';
-
-  var pctEl = document.getElementById('k-month-pct');
-  pctEl.textContent = monthPct.toFixed(1) + '%';
-  pctEl.style.color = monthPct >= 100 ? '#3fb950' : monthPct >= 70 ? '#d29922' : '#f85149';
-
-  document.getElementById('k-win-count').textContent = winRateCount.toFixed(1) + '%';
-  document.getElementById('k-win-val').textContent = winRateVal.toFixed(1) + '%';
-}
-
-function renderChart(quotes, targets) {
-  var now = new Date();
-  var curMonth = now.getMonth() + 1;
-  var monthly = targets.monthly || {};
-  var won = wonByMonth(quotes);
-
-  var allVals = [];
-  for (var i = 1; i <= 12; i++) {
-    allVals.push(monthly[i] || 0);
-    allVals.push(won[i] ? won[i].value : 0);
-  }
-  var maxVal = Math.max.apply(null, allVals.concat([1]));
-
+function renderChart(won, monthly) {
+  var vals = [];
+  for (var i=1; i<=12; i++) { vals.push(monthly[i]||0); vals.push(won[i]?won[i].value:0); }
+  var mx = Math.max.apply(null, vals.concat([1]));
   var html = '';
-  for (var m = 1; m <= 12; m++) {
-    var t = monthly[m] || 0;
-    var w = won[m] ? won[m].value : 0;
-    var tH = Math.max((t/maxVal)*140, 2);
-    var wH = w > 0 ? Math.max((w/maxVal)*140, 2) : 0;
-    var isFut = m > curMonth;
-    var isCur = m === curMonth;
-    html += '<div class="bg">';
-    html += '<div class="bpair">';
-    html += '<div class="b tgt" style="height:' + tH + 'px" title="' + MONTHS[m-1] + ' target: ' + fmtMoney(t) + '"></div>';
-    html += '<div class="b ' + (isFut ? 'fut' : 'won') + '" style="height:' + wH + 'px' + (wH === 0 ? ';opacity:0' : '') + '" title="' + MONTHS[m-1] + ' won: ' + fmtMoney(w) + '"></div>';
-    html += '</div>';
-    html += '<div class="bm' + (isCur ? ' cur' : '') + '">' + MONTHS[m-1] + '</div>';
-    html += '</div>';
+  for (var m=1; m<=12; m++) {
+    var t=monthly[m]||0, w=won[m]?won[m].value:0;
+    var tH=Math.max((t/mx)*140,t>0?2:0), wH=w>0?Math.max((w/mx)*140,2):0;
+    html += '<div class="bg"><div class="bpair">';
+    html += '<div class="b tgt" style="height:'+tH+'px" title="'+MONTHS[m-1]+' target: '+fmt(t)+'"></div>';
+    html += '<div class="b '+(m>CUR_MONTH?'fut':'won')+'" style="height:'+wH+'px'+(wH===0?';opacity:0':'')+'" title="'+MONTHS[m-1]+' won: '+fmt(w)+'"></div>';
+    html += '</div><div class="bm'+(m===CUR_MONTH?' cur':'')+'">'+MONTHS[m-1]+'</div></div>';
   }
   document.getElementById('bar-chart').innerHTML = html;
 }
 
-function renderWinRate(quotes) {
-  var allWon = quotes.filter(isWon);
-  var allLost = quotes.filter(isLost);
-  var active = quotes.filter(function(q) { return !q.IsClosed && !isLost(q); });
-  var allClosed = quotes.filter(function(q) { return q.IsClosed || isLost(q); });
-  var closedVal = allClosed.reduce(function(s,q){return s+(q.Total?q.Total.ExTax||0:0);},0);
-  var wonVal = allWon.reduce(function(s,q){return s+(q.Total?q.Total.ExTax||0:0);},0);
-  var countPct = allClosed.length > 0 ? (allWon.length/allClosed.length*100) : 0;
-  var valPct = closedVal > 0 ? (wonVal/closedVal*100) : 0;
-
+function renderWinRate(allWon, lostQ, active, cPct, vPct) {
   document.getElementById('win-body').innerHTML =
-    '<div class="wbig">' + countPct.toFixed(1) + '<span style="font-size:28px;color:var(--muted)">%</span></div>' +
-    '<div class="wlabel">Win Rate by Count</div>' +
-    '<div class="wvlabel">Win Rate by Value</div>' +
-    '<div class="wval">' + valPct.toFixed(1) + '%</div>' +
-    '<hr class="wdiv">' +
-    '<div class="wstats">' +
-    '<div class="ws"><div class="wsv" style="color:#3fb950">' + allWon.length + '</div><div class="wsl">Won</div></div>' +
-    '<div class="ws"><div class="wsv" style="color:var(--blue)">' + active.length + '</div><div class="wsl">Active</div></div>' +
-    '<div class="ws"><div class="wsv" style="color:var(--bad)">' + allLost.length + '</div><div class="wsl">Lost</div></div>' +
-    '<div class="ws"><div class="wsv" style="color:var(--muted)">' + allClosed.length + '</div><div class="wsl">Closed</div></div>' +
+    '<div class="wbig">'+cPct.toFixed(1)+'<span style="font-size:28px;color:var(--muted)">%</span></div>'+
+    '<div class="wlabel">Win Rate by Count</div>'+
+    '<div class="wvlabel">Win Rate by Value</div>'+
+    '<div class="wval">'+vPct.toFixed(1)+'%</div>'+
+    '<hr class="wdiv">'+
+    '<div class="wstats">'+
+    '<div class="ws"><div class="wsv" style="color:var(--good)">'+allWon.length+'</div><div class="wsl">Won</div></div>'+
+    '<div class="ws"><div class="wsv" style="color:var(--blue)">'+active.length+'</div><div class="wsl">Active</div></div>'+
+    '<div class="ws"><div class="wsv" style="color:var(--bad)">'+lostQ.length+'</div><div class="wsl">Lost</div></div>'+
+    '<div class="ws"><div class="wsv" style="color:var(--muted)">'+(allWon.length+lostQ.length)+'</div><div class="wsl">Closed</div></div>'+
     '</div>';
 }
 
-function renderMonthly(quotes, targets) {
-  var now = new Date();
-  var curMonth = now.getMonth() + 1;
-  var monthly = targets.monthly || {};
-  var won = wonByMonth(quotes);
+function renderMonthly(won, monthly) {
   var html = '';
-
-  for (var m = 1; m <= curMonth; m++) {
-    var t = monthly[m] || 0;
-    var w = won[m] ? won[m].value : 0;
-    var cnt = won[m] ? won[m].count : 0;
-    var v = w - t;
-    var p = t > 0 ? (w/t*100) : 0;
-    var pillCls = p >= 100 ? 'hi' : p >= 70 ? 'mid' : 'lo';
-    var isCur = m === curMonth;
-    html += '<tr' + (isCur ? ' class="cur"' : '') + '>';
-    html += '<td style="' + (isCur ? 'color:#009A4D;font-weight:600' : '') + '">' + MONTHS[m-1] + (isCur ? ' ◄' : '') + '</td>';
-    html += '<td>' + fmtMoney(t) + '</td>';
-    html += '<td style="color:' + (w > 0 ? '#3fb950' : 'var(--muted)') + '">' + fmtMoney(w) + (cnt ? ' (' + cnt + ')' : '') + '</td>';
-    html += '<td style="color:' + (v >= 0 ? '#3fb950' : '#f85149') + '">' + (v >= 0 ? '+' : '') + fmtMoney(v) + '</td>';
-    html += '<td><span class="pill ' + pillCls + '">' + p.toFixed(1) + '%</span></td>';
-    html += '</tr>';
+  for (var m=1; m<=CUR_MONTH; m++) {
+    var t=monthly[m]||0, w=won[m]?won[m].value:0, cnt=won[m]?won[m].count:0;
+    var v=w-t, p=t>0?(w/t*100):0;
+    var cls=p>=100?'hi':p>=70?'mid':'lo';
+    html += '<tr'+(m===CUR_MONTH?' class="cur"':'')+'>'+
+      '<td>'+(m===CUR_MONTH?'&#9658; ':'')+MONTHS[m-1]+'</td>'+
+      '<td>'+fmt(t)+'</td>'+
+      '<td style="color:'+(w>0?'var(--good)':'var(--muted)')+'">'+fmt(w)+(cnt?' ('+cnt+')':'')+'</td>'+
+      '<td style="color:'+(v>=0?'var(--good)':'var(--bad)')+'">'+(v>=0?'+':'')+fmt(v)+'</td>'+
+      '<td><span class="pill '+cls+'">'+p.toFixed(1)+'%</span></td>'+
+    '</tr>';
   }
-  document.getElementById('monthly-body').innerHTML = html || '<tr><td colspan="5" class="loading">No data</td></tr>';
+  document.getElementById('monthly-body').innerHTML = html || '<tr><td colspan="5" class="empty">No data</td></tr>';
 }
 
 function renderSectors(targets) {
-  var sectors = targets.sectors || {};
-  var entries = Object.entries(sectors).sort(function(a,b){ return b[1]-a[1]; });
-  var maxVal = entries[0] ? entries[0][1] : 1;
-
-  document.getElementById('sector-list').innerHTML = entries.map(function(e) {
-    var name = e[0], val = e[1];
-    return '<div class="srow">' +
-      '<div class="stop"><span class="sname">' + name + '</span><span class="sval">GBP' + (val/1000).toFixed(0) + 'K</span></div>' +
-      '<div class="strack"><div class="sfill" style="width:' + (val/maxVal*100).toFixed(1) + '%"></div></div>' +
-      '</div>';
+  var s = targets.sectors||{};
+  var entries = Object.entries(s).sort(function(a,b){return b[1]-a[1];});
+  var mx = entries[0]?entries[0][1]:1;
+  document.getElementById('sector-list').innerHTML = entries.map(function(e){
+    return '<div class="srow"><div class="stop"><span class="sname">'+e[0]+'</span><span class="sval">'+fmt(e[1])+'</span></div>'+
+      '<div class="strack"><div class="sfill" style="width:'+(e[1]/mx*100).toFixed(1)+'%"></div></div></div>';
   }).join('');
 }
 
 function renderLeads(leads) {
-  var now = new Date();
-  var curMonth = now.getMonth() + 1;
-  var curYear = now.getFullYear();
-
-  // Filter 2026 leads
-  var leads2026 = leads.filter(function(l) {
+  // Filter to current year
+  var leads2026 = leads.filter(function(l){
     if (!l.DateCreated) return false;
-    return new Date(l.DateCreated).getFullYear() === curYear;
+    return new Date(l.DateCreated).getFullYear() === CUR_YEAR;
+  });
+  var openLeads  = leads2026.filter(function(l){return l.Stage==='Open';});
+  var closedLeads = leads2026.filter(function(l){return l.Stage==='Closed';});
+  var monthLeads = leads2026.filter(function(l){
+    var d = new Date(l.DateCreated); return d.getMonth()+1===CUR_MONTH;
   });
 
-  var openLeads = leads2026.filter(function(l) { return l.Stage === 'Open'; });
-  var closedLeads = leads2026.filter(function(l) { return l.Stage === 'Closed'; });
-
-  var monthLeads = leads2026.filter(function(l) {
-    var d = new Date(l.DateCreated);
-    return d.getMonth() + 1 === curMonth;
-  });
-
-  document.getElementById('l-total').textContent = leads2026.length;
+  document.getElementById('l-total').textContent     = leads2026.length;
   document.getElementById('l-converted').textContent = closedLeads.length;
-  document.getElementById('l-open').textContent = openLeads.length;
-
-  document.getElementById('open-leads-count').textContent = openLeads.length + ' leads';
+  document.getElementById('l-open').textContent      = openLeads.length;
+  document.getElementById('open-leads-count').textContent  = openLeads.length + ' leads';
   document.getElementById('month-leads-count').textContent = monthLeads.length + ' this month';
 
+  // Use LeadName field (simPRO leads use LeadName not Name)
+  function leadName(l) { return l.Name || l.LeadName || '(Unnamed)'; }
+
   document.getElementById('open-leads-body').innerHTML = openLeads.length
-    ? openLeads.slice(0,15).map(function(l) {
-        return '<tr><td style="max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + l.LeadName + '">' + l.LeadName + '</td>' +
-               '<td style="color:var(--muted)">' + fmtDate(l.DateCreated) + '</td></tr>';
+    ? openLeads.slice(0,15).map(function(l){
+        return '<tr><td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+leadName(l)+'">'+leadName(l)+'</td>'+
+               '<td style="color:var(--muted);font-size:11px;font-family:\'DM Mono\',monospace">'+fmtDate(l.DateCreated)+'</td></tr>';
       }).join('')
-    : '<tr><td colspan="2" style="padding:16px;text-align:center;color:var(--muted)">No open leads</td></tr>';
+    : '<tr><td colspan="2" class="empty">No open leads</td></tr>';
 
   document.getElementById('month-leads-body').innerHTML = monthLeads.length
-    ? monthLeads.map(function(l) {
-        var chip = l.Stage === 'Open'
-          ? '<span class="open-chip">Open</span>'
-          : '<span class="closed-chip">Converted</span>';
-        return '<tr><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + l.LeadName + '">' + l.LeadName + '</td>' +
-               '<td>' + chip + '</td></tr>';
+    ? monthLeads.map(function(l){
+        var chip = l.Stage==='Open'
+          ? '<span class="chip-open">Open</span>'
+          : '<span class="chip-conv">Converted</span>';
+        return '<tr><td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+leadName(l)+'">'+leadName(l)+'</td><td>'+chip+'</td></tr>';
       }).join('')
-    : '<tr><td colspan="2" style="padding:16px;text-align:center;color:var(--muted)">No leads this month</td></tr>';
+    : '<tr><td colspan="2" class="empty">No leads this month</td></tr>';
 }
 
 loadData();
-setInterval(loadData, 5 * 60 * 1000);
+setInterval(loadData, 5*60*1000);
 </script>
 </body>
 </html>
