@@ -287,7 +287,7 @@ function fmtDate(d) {
   var dt = new Date(d); if (isNaN(dt)) return '—';
   return dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
 }
-function isWon(q)  { return q.JobNo && q.JobNo !== ''; }
+function isWon(q)  { return q.IsClosed === true && q.Stage === 'Approved'; }
 function isLost(q) { return q.Stage === 'Lost' || q.Stage === 'Declined'; }
 
 function wonByMonth(quotes) {
