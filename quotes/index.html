@@ -208,7 +208,8 @@ main { max-width:1600px; margin:0 auto; padding:20px 28px; }
   <div class="table-panel">
     <div class="tcontrols">
       <input class="search" id="search" placeholder="Search by name or ID...">
-      <button class="fbtn on" data-f="all">All</button>
+      <button class="fbtn" data-f="all">All Time</button>
+      <button class="fbtn on" data-f="_year">2026 Only</button>
       <button class="fbtn" data-f="InProgress">In Progress</button>
       <button class="fbtn" data-f="_won">Won</button>
       <button class="fbtn" data-f="Pending">Pending</button>
@@ -258,7 +259,7 @@ function fmtDate(d){
   return dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'});
 }
 
-var all=[], curF='all', curS='', sKey='Total', sDir=-1;
+var all=[], curF='_year', curS='', sKey='Total', sDir=-1;
 
 async function load(){
   try {
@@ -358,7 +359,7 @@ function renderTop(){
 
 function getFiltered(){
   return all.filter(function(q){
-    var fs=curF==='all'?true:curF==='_won'?q.IsClosed===true:q.Stage===curF;
+    var curYear=new Date().getFullYear(); var fs=curF==='all'?true:curF==='_year'?(new Date(q.DateIssued).getFullYear()===curYear):curF==='_won'?q.IsClosed===true&&(q.Stage==='Approved'||q.Stage==='Complete'):q.Stage===curF;
     var ft=!curS||q.Name.toLowerCase().includes(curS)||String(q.ID).includes(curS);
     return fs&&ft;
   }).sort(function(a,b){
