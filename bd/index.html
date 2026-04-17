@@ -3,634 +3,511 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MES Power — BD Dashboard</title>
+<title>MES Power — Quotes Pipeline</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0d12;
-    --surface: #111520;
-    --surface2: #171d2e;
-    --border: #1e2640;
-    --accent: #00d4ff;
-    --accent2: #f5a623;
-    --green: #2ecc71;
-    --red: #e74c3c;
-    --text: #e8eaf0;
-    --muted: #5a6080;
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2230;
+    --border: #21262d;
+    --accent: #58a6ff;
+    --accent2: #f0883e;
+    --green: #3fb950;
+    --red: #f85149;
+    --amber: #d29922;
+    --text: #e6edf3;
+    --muted: #7d8590;
+    --subtle: #30363d;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Sora', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background-image:
-      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none; z-index: 0;
-  }
+  body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; min-height: 100vh; }
 
   header {
-    position: relative; z-index: 10;
     display: flex; align-items: center; justify-content: space-between;
-    padding: 20px 32px;
+    padding: 14px 28px;
     border-bottom: 1px solid var(--border);
-    background: rgba(10,13,18,0.95);
-    backdrop-filter: blur(10px);
-  }
-  .logo { display: flex; align-items: center; gap: 12px; }
-  .logo-mark {
-    width: 36px; height: 36px;
-    background: var(--accent2);
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: 700; color: var(--bg);
-  }
-  .logo-text { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; }
-  .logo-sub { font-size: 11px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 1px; }
-  .header-right { display: flex; align-items: center; gap: 20px; }
-  .nav-link {
-    font-size: 13px; color: var(--muted); text-decoration: none;
-    padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border);
-    transition: all 0.2s;
-  }
-  .nav-link:hover { color: var(--accent); border-color: var(--accent); background: rgba(0,212,255,0.05); }
-  .nav-link.active { color: var(--accent2); border-color: var(--accent2); background: rgba(245,166,35,0.05); }
-  .status-dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: var(--green); box-shadow: 0 0 8px var(--green);
-    animation: pulse 2s infinite;
-  }
-  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
-  #last-updated { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
-
-  main {
-    position: relative; z-index: 1;
-    padding: 28px 32px;
-    max-width: 1600px; margin: 0 auto;
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* Year progress banner */
-  .year-banner {
     background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 22px 28px;
-    margin-bottom: 20px;
-    display: flex; align-items: center; gap: 32px;
-    animation: fadeUp 0.4s ease both;
-    overflow: hidden; position: relative;
+    position: sticky; top: 0; z-index: 100;
   }
-  .year-banner::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--accent2), var(--accent));
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-hex {
+    width: 32px; height: 32px;
+    background: var(--accent);
+    clip-path: polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+    display: grid; place-items: center;
+    font-size: 13px; font-weight: 700; color: #0d1117;
   }
-  .banner-stat { flex: 1; }
-  .banner-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-family: 'DM Mono', monospace; margin-bottom: 6px; }
-  .banner-value { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
-  .banner-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
-  .divider { width: 1px; background: var(--border); height: 50px; }
-  .progress-section { flex: 2; }
-  .progress-label { font-size: 12px; color: var(--muted); margin-bottom: 8px; display: flex; justify-content: space-between; }
-  .progress-track { background: var(--surface2); border-radius: 6px; height: 12px; overflow: hidden; }
-  .progress-fill {
-    height: 100%; border-radius: 6px;
-    background: linear-gradient(90deg, var(--accent2), var(--accent));
-    transition: width 1s cubic-bezier(0.4,0,0.2,1);
-    position: relative;
+  .logo-name { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; }
+  .logo-tag { font-size: 10px; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; }
+  .nav { display: flex; align-items: center; gap: 8px; }
+  .nav a {
+    font-size: 12px; color: var(--muted); text-decoration: none;
+    padding: 5px 12px; border-radius: 6px; border: 1px solid var(--border);
+    transition: all 0.15s;
   }
-  .progress-fill::after {
-    content: '';
-    position: absolute; right: 0; top: 0; bottom: 0; width: 2px;
-    background: white; opacity: 0.6;
-    box-shadow: 0 0 8px white;
-  }
+  .nav a:hover { color: var(--text); border-color: var(--subtle); }
+  .nav a.active { color: var(--accent); border-color: var(--accent); background: rgba(88,166,255,0.06); }
+  .live { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); animation: blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  main { max-width: 1500px; margin: 0 auto; padding: 24px 28px; }
 
   /* KPI row */
-  .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 20px;
+  .kpis { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 20px; }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px 20px; position: relative; overflow: hidden;
+    border-top: 2px solid var(--kpi-color, var(--accent));
+    animation: up .35s ease both;
   }
-  .kpi-card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px 22px;
-    position: relative; overflow: hidden;
-    animation: fadeUp 0.4s ease both;
-    transition: border-color 0.2s;
-  }
-  .kpi-card:hover { border-color: var(--accent); }
-  .kpi-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: var(--card-accent, var(--accent));
-  }
-  .kpi-card:nth-child(1) { animation-delay: 0.05s; }
-  .kpi-card:nth-child(2) { animation-delay: 0.1s; }
-  .kpi-card:nth-child(3) { animation-delay: 0.15s; }
-  .kpi-card:nth-child(4) { animation-delay: 0.2s; }
-  .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); margin-bottom: 8px; font-family: 'DM Mono', monospace; }
-  .kpi-value { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
-  .kpi-sub { font-size: 12px; color: var(--muted); margin-top: 5px; }
-  .kpi-icon { position: absolute; top: 18px; right: 18px; font-size: 22px; opacity: 0.15; }
+  .kpi:nth-child(1){animation-delay:.04s} .kpi:nth-child(2){animation-delay:.08s}
+  .kpi:nth-child(3){animation-delay:.12s} .kpi:nth-child(4){animation-delay:.16s}
+  @keyframes up { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+  .kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); font-family: 'DM Mono',monospace; margin-bottom: 8px; }
+  .kpi-val { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+  .kpi-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
-  /* Charts row */
-  .charts-row {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    gap: 16px;
-    margin-bottom: 20px;
+  /* Alert sections — due this week / this month */
+  .alert-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+  .alert-panel {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden; animation: up .35s ease .2s both;
   }
-
-  .panel {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; overflow: hidden;
-    animation: fadeUp 0.4s ease 0.3s both;
-  }
-  .panel-header {
-    padding: 16px 20px; border-bottom: 1px solid var(--border);
+  .alert-panel.week { border-top: 2px solid var(--red); }
+  .alert-panel.month { border-top: 2px solid var(--amber); }
+  .ap-header {
     display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
   }
-  .panel-title {
-    font-size: 12px; font-weight: 600; text-transform: uppercase;
-    letter-spacing: 1px; color: var(--muted); font-family: 'DM Mono', monospace;
-  }
-  .panel-badge {
-    font-size: 11px; font-family: 'DM Mono', monospace;
-    background: var(--surface2); border: 1px solid var(--border);
-    color: var(--muted); padding: 2px 8px; border-radius: 20px;
-  }
+  .ap-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-family: 'DM Mono',monospace; }
+  .alert-panel.week .ap-title { color: var(--red); }
+  .alert-panel.month .ap-title { color: var(--amber); }
+  .ap-badge { font-size: 11px; font-family: 'DM Mono',monospace; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 2px 8px; border-radius: 20px; }
+  .ap-table { width: 100%; border-collapse: collapse; }
+  .ap-table th { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-family: 'DM Mono',monospace; padding: 8px 14px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 500; }
+  .ap-table td { padding: 9px 14px; font-size: 12px; border-bottom: 1px solid rgba(33,38,45,0.6); vertical-align: middle; }
+  .ap-table tr:last-child td { border-bottom: none; }
+  .ap-table tr:hover td { background: rgba(88,166,255,0.03); }
+  .ap-empty { padding: 20px; text-align: center; color: var(--muted); font-size: 12px; }
+  .due-name { font-weight: 500; max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .due-id { font-family: 'DM Mono',monospace; font-size: 10px; color: var(--muted); }
+  .due-date { font-family: 'DM Mono',monospace; font-size: 11px; }
+  .due-date.overdue { color: var(--red); font-weight: 600; }
+  .due-date.soon { color: var(--amber); }
+  .due-date.ok { color: var(--muted); }
+  .due-val { font-family: 'DM Mono',monospace; font-size: 12px; text-align: right; }
+  .ap-scroll { max-height: 220px; overflow-y: auto; }
 
-  /* Monthly bar chart */
-  .chart-body { padding: 20px; }
-  .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 200px; }
-  .bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0; }
-  .bars { display: flex; align-items: flex-end; gap: 2px; height: 180px; width: 100%; }
-  .bar {
-    flex: 1; border-radius: 3px 3px 0 0;
-    transition: height 0.8s cubic-bezier(0.4,0,0.2,1);
-    position: relative; cursor: pointer;
-    min-width: 0;
-  }
-  .bar:hover { filter: brightness(1.2); }
-  .bar[data-type="target"] { background: rgba(90,96,128,0.4); border: 1px solid var(--border); }
-  .bar[data-type="actual"] { background: var(--accent2); }
-  .bar[data-type="actual"].won { background: var(--green); }
-  .bar-label { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: 6px; text-align: center; }
-  .chart-legend {
-    display: flex; gap: 16px; margin-top: 14px; justify-content: center;
-  }
-  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
-  .legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+  /* Middle row */
+  .mid { display: grid; grid-template-columns: 280px 1fr; gap: 12px; margin-bottom: 20px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; animation: up .35s ease .25s both; }
+  .ph { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .pt { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-family: 'DM Mono',monospace; }
+  .pb { font-size: 11px; font-family: 'DM Mono',monospace; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 2px 8px; border-radius: 20px; }
 
-  /* Sector breakdown */
-  .sector-list { padding: 16px; }
-  .sector-row {
-    margin-bottom: 14px;
-  }
-  .sector-row:last-child { margin-bottom: 0; }
-  .sector-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
-  .sector-name { font-size: 12px; color: var(--text); }
-  .sector-vals { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--muted); }
-  .sector-track { background: var(--surface2); border-radius: 4px; height: 6px; overflow: hidden; }
-  .sector-fill { height: 100%; border-radius: 4px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1); }
+  /* Stage list */
+  .stage-list { padding: 12px; }
+  .sr { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .sr:last-child { margin-bottom: 0; }
+  .sdot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .sname { font-size: 12px; flex: 1; }
+  .scount { font-size: 11px; color: var(--muted); font-family: 'DM Mono',monospace; width: 28px; text-align: right; }
+  .sbar-wrap { width: 70px; background: var(--surface2); border-radius: 3px; height: 5px; overflow: hidden; }
+  .sbar { height: 100%; border-radius: 3px; transition: width .8s cubic-bezier(.4,0,.2,1); }
+  .sval { font-size: 11px; font-family: 'DM Mono',monospace; min-width: 65px; text-align: right; }
 
-  /* Win rate / monthly table */
-  .bottom-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-  }
-  .monthly-table { width: 100%; border-collapse: collapse; }
-  .monthly-table th {
-    font-size: 10px; text-transform: uppercase; letter-spacing: 1px;
-    color: var(--muted); font-family: 'DM Mono', monospace;
-    padding: 10px 16px; text-align: left; font-weight: 500;
-    border-bottom: 1px solid var(--border);
-  }
-  .monthly-table td {
-    padding: 10px 16px; font-size: 12px;
-    border-bottom: 1px solid rgba(30,38,64,0.4);
-    font-family: 'DM Mono', monospace;
-  }
-  .monthly-table tr:last-child td { border-bottom: none; }
-  .monthly-table tr:hover td { background: rgba(0,212,255,0.02); }
-  .pct { font-size: 11px; padding: 2px 7px; border-radius: 3px; }
-  .pct.over { background: rgba(46,204,113,0.15); color: var(--green); }
-  .pct.under { background: rgba(231,76,60,0.15); color: var(--red); }
-  .pct.ok { background: rgba(0,212,255,0.1); color: var(--accent); }
+  /* Top table */
+  .top-table { width: 100%; border-collapse: collapse; }
+  .top-table th { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-family: 'DM Mono',monospace; padding: 9px 14px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 500; }
+  .top-table td { padding: 10px 14px; font-size: 12px; border-bottom: 1px solid rgba(33,38,45,0.5); vertical-align: middle; }
+  .top-table tr:last-child td { border-bottom: none; }
+  .top-table tr:hover td { background: rgba(88,166,255,0.03); }
+  .qname { font-weight: 500; }
+  .qid { font-family: 'DM Mono',monospace; font-size: 10px; color: var(--muted); }
+  .chip { font-size: 10px; padding: 2px 8px; border-radius: 12px; font-family: 'DM Mono',monospace; font-weight: 500; white-space: nowrap; }
+  .aval { font-family: 'DM Mono',monospace; font-size: 12px; text-align: right; }
+  .dval { font-family: 'DM Mono',monospace; font-size: 11px; color: var(--muted); }
 
-  /* Win rate */
-  .win-body { padding: 20px; }
-  .win-big { font-size: 72px; font-weight: 700; text-align: center; letter-spacing: -3px; color: var(--green); line-height: 1; padding: 20px 0; }
-  .win-sub { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 20px; }
-  .win-detail {
-    display: flex; gap: 16px;
-  }
-  .win-stat { flex: 1; background: var(--surface2); border-radius: 8px; padding: 14px; text-align: center; }
-  .win-stat-val { font-size: 20px; font-weight: 700; font-family: 'DM Mono', monospace; }
-  .win-stat-label { font-size: 11px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
-
-  .loading { padding: 40px; text-align: center; color: var(--muted); }
-  .spinner { width: 24px; height: 24px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 10px; }
+  /* Main table */
+  .table-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; animation: up .35s ease .3s both; }
+  .tcontrols { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .search { flex: 1; min-width: 180px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; color: var(--text); font-size: 12px; font-family: 'Sora',sans-serif; outline: none; transition: border-color .15s; }
+  .search:focus { border-color: var(--accent); }
+  .search::placeholder { color: var(--muted); }
+  .fbtn { padding: 5px 12px; border-radius: 6px; font-size: 11px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); cursor: pointer; font-family: 'Sora',sans-serif; transition: all .15s; white-space: nowrap; }
+  .fbtn:hover, .fbtn.on { border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,0.06); }
+  .tcnt { font-size: 11px; font-family: 'DM Mono',monospace; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 2px 8px; border-radius: 20px; margin-left: auto; }
+  .twrap { overflow-x: auto; max-height: 500px; overflow-y: auto; }
+  .qtable { width: 100%; border-collapse: collapse; min-width: 780px; }
+  .qtable th { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-family: 'DM Mono',monospace; padding: 9px 13px; text-align: left; font-weight: 500; position: sticky; top: 0; background: var(--surface); border-bottom: 1px solid var(--border); cursor: pointer; user-select: none; white-space: nowrap; }
+  .qtable th:hover { color: var(--accent); }
+  .qtable td { padding: 9px 13px; font-size: 12px; border-bottom: 1px solid rgba(33,38,45,0.5); vertical-align: middle; }
+  .qtable tr:hover td { background: rgba(88,166,255,0.03); }
+  .qtable tr:last-child td { border-bottom: none; }
+  .empty { padding: 32px; text-align: center; color: var(--muted); font-size: 13px; }
+  .spin { width: 22px; height: 22px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 10px; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .error-banner { background: rgba(231,76,60,0.1); border: 1px solid rgba(231,76,60,0.3); border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; color: #e74c3c; font-size: 13px; }
-  ::-webkit-scrollbar { width: 6px; } ::-webkit-scrollbar-track { background: var(--surface); } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-  @media (max-width: 1100px) {
-    .kpi-grid { grid-template-columns: repeat(2,1fr); }
-    .charts-row { grid-template-columns: 1fr; }
-    .bottom-row { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 600px) {
-    main { padding: 16px; }
-    header { padding: 14px 16px; }
-    .year-banner { flex-direction: column; gap: 16px; }
-    .divider { display: none; }
-  }
+  .loading { padding: 40px; text-align: center; color: var(--muted); font-size: 12px; }
+  .err { background: rgba(248,81,73,.08); border: 1px solid rgba(248,81,73,.25); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: var(--red); font-size: 12px; }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--subtle); border-radius: 3px; }
+  @media(max-width:1100px) { .kpis{grid-template-columns:1fr 1fr} .alert-grid{grid-template-columns:1fr} .mid{grid-template-columns:1fr} }
+  @media(max-width:600px) { main{padding:14px} header{padding:12px 16px} }
 </style>
 </head>
 <body>
 <header>
   <div class="logo">
-    <div class="logo-mark">M</div>
+    <div class="logo-hex">M</div>
     <div>
-      <div class="logo-text">MES Power</div>
-      <div class="logo-sub">Engineering</div>
+      <div class="logo-name">MES Power</div>
+      <div class="logo-tag">Engineering</div>
     </div>
   </div>
-  <div class="header-right">
-    <a href="quotes-dashboard.html" class="nav-link">Quotes Pipeline</a>
-    <a href="bd-dashboard.html" class="nav-link active">BD Dashboard</a>
-    <div class="status-dot"></div>
-    <span id="last-updated">Loading…</span>
+  <nav class="nav">
+    <a href="../quotes/" class="active">Quotes Pipeline</a>
+    <a href="../bd/">BD Dashboard</a>
+  </nav>
+  <div class="live">
+    <div class="dot"></div>
+    <span id="updated">Loading…</span>
   </div>
 </header>
 
 <main>
-  <div id="error-banner" class="error-banner" style="display:none"></div>
+  <div id="err" class="err" style="display:none"></div>
 
-  <!-- Year progress banner -->
-  <div class="year-banner">
-    <div class="banner-stat">
-      <div class="banner-label">Annual Target</div>
-      <div class="banner-value" id="annual-target">—</div>
-      <div class="banner-sub">FY 2026</div>
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="kpi" style="--kpi-color:var(--accent)">
+      <div class="kpi-label">Open Pipeline</div>
+      <div class="kpi-val" id="k-pipeline">—</div>
+      <div class="kpi-sub" id="k-pipeline-n">— open quotes</div>
     </div>
-    <div class="divider"></div>
-    <div class="banner-stat">
-      <div class="banner-label">Won to Date</div>
-      <div class="banner-value" id="won-to-date" style="color:var(--green)">—</div>
-      <div class="banner-sub" id="won-pct">—% of annual target</div>
+    <div class="kpi" style="--kpi-color:var(--green)">
+      <div class="kpi-label">Won (Closed)</div>
+      <div class="kpi-val" id="k-won">—</div>
+      <div class="kpi-sub" id="k-won-n">— jobs raised</div>
     </div>
-    <div class="divider"></div>
-    <div class="banner-stat">
-      <div class="banner-label">Pipeline Value</div>
-      <div class="banner-value" id="pipeline-val" style="color:var(--accent)">—</div>
-      <div class="banner-sub">in-progress quotes</div>
+    <div class="kpi" style="--kpi-color:var(--accent2)">
+      <div class="kpi-label">Active In-Progress</div>
+      <div class="kpi-val" id="k-active">—</div>
+      <div class="kpi-sub" id="k-active-n">— quotes</div>
     </div>
-    <div class="divider"></div>
-    <div class="progress-section">
-      <div class="progress-label">
-        <span>Year Progress</span>
-        <span id="year-pct-label">—</span>
-      </div>
-      <div class="progress-track">
-        <div class="progress-fill" id="year-progress" style="width:0%"></div>
-      </div>
-      <div style="font-size:11px;color:var(--muted);margin-top:6px;font-family:'DM Mono',monospace">
-        Month <span id="cur-month">—</span> of 12 · <span id="days-left">—</span> days remaining
-      </div>
+    <div class="kpi" style="--kpi-color:var(--muted)">
+      <div class="kpi-label">Avg Quote Value</div>
+      <div class="kpi-val" id="k-avg">—</div>
+      <div class="kpi-sub">ex. VAT, open quotes</div>
     </div>
   </div>
 
-  <!-- KPI cards -->
-  <div class="kpi-grid">
-    <div class="kpi-card" style="--card-accent:#f5a623">
-      <div class="kpi-icon">🎯</div>
-      <div class="kpi-label">This Month Target</div>
-      <div class="kpi-value" id="month-target">—</div>
-      <div class="kpi-sub" id="month-name">—</div>
-    </div>
-    <div class="kpi-card" style="--card-accent:#2ecc71">
-      <div class="kpi-icon">✅</div>
-      <div class="kpi-label">Won This Month</div>
-      <div class="kpi-value" id="month-won">—</div>
-      <div class="kpi-sub" id="month-won-count">— quotes approved</div>
-    </div>
-    <div class="kpi-card" style="--card-accent:#00d4ff">
-      <div class="kpi-icon">📈</div>
-      <div class="kpi-label">Win Rate (YTD)</div>
-      <div class="kpi-value" id="win-rate">—</div>
-      <div class="kpi-sub">by count</div>
-    </div>
-    <div class="kpi-card" style="--card-accent:#8892b0">
-      <div class="kpi-icon">⏳</div>
-      <div class="kpi-label">Open Quotes Value</div>
-      <div class="kpi-value" id="open-val">—</div>
-      <div class="kpi-sub" id="open-count">—</div>
-    </div>
-  </div>
-
-  <!-- Charts -->
-  <div class="charts-row">
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Monthly Target vs Won (2026)</span>
-        <div style="display:flex;gap:12px;align-items:center">
-          <div class="legend-item"><div class="legend-dot" style="background:rgba(90,96,128,0.5)"></div>Target</div>
-          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Won</div>
-        </div>
+  <!-- Due this week / this month -->
+  <div class="alert-grid">
+    <div class="alert-panel week">
+      <div class="ap-header">
+        <span class="ap-title">⚠ Due This Week</span>
+        <span class="ap-badge" id="week-badge">—</span>
       </div>
-      <div class="chart-body">
-        <div class="bar-chart" id="monthly-chart">
-          <div class="loading"><div class="spinner"></div></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Sector Targets</span>
-        <span class="panel-badge">Annual</span>
-      </div>
-      <div class="sector-list" id="sector-list">
-        <div class="loading"><div class="spinner"></div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bottom row -->
-  <div class="bottom-row">
-    <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Monthly Breakdown</span>
-        <span class="panel-badge">2026 YTD</span>
-      </div>
-      <div style="overflow-x:auto">
-        <table class="monthly-table">
+      <div class="ap-scroll">
+        <table class="ap-table">
           <thead><tr>
-            <th>Month</th>
-            <th>Target</th>
-            <th>Won</th>
-            <th>vs Target</th>
+            <th>Quote</th>
+            <th>Stage</th>
+            <th>Due</th>
+            <th style="text-align:right">Value</th>
           </tr></thead>
-          <tbody id="monthly-tbody">
-            <tr><td colspan="4" class="loading"><div class="spinner"></div></td></tr>
-          </tbody>
+          <tbody id="week-body"><tr><td colspan="4" class="ap-empty">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
+    <div class="alert-panel month">
+      <div class="ap-header">
+        <span class="ap-title">📅 Due This Month</span>
+        <span class="ap-badge" id="month-badge">—</span>
+      </div>
+      <div class="ap-scroll">
+        <table class="ap-table">
+          <thead><tr>
+            <th>Quote</th>
+            <th>Stage</th>
+            <th>Due</th>
+            <th style="text-align:right">Value</th>
+          </tr></thead>
+          <tbody id="month-body"><tr><td colspan="4" class="ap-empty">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
+  <!-- Stage breakdown + Top 8 -->
+  <div class="mid">
     <div class="panel">
-      <div class="panel-header">
-        <span class="panel-title">Win Rate</span>
-        <span class="panel-badge">YTD 2026</span>
+      <div class="ph"><span class="pt">By Stage</span><span class="pb" id="stage-total">—</span></div>
+      <div class="stage-list" id="stage-list"><div class="loading"><div class="spin"></div></div></div>
+    </div>
+    <div class="panel">
+      <div class="ph"><span class="pt">Top 8 by Value</span><span class="pb">Ex. VAT</span></div>
+      <div style="overflow-x:auto">
+        <table class="top-table">
+          <thead><tr><th>Quote</th><th>Stage</th><th style="text-align:right">Value</th><th>Issued</th></tr></thead>
+          <tbody id="top-body"><tr><td colspan="4" class="empty">Loading…</td></tr></tbody>
+        </table>
       </div>
-      <div class="win-body" id="win-body">
-        <div class="loading"><div class="spinner"></div></div>
-      </div>
+    </div>
+  </div>
+
+  <!-- Full table -->
+  <div class="table-panel">
+    <div class="tcontrols">
+      <input class="search" id="search" placeholder="Search by name or ID…">
+      <button class="fbtn on" data-f="all">All</button>
+      <button class="fbtn" data-f="InProgress">In Progress</button>
+      <button class="fbtn" data-f="_won">Won</button>
+      <button class="fbtn" data-f="Pending">Pending</button>
+      <button class="fbtn" data-f="Draft">Draft</button>
+      <button class="fbtn" data-f="Lost">Lost</button>
+      <span class="tcnt" id="tcnt">—</span>
+    </div>
+    <div class="twrap">
+      <table class="qtable">
+        <thead><tr>
+          <th data-s="ID">ID ↕</th>
+          <th data-s="Name">Name ↕</th>
+          <th data-s="Stage">Stage ↕</th>
+          <th data-s="Total" style="text-align:right">Value Ex VAT ↕</th>
+          <th data-s="DateIssued">Issued ↕</th>
+          <th data-s="DueDate">Due ↕</th>
+        </tr></thead>
+        <tbody id="main-body"><tr><td colspan="6" class="loading"><div class="spin"></div>Fetching quotes…</td></tr></tbody>
+      </table>
     </div>
   </div>
 </main>
 
 <script>
-const API_ALL = 'https://mes-api.mes-bot.workers.dev/api/all';
+const API = 'https://mes-api.mes-bot.workers.dev/api/all';
 
-const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const STAGES = {
+  'InProgress': { color: '#58a6ff', label: 'In Progress' },
+  'Pending':    { color: '#d29922', label: 'Pending' },
+  'Draft':      { color: '#7d8590', label: 'Draft' },
+  'Lost':       { color: '#f85149', label: 'Lost' },
+  'Declined':   { color: '#f85149', label: 'Declined' },
+  'Approved':   { color: '#3fb950', label: 'Approved' },
+};
 
-function fmt(n) {
+const sc = (s, closed) => closed ? '#3fb950' : (STAGES[s]?.color || '#7d8590');
+const sl = (s, closed) => closed ? 'Won' : (STAGES[s]?.label || s);
+
+const £ = n => {
   if (n >= 1e6) return '£' + (n/1e6).toFixed(2) + 'M';
   if (n >= 1e3) return '£' + (n/1e3).toFixed(1) + 'k';
   return '£' + n.toFixed(0);
-}
-function fmtFull(n) {
-  return '£' + n.toLocaleString('en-GB', {minimumFractionDigits:0,maximumFractionDigits:0});
-}
+};
+const £f = n => '£' + n.toLocaleString('en-GB', {minimumFractionDigits:0, maximumFractionDigits:0});
+const fd = d => {
+  if (!d) return '—';
+  const dt = new Date(d); if (isNaN(dt)) return '—';
+  return dt.toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'2-digit'});
+};
 
-let quotes = [], targets = {};
+let all = [], curF = 'all', curS = '', sKey = 'Total', sDir = -1;
 
-async function loadData() {
+async function load() {
   try {
-    const res = await fetch(API_ALL);
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    quotes = Array.isArray(data.quotes) ? data.quotes : [];
-    targets = data.targets || {};
-    document.getElementById('last-updated').textContent =
-      'Updated ' + new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
-    renderAll();
+    const r = await fetch(API);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const raw = await r.json();
+    all = Array.isArray(raw) ? raw : (raw.quotes || []);
+    if (!all.length && raw.error) throw new Error(raw.error);
+    document.getElementById('updated').textContent =
+      new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+    render();
   } catch(e) {
-    document.getElementById('error-banner').style.display = 'block';
-    document.getElementById('error-banner').textContent = 'Failed to load data: ' + e.message;
+    const el = document.getElementById('err');
+    el.style.display = 'block';
+    el.textContent = 'Error: ' + e.message;
   }
 }
 
-function renderAll() {
-  renderBanner();
+function render() {
   renderKPIs();
-  renderMonthlyChart();
-  renderSectors();
-  renderMonthlyTable();
-  renderWinRate();
-}
-
-function renderBanner() {
-  const annual = targets.annual || 0;
-  const wonAll = quotes.filter(q => q.IsClosed === true);
-  const wonVal = wonAll.reduce((s,q) => s + (q.Total?.ExTax||0), 0);
-  const pipeline = quotes.filter(q => q.Stage === 'InProgress').reduce((s,q) => s+(q.Total?.ExTax||0),0);
-  const pct = annual > 0 ? (wonVal/annual*100) : 0;
-
-  const now = new Date();
-  const yearPct = ((now.getMonth() + (now.getDate()/31)) / 12 * 100);
-  const dayOfYear = Math.floor((now - new Date(now.getFullYear(),0,1)) / 86400000);
-  const daysInYear = 365;
-  const daysLeft = daysInYear - dayOfYear;
-
-  document.getElementById('annual-target').textContent = fmt(annual);
-  document.getElementById('won-to-date').textContent = fmt(wonVal);
-  document.getElementById('won-pct').textContent = pct.toFixed(1) + '% of annual target';
-  document.getElementById('pipeline-val').textContent = fmt(pipeline);
-  document.getElementById('year-progress').style.width = yearPct.toFixed(1) + '%';
-  document.getElementById('year-pct-label').textContent = yearPct.toFixed(0) + '% of year elapsed';
-  document.getElementById('cur-month').textContent = now.getMonth() + 1;
-  document.getElementById('days-left').textContent = daysLeft;
+  renderDue();
+  renderStages();
+  renderTop();
+  renderTable();
 }
 
 function renderKPIs() {
-  const now = new Date();
-  const curMonth = now.getMonth() + 1;
-  const monthTarget = targets.monthly?.[curMonth] || 0;
+  const open = all.filter(q => !q.IsClosed);
+  const won  = all.filter(q => q.IsClosed);
+  const active = all.filter(q => q.Stage === 'InProgress' && !q.IsClosed);
+  const pipeline = open.reduce((s,q) => s + (q.Total?.ExTax||0), 0);
+  const wonVal   = won.reduce((s,q) => s + (q.Total?.ExTax||0), 0);
+  const activeVal = active.reduce((s,q) => s + (q.Total?.ExTax||0), 0);
+  const nz = open.filter(q => (q.Total?.ExTax||0) > 0);
+  const avg = nz.length ? nz.reduce((s,q)=>s+(q.Total?.ExTax||0),0)/nz.length : 0;
 
-  const monthWon = quotes.filter(q => {
-    if (!q.IsClosed) return false;
-    const d = q.DateApproved || q.DateIssued;
-    if (!d) return false;
-    const dt = new Date(d);
-    return dt.getFullYear() === now.getFullYear() && dt.getMonth() + 1 === curMonth;
+  document.getElementById('k-pipeline').textContent = £(pipeline);
+  document.getElementById('k-pipeline-n').textContent = open.length + ' open quotes';
+  document.getElementById('k-won').textContent = £(wonVal);
+  document.getElementById('k-won-n').textContent = won.length + ' jobs raised';
+  document.getElementById('k-active').textContent = £(activeVal);
+  document.getElementById('k-active-n').textContent = active.length + ' quotes';
+  document.getElementById('k-avg').textContent = £(avg);
+}
+
+function renderDue() {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  // End of this week (Sunday)
+  const dayOfWeek = today.getDay();
+  const daysToSunday = 7 - (dayOfWeek === 0 ? 7 : dayOfWeek);
+  const endOfWeek = new Date(today);
+  endOfWeek.setDate(today.getDate() + daysToSunday);
+
+  // End of this month
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  const hasDue = q => q.DueDate && !q.IsClosed;
+  const dueDate = q => new Date(q.DueDate);
+
+  const weekQuotes = all
+    .filter(q => hasDue(q) && dueDate(q) <= endOfWeek)
+    .sort((a,b) => dueDate(a) - dueDate(b));
+
+  const monthQuotes = all
+    .filter(q => hasDue(q) && dueDate(q) > endOfWeek && dueDate(q) <= endOfMonth)
+    .sort((a,b) => dueDate(a) - dueDate(b));
+
+  document.getElementById('week-badge').textContent = weekQuotes.length + ' quotes';
+  document.getElementById('month-badge').textContent = monthQuotes.length + ' quotes';
+
+  const dueRow = q => {
+    const dd = dueDate(q);
+    const isOverdue = dd < today;
+    const daysOut = Math.ceil((dd - today) / 86400000);
+    const cls = isOverdue ? 'overdue' : daysOut <= 2 ? 'soon' : 'ok';
+    const label = isOverdue ? `${Math.abs(daysOut)}d overdue` : daysOut === 0 ? 'Today' : daysOut === 1 ? 'Tomorrow' : fd(q.DueDate);
+    return `<tr>
+      <td><div class="due-name" title="${q.Name}">${q.Name}</div><div class="due-id">#${q.ID}</div></td>
+      <td><span class="chip" style="background:${sc(q.Stage,q.IsClosed)}22;color:${sc(q.Stage,q.IsClosed)};border:1px solid ${sc(q.Stage,q.IsClosed)}44">${sl(q.Stage,q.IsClosed)}</span></td>
+      <td class="due-date ${cls}">${label}</td>
+      <td class="due-val">${£f(q.Total?.ExTax||0)}</td>
+    </tr>`;
+  };
+
+  document.getElementById('week-body').innerHTML = weekQuotes.length
+    ? weekQuotes.map(dueRow).join('')
+    : '<tr><td colspan="4" class="ap-empty">✓ No quotes due this week</td></tr>';
+
+  document.getElementById('month-body').innerHTML = monthQuotes.length
+    ? monthQuotes.map(dueRow).join('')
+    : '<tr><td colspan="4" class="ap-empty">No quotes due later this month</td></tr>';
+}
+
+function renderStages() {
+  const map = {};
+  all.forEach(q => {
+    const k = q.IsClosed ? '_won' : (q.Stage || 'Unknown');
+    if (!map[k]) map[k] = { count: 0, val: 0, color: k === '_won' ? '#3fb950' : sc(q.Stage, false), label: k === '_won' ? 'Won' : sl(q.Stage, false) };
+    map[k].count++;
+    map[k].val += q.Total?.ExTax || 0;
   });
-  const monthWonVal = monthWon.reduce((s,q)=>s+(q.Total?.ExTax||0),0);
-
-  const allWon = quotes.filter(q => q.IsClosed === true);
-  const nonClosed = quotes.filter(q => !q.IsClosed && q.Stage !== 'Lost' && q.Stage !== 'Declined');
-  const winRate = nonClosed.length > 0 ? (allWon.length / nonClosed.length * 100) : 0;
-
-  const open = quotes.filter(q => !q.IsClosed && q.Stage !== 'Lost');
-  const openVal = open.reduce((s,q)=>s+(q.Total?.ExTax||0),0);
-
-  document.getElementById('month-target').textContent = fmt(monthTarget);
-  document.getElementById('month-name').textContent = MONTHS[curMonth-1] + ' ' + now.getFullYear() + ' target';
-  document.getElementById('month-won').textContent = fmt(monthWonVal);
-  document.getElementById('month-won-count').textContent = monthWon.length + ' quotes approved';
-  document.getElementById('win-rate').textContent = winRate.toFixed(0) + '%';
-  document.getElementById('open-val').textContent = fmt(openVal);
-  document.getElementById('open-count').textContent = open.length + ' open quotes';
+  const sorted = Object.entries(map).sort((a,b) => b[1].val - a[1].val);
+  const max = sorted[0]?.[1].val || 1;
+  document.getElementById('stage-total').textContent = all.length + ' total';
+  document.getElementById('stage-list').innerHTML = sorted.map(([,d]) => `
+    <div class="sr">
+      <div class="sdot" style="background:${d.color}"></div>
+      <div class="sname">${d.label}</div>
+      <div class="scount">${d.count}</div>
+      <div class="sbar-wrap"><div class="sbar" style="width:${(d.val/max*100).toFixed(1)}%;background:${d.color}"></div></div>
+      <div class="sval">${£(d.val)}</div>
+    </div>`).join('');
 }
 
-function getWonByMonth() {
-  const byMonth = {};
-  const now = new Date();
-  const year = now.getFullYear();
-  quotes.forEach(q => {
-    if (!q.IsClosed) return;
-    const d = q.DateApproved || q.DateIssued;
-    if (!d) return;
-    const dt = new Date(d);
-    if (dt.getFullYear() !== year) return;
-    const m = dt.getMonth() + 1;
-    byMonth[m] = (byMonth[m] || 0) + (q.Total?.ExTax || 0);
+function renderTop() {
+  const top = [...all].sort((a,b) => (b.Total?.ExTax||0)-(a.Total?.ExTax||0)).slice(0,8);
+  document.getElementById('top-body').innerHTML = top.map(q => `
+    <tr>
+      <td><div class="qname">${q.Name}</div><div class="qid">#${q.ID}</div></td>
+      <td><span class="chip" style="background:${sc(q.Stage,q.IsClosed)}22;color:${sc(q.Stage,q.IsClosed)};border:1px solid ${sc(q.Stage,q.IsClosed)}44">${sl(q.Stage,q.IsClosed)}</span></td>
+      <td class="aval">${£f(q.Total?.ExTax||0)}</td>
+      <td class="dval">${fd(q.DateIssued)}</td>
+    </tr>`).join('');
+}
+
+function filtered() {
+  return all.filter(q => {
+    const fs = curF === 'all' ? true
+      : curF === '_won' ? q.IsClosed === true
+      : q.Stage === curF;
+    const ft = !curS || q.Name?.toLowerCase().includes(curS) || String(q.ID).includes(curS);
+    return fs && ft;
+  }).sort((a,b) => {
+    let av = a[sKey], bv = b[sKey];
+    if (sKey === 'Total') { av = a.Total?.ExTax||0; bv = b.Total?.ExTax||0; }
+    if (sKey === 'DueDate') { av = a.DueDate ? new Date(a.DueDate).getTime() : 0; bv = b.DueDate ? new Date(b.DueDate).getTime() : 0; }
+    if (typeof av === 'string') av = av.toLowerCase();
+    if (typeof bv === 'string') bv = bv.toLowerCase();
+    return av < bv ? sDir : av > bv ? -sDir : 0;
   });
-  return byMonth;
 }
 
-function renderMonthlyChart() {
-  const monthly = targets.monthly || {};
-  const wonByMonth = getWonByMonth();
+function renderTable() {
+  const rows = filtered();
+  document.getElementById('tcnt').textContent = rows.length + ' quotes';
+  if (!rows.length) {
+    document.getElementById('main-body').innerHTML = '<tr><td colspan="6" class="empty">No quotes match</td></tr>';
+    return;
+  }
   const now = new Date();
-  const curMonth = now.getMonth() + 1;
-
-  // Find max for scaling
-  const allVals = [];
-  for (let m = 1; m <= 12; m++) {
-    allVals.push(monthly[m] || 0, wonByMonth[m] || 0);
-  }
-  const maxVal = Math.max(...allVals, 1);
-
-  const bars = [];
-  for (let m = 1; m <= 12; m++) {
-    const tgt = monthly[m] || 0;
-    const won = wonByMonth[m] || 0;
-    const tgtH = Math.max((tgt / maxVal) * 160, 2);
-    const wonH = Math.max((won / maxVal) * 160, won > 0 ? 2 : 0);
-    const isPast = m < curMonth;
-    const isCur = m === curMonth;
-    bars.push(`
-      <div class="bar-group">
-        <div class="bars">
-          <div class="bar" data-type="target" style="height:${tgtH}px" title="${MONTHS[m-1]} target: ${fmtFull(tgt)}"></div>
-          <div class="bar ${isPast || isCur ? 'won' : ''}" data-type="actual" style="height:${wonH}px;${!isPast && !isCur ? 'opacity:0.4' : ''}" title="${MONTHS[m-1]} won: ${fmtFull(won)}"></div>
-        </div>
-        <div class="bar-label" style="${isCur ? 'color:var(--accent2);font-weight:600' : ''}">${MONTHS[m-1]}</div>
-      </div>
-    `);
-  }
-  document.getElementById('monthly-chart').innerHTML = bars.join('');
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  document.getElementById('main-body').innerHTML = rows.map(q => {
+    let dueCls = '', dueLabel = fd(q.DueDate);
+    if (q.DueDate && !q.IsClosed) {
+      const dd = new Date(q.DueDate);
+      const days = Math.ceil((dd - today)/86400000);
+      if (days < 0) { dueCls = 'color:var(--red);font-weight:600'; dueLabel = Math.abs(days)+'d overdue'; }
+      else if (days <= 7) { dueCls = 'color:var(--amber)'; }
+    }
+    return `<tr>
+      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">#${q.ID}</td>
+      <td style="max-width:300px;font-weight:500">${q.Name}</td>
+      <td><span class="chip" style="background:${sc(q.Stage,q.IsClosed)}22;color:${sc(q.Stage,q.IsClosed)};border:1px solid ${sc(q.Stage,q.IsClosed)}44">${sl(q.Stage,q.IsClosed)}</span></td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px;text-align:right">${£f(q.Total?.ExTax||0)}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${fd(q.DateIssued)}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:11px;${dueCls}">${dueLabel}</td>
+    </tr>`;
+  }).join('');
 }
 
-function renderSectors() {
-  const sectors = targets.sectors || {};
-  const sorted = Object.entries(sectors).sort((a,b) => b[1]-a[1]);
-  const maxVal = sorted[0]?.[1] || 1;
+// Filters
+document.querySelectorAll('.fbtn').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.fbtn').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  curF = b.dataset.f;
+  renderTable();
+}));
+document.getElementById('search').addEventListener('input', e => {
+  curS = e.target.value.toLowerCase().trim();
+  renderTable();
+});
+document.querySelectorAll('.qtable th[data-s]').forEach(th => th.addEventListener('click', () => {
+  const k = th.dataset.s;
+  sDir = sKey === k ? sDir * -1 : -1;
+  sKey = k;
+  renderTable();
+}));
 
-  const COLORS = ['#00d4ff','#f5a623','#2ecc71','#a855f7','#e74c3c','#06b6d4','#ec4899','#84cc16','#f97316'];
-
-  document.getElementById('sector-list').innerHTML = sorted.map(([name, val], i) => `
-    <div class="sector-row">
-      <div class="sector-header">
-        <span class="sector-name">${name}</span>
-        <span class="sector-vals">${fmtFull(val)}</span>
-      </div>
-      <div class="sector-track">
-        <div class="sector-fill" style="width:${(val/maxVal*100).toFixed(1)}%;background:${COLORS[i%COLORS.length]}"></div>
-      </div>
-    </div>
-  `).join('');
-}
-
-function renderMonthlyTable() {
-  const monthly = targets.monthly || {};
-  const wonByMonth = getWonByMonth();
-  const now = new Date();
-  const curMonth = now.getMonth() + 1;
-
-  const rows = [];
-  for (let m = 1; m <= curMonth; m++) {
-    const tgt = monthly[m] || 0;
-    const won = wonByMonth[m] || 0;
-    const diff = won - tgt;
-    const pctNum = tgt > 0 ? (won/tgt*100) : 0;
-    const cls = pctNum >= 100 ? 'over' : pctNum >= 70 ? 'ok' : 'under';
-    const isCur = m === curMonth;
-    rows.push(`
-      <tr ${isCur ? 'style="background:rgba(245,166,35,0.04)"' : ''}>
-        <td style="${isCur ? 'color:var(--accent2);font-weight:600' : ''}">${MONTHS[m-1]}${isCur ? ' ◄' : ''}</td>
-        <td>${fmt(tgt)}</td>
-        <td style="${won > 0 ? 'color:var(--green)' : 'color:var(--muted)'}">${fmt(won)}</td>
-        <td><span class="pct ${cls}">${pctNum.toFixed(0)}%</span></td>
-      </tr>
-    `);
-  }
-  document.getElementById('monthly-tbody').innerHTML = rows.join('') ||
-    '<tr><td colspan="4" style="padding:20px;text-align:center;color:var(--muted)">No data yet</td></tr>';
-}
-
-function renderWinRate() {
-  const won = quotes.filter(q => q.IsClosed === true);
-  const lost = quotes.filter(q => q.Stage === 'Lost' || q.Stage === 'Declined');
-  const active = quotes.filter(q => q.Stage === 'InProgress');
-  const total = won.length + lost.length;
-  const rate = total > 0 ? (won.length / total * 100) : 0;
-
-  document.getElementById('win-body').innerHTML = `
-    <div class="win-big">${rate.toFixed(0)}<span style="font-size:40px;color:var(--muted)">%</span></div>
-    <div class="win-sub">win rate by count (won vs closed)</div>
-    <div class="win-detail">
-      <div class="win-stat">
-        <div class="win-stat-val" style="color:var(--green)">${won.length}</div>
-        <div class="win-stat-label">Won</div>
-      </div>
-      <div class="win-stat">
-        <div class="win-stat-val" style="color:var(--accent)">${active.length}</div>
-        <div class="win-stat-label">Active</div>
-      </div>
-      <div class="win-stat">
-        <div class="win-stat-val" style="color:var(--red)">${lost.length}</div>
-        <div class="win-stat-label">Lost</div>
-      </div>
-      <div class="win-stat">
-        <div class="win-stat-val" style="color:var(--muted)">${total}</div>
-        <div class="win-stat-label">Closed</div>
-      </div>
-    </div>
-  `;
-}
-
-loadData();
-setInterval(loadData, 5 * 60 * 1000);
+load();
+setInterval(load, 5 * 60 * 1000);
 </script>
 </body>
 </html>
