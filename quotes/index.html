@@ -280,7 +280,7 @@ function render(){ renderKPIs(); renderDue(); renderStages(); renderTop(); rende
 
 function renderKPIs(){
   var open=all.filter(function(q){return !q.IsClosed;});
-  var won=all.filter(function(q){return q.JobNo && q.JobNo !== '';});
+  var won=all.filter(function(q){return q.IsClosed===true && q.Stage==='Approved';});
   var active=all.filter(function(q){return q.Stage==='InProgress'&&!q.IsClosed;});
   var pipeline=open.reduce(function(s,q){return s+(q.Total?q.Total.ExTax||0:0);},0);
   var wonVal=won.reduce(function(s,q){return s+(q.Total?q.Total.ExTax||0:0);},0);
