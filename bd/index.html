@@ -533,7 +533,7 @@ function renderLeads(leads) {
   document.getElementById('open-leads-count').textContent=openL.length+' leads';
   document.getElementById('month-leads-count').textContent=monthL.length+' leads';
 
-  function lname(l){return l.Name||l.LeadName||'(Unnamed)';}
+  function lname(l){return l.LeadName||l.Name||'(Unnamed)';}
 
   document.getElementById('open-leads-body').innerHTML=openL.length
     ? openL.slice(0,8).map(function(l){
