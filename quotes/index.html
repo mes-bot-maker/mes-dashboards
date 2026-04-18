@@ -234,6 +234,7 @@ main { max-width:1600px; margin:0 auto; padding:20px 28px; }
 
 <script>
 var API = 'https://mes-api.mes-bot.workers.dev/api/all';
+var API_JOBS = 'https://mes-api.mes-bot.workers.dev/api/jobs';
 var STAGES = {
   'InProgress': {color:'#1565c0',label:'In Progress'},
   'Pending':    {color:'#e65100',label:'Pending'},
@@ -260,13 +261,27 @@ function fmtDate(d){
 
 var all=[], curF='_year', curS='', sKey='Total', sDir=-1;
 
+var jobsLookup = {};
+// A quote is archived if it's closed but has NO job raised against it
+function isArchived(q) { return q.IsClosed && !jobsLookup[q.ID]; }
+function isActive(q) { return !q.IsClosed; }
+function isWon(q) { return !!jobsLookup[q.ID]; }
 async function load(){
   try {
-    var r = await fetch(API);
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    var raw = await r.json();
+    var [r1, r2] = await Promise.all([fetch(API), fetch(API_JOBS)]);
+    if(!r1.ok) throw new Error('HTTP '+r1.status);
+    var raw = await r1.json();
     all = Array.isArray(raw) ? raw : (raw.quotes||[]);
     if(!all.length) throw new Error('No data — retrying');
+    // Build jobs lookup: quoteId -> job DateIssued
+    if(r2.ok) {
+      var jobs = await r2.json();
+      jobsLookup = {};
+      if(Array.isArray(jobs)) jobs.forEach(function(j){
+        var qid = j.ConvertedFromQuote && j.ConvertedFromQuote.ID;
+        if(qid) jobsLookup[qid] = j.DateIssued;
+      });
+    }
     document.getElementById('updated').textContent = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     render();
   } catch(e) {
@@ -279,8 +294,8 @@ async function load(){
 function render(){ renderKPIs(); renderDue(); renderStages(); renderTop(); renderTable(); }
 
 function renderKPIs(){
-  var open=all.filter(function(q){return !q.IsClosed;});
-  var won=all.filter(function(q){return q.IsClosed===true && q.Stage==='Approved';});
+  var open=all.filter(function(q){return isActive(q);});
+  var won=all.filter(function(q){return !!jobsLookup[q.ID];});
   var active=all.filter(function(q){return q.Stage==='InProgress'&&!q.IsClosed;});
   var pipeline=open.reduce(function(s,q){return s+(q.Total?q.Total.ExTax||0:0);},0);
   var wonVal=won.reduce(function(s,q){return s+(q.Total?q.Total.ExTax||0:0);},0);
@@ -290,7 +305,7 @@ function renderKPIs(){
   document.getElementById('k-pipeline').textContent=fmt(pipeline);
   document.getElementById('k-pipeline-n').textContent=open.length+' open quotes';
   document.getElementById('k-won').textContent=fmt(wonVal);
-  document.getElementById('k-won-n').textContent=won.length+' jobs raised';
+  document.getElementById('k-won-n').textContent=won.length+' jobs raised this year';
   document.getElementById('k-active').textContent=fmt(activeVal);
   document.getElementById('k-active-n').textContent=active.length+' quotes';
   document.getElementById('k-avg').textContent=fmt(avg);
@@ -302,7 +317,7 @@ function renderDue(){
   var dow=today.getDay(), toSun=7-(dow===0?7:dow);
   var eow=new Date(today); eow.setDate(today.getDate()+toSun);
   var eom=new Date(now.getFullYear(),now.getMonth()+1,0);
-  var hasDue=function(q){return q.DueDate&&!q.IsClosed&&q.Stage!=='Approved'&&q.Stage!=='Complete';};
+  var hasDue=function(q){return q.DueDate&&!isArchived(q)&&!isWon(q);};
   var dd=function(q){return new Date(q.DueDate);};
   var weekQ=all.filter(function(q){return hasDue(q)&&dd(q)<=eow;}).sort(function(a,b){return dd(a)-dd(b);});
   var monthQ=all.filter(function(q){return hasDue(q)&&dd(q)>eow&&dd(q)<=eom;}).sort(function(a,b){return dd(a)-dd(b);});
@@ -325,9 +340,9 @@ function renderDue(){
 
 function renderStages(){
   var map={};
-  var curYearQuotes=all.filter(function(q){var d=new Date(q.DateIssued);return d.getFullYear()===new Date().getFullYear();});
+  var curYearQuotes=all.filter(function(q){var d=new Date(q.DateIssued);return d.getFullYear()===new Date().getFullYear() && !isArchived(q);});
   curYearQuotes.forEach(function(q){
-    var k=q.IsClosed?'_won':(q.Stage||'Unknown');
+    var k=jobsLookup[q.ID]?'_won':(q.Stage||'Unknown');
     if(!map[k]) map[k]={count:0,val:0,color:k==='_won'?'#007A3D':sc(q.Stage,false),label:k==='_won'?'Won':sl(q.Stage,false)};
     map[k].count++; map[k].val+=(q.Total?q.Total.ExTax||0:0);
   });
@@ -346,7 +361,7 @@ function renderStages(){
 }
 
 function renderTop(){
-  var top=[].concat(all).filter(function(q){return !q.IsClosed || (q.Stage==='Approved'||q.Stage==='Complete');}).sort(function(a,b){return (b.Total?b.Total.ExTax||0:0)-(a.Total?a.Total.ExTax||0:0);}).slice(0,8);
+  var top=[].concat(all).filter(function(q){return !isArchived(q);}).sort(function(a,b){return (b.Total?b.Total.ExTax||0:0)-(a.Total?a.Total.ExTax||0:0);}).slice(0,8);
   document.getElementById('top-body').innerHTML=top.map(function(q){
     var col=sc(q.Stage,q.IsClosed),lbl=sl(q.Stage,q.IsClosed);
     return '<tr>'+
@@ -359,7 +374,7 @@ function renderTop(){
 
 function getFiltered(){
   return all.filter(function(q){
-    var curYear=new Date().getFullYear(); var fs=curF==='all'?true:curF==='_year'?(new Date(q.DateIssued).getFullYear()===curYear):curF==='_won'?q.IsClosed===true&&(q.Stage==='Approved'||q.Stage==='Complete'):q.Stage===curF;
+    var curYear=new Date().getFullYear(); var fs=curF==='all'?true:curF==='_year'?(new Date(q.DateIssued).getFullYear()===curYear && !isArchived(q)):curF==='_won'?q.IsClosed===true&&(q.Stage==='Approved'||q.Stage==='Complete'):q.Stage===curF;
     var ft=true;
     return fs&&ft;
   }).sort(function(a,b){
