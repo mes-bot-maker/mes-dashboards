@@ -161,9 +161,9 @@ nav a.on{color:#fff;border-color:#fff;background:rgba(255,255,255,0.15);font-wei
       <div class="ksub" id="k-yr-val">—</div>
     </div>
     <div class="kpi" style="--kc:var(--good)">
-      <div class="klabel">Invoiced YTD <span id="k-yr-label"></span></div>
-      <div class="kval" id="k-inv">—</div>
-      <div class="ksub" id="k-inv-n">from simPRO invoices</div>
+      <div class="klabel">Won This Year</div>
+      <div class="kval" id="k-won">—</div>
+      <div class="ksub" id="k-won-n">jobs raised in 2026 · ex tax</div>
     </div>
     <div class="kpi" style="--kc:var(--purple)">
       <div class="klabel">Remaining to Invoice</div>
@@ -180,21 +180,21 @@ nav a.on{color:#fff;border-color:#fff;background:rgba(255,255,255,0.15);font-wei
       <div class="tsub" id="t-annual-sub">ex tax</div>
     </div>
     <div class="tblock" id="t-ytd-block">
-      <div class="tlabel">Invoiced YTD vs Target</div>
+      <div class="tlabel">Won This Year vs YTD Target</div>
       <div class="tval" id="t-ytd-val">—</div>
       <div class="prog-wrap"><div class="prog-fill" id="t-ytd-bar" style="width:0%"></div></div>
       <div class="tsub" id="t-ytd-sub">—</div>
     </div>
     <div class="tblock neutral">
-      <div class="tlabel">Still to Invoice to Hit Target</div>
+      <div class="tlabel">Still to Win to Hit Target</div>
       <div class="tval" id="t-gap">—</div>
       <div class="tsub" id="t-gap-sub">—</div>
     </div>
     <div class="tblock neutral">
-      <div class="tlabel">Order Book vs Annual Target</div>
+      <div class="tlabel">Remaining to Invoice</div>
       <div class="tval" id="t-ob-pct">—</div>
-      <div class="prog-wrap"><div class="prog-fill" id="t-ob-bar" style="width:0%;background:var(--blue)"></div></div>
-      <div class="tsub" id="t-ob-sub">work secured to deliver target</div>
+      <div class="prog-wrap"><div class="prog-fill" id="t-ob-bar" style="width:0%;background:var(--purple)"></div></div>
+      <div class="tsub" id="t-ob-sub">contract value yet to invoice across all open jobs</div>
     </div>
   </div>
 
@@ -230,20 +230,20 @@ nav a.on{color:#fff;border-color:#fff;background:rgba(255,255,255,0.15);font-wei
       </div>
       <div class="debtors-panel">
         <div class="ph">
-          <span class="pt">Aged Debtors (YTD)</span>
-          <span class="pb" id="debtors-count">—</span>
+          <span class="pt">This Year Jobs</span>
+          <span class="pb" id="yr-jobs-count">—</span>
         </div>
         <div class="drow">
-          <span class="dlabel">Invoiced YTD (ex tax)</span>
-          <span class="dval" id="d-inv">—</span>
+          <span class="dlabel">Jobs raised in 2026</span>
+          <span class="dval" id="d-yr-count" style="color:var(--blue)">—</span>
         </div>
         <div class="drow">
-          <span class="dlabel">Outstanding / unpaid</span>
-          <span class="dval" id="d-out" style="color:var(--amber)">—</span>
+          <span class="dlabel">Total contract value</span>
+          <span class="dval" id="d-yr-val">—</span>
         </div>
         <div class="drow">
-          <span class="dlabel">Collected</span>
-          <span class="dval" id="d-paid" style="color:var(--good)">—</span>
+          <span class="dlabel">Avg job value</span>
+          <span class="dval" id="d-yr-avg" style="color:var(--muted)">—</span>
         </div>
       </div>
     </div>
@@ -262,7 +262,6 @@ nav a.on{color:#fff;border-color:#fff;background:rgba(255,255,255,0.15);font-wei
 <script>
 var API_PROJ    = 'https://mes-api.mes-bot.workers.dev/api/projects';
 var API_TARGETS = 'https://mes-api.mes-bot.workers.dev/api/targets';
-var API_INV     = 'https://mes-api.mes-bot.workers.dev/api/invoices-ytd';
 
 var STAGE_CFG = {
   'Progress':{color:'#1565c0',label:'In Progress'},
@@ -306,21 +305,18 @@ function custName(j){
   return j.Customer.CompanyName||j.Customer.Name||'—';
 }
 
-var clientJobs=[], overheadJobs=[], targets={annual:9000000,monthly:{}}, invoicesYTD={invoicedExTax:0,outstanding:0,count:0};
+var clientJobs=[], overheadJobs=[], targets={annual:9000000,monthly:{}};
 var CUR_YEAR = new Date().getFullYear();
-document.querySelectorAll('#k-yr-label').forEach(function(el){el.textContent=CUR_YEAR;});
 
 function load(){
   Promise.all([
     fetch(API_PROJ).then(function(r){if(!r.ok)throw new Error('projects');return r.json();}),
-    fetch(API_TARGETS).then(function(r){if(!r.ok)throw new Error('targets');return r.json();}),
-    fetch(API_INV).then(function(r){if(!r.ok)throw new Error('invoices');return r.json();}).catch(function(){return null;})
+    fetch(API_TARGETS).then(function(r){if(!r.ok)throw new Error('targets');return r.json();})
   ]).then(function(res){
-    var proj=res[0], tgt=res[1], inv=res[2];
+    var proj=res[0], tgt=res[1];
     if(Array.isArray(proj)){clientJobs=proj;overheadJobs=[];}
     else{clientJobs=proj.jobs||[];overheadJobs=proj.overhead||[];}
     targets=tgt;
-    if(inv)invoicesYTD=inv;
     document.getElementById('updated').textContent=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     render();
   }).catch(function(e){console.error(e);setTimeout(load,30000);});
@@ -340,23 +336,32 @@ function renderKPIs(){
   var ob=active.reduce(function(s,j){return s+exTax(j);},0);
   var totalRem=clientJobs.reduce(function(s,j){return s+remaining(j);},0);
   var thisYr=clientJobs.filter(function(j){return j.DateIssued&&new Date(j.DateIssued).getFullYear()===CUR_YEAR;});
+  var wonVal=thisYr.reduce(function(s,j){return s+exTax(j);},0);
 
   document.getElementById('k-ob').textContent=fmt(ob);
   document.getElementById('k-ob-n').textContent=active.length+' active jobs · ex tax';
   document.getElementById('k-active').textContent=active.length;
   document.getElementById('k-yr').textContent=thisYr.length;
-  document.getElementById('k-yr-val').textContent=fmt(thisYr.reduce(function(s,j){return s+exTax(j);},0))+' contract value';
-  document.getElementById('k-inv').textContent=fmt(invoicesYTD.invoicedExTax||0);
-  document.getElementById('k-inv-n').textContent=(invoicesYTD.count||0)+' invoices raised in '+CUR_YEAR;
+  document.getElementById('k-yr-val').textContent=fmt(wonVal)+' contract value';
+  document.getElementById('k-won').textContent=fmt(wonVal);
+  document.getElementById('k-won-n').textContent=thisYr.length+' jobs raised in '+CUR_YEAR;
   document.getElementById('k-rem').textContent=fmt(totalRem);
 }
 
 function renderTargets(){
   var annual=targets.annual||9000000;
-  var invoiced=invoicesYTD.invoicedExTax||0;
-  var outstanding=invoicesYTD.outstanding||0;
-  var gap=Math.max(0, annual-invoiced);
-  var ytdPct=pct(invoiced,annual);
+  var monthly=targets.monthly||{};
+  var curMonth=new Date().getMonth()+1;
+
+  // YTD target = sum of monthly targets Jan through current month
+  var ytdTarget=0;
+  for(var m=1;m<=curMonth;m++){ytdTarget+=monthly[m]||0;}
+
+  // Won this year = jobs raised in current year (from projects data — accurate)
+  var thisYr=clientJobs.filter(function(j){return j.DateIssued&&new Date(j.DateIssued).getFullYear()===CUR_YEAR;});
+  var wonYTD=thisYr.reduce(function(s,j){return s+exTax(j);},0);
+  var gap=Math.max(0, annual-wonYTD);
+  var ytdPct=pct(wonYTD,ytdTarget);
   var color=ytdPct>=100?'var(--good)':ytdPct>=75?'var(--amber)':'var(--bad)';
 
   // Order book
@@ -367,30 +372,30 @@ function renderTargets(){
   document.getElementById('t-annual').textContent=fmt(annual);
   document.getElementById('t-annual-sub').textContent=CUR_YEAR+' annual sales target';
 
-  document.getElementById('t-ytd-val').textContent=fmt(invoiced);
+  document.getElementById('t-ytd-val').textContent=fmt(wonYTD);
   document.getElementById('t-ytd-val').style.color=color;
-  document.getElementById('t-ytd-bar').style.width=ytdPct.toFixed(1)+'%';
+  document.getElementById('t-ytd-bar').style.width=Math.min(100,ytdPct).toFixed(1)+'%';
   document.getElementById('t-ytd-bar').style.background=color;
-  document.getElementById('t-ytd-sub').textContent=ytdPct.toFixed(1)+'% of annual target invoiced';
+  document.getElementById('t-ytd-sub').textContent=ytdPct.toFixed(1)+'% of YTD target · target '+fmt(ytdTarget);
   document.getElementById('t-ytd-sub').style.color=color;
-  var block=document.getElementById('t-ytd-block');
-  block.className='tblock '+(ytdPct>=75?'on-track':'behind');
+  document.getElementById('t-ytd-block').className='tblock '+(ytdPct>=75?'on-track':'behind');
 
   document.getElementById('t-gap').textContent=fmt(gap);
-  document.getElementById('t-gap').style.color=gap>0?'var(--bad)':'var(--good)';
-  document.getElementById('t-gap-sub').textContent=gap>0?'still needed to hit £'+( annual/1e6).toFixed(1)+'M target':'Target reached! ✓';
-  document.getElementById('t-gap-sub').style.color=gap>0?'var(--muted)':'var(--good)';
+  document.getElementById('t-gap').style.color=gap>0?'var(--amber)':'var(--good)';
+  document.getElementById('t-gap-sub').textContent=gap>0?'still to win to hit £'+(annual/1e6).toFixed(1)+'M annual target':'Annual target reached ✓';
 
-  document.getElementById('t-ob-pct').textContent=fmt(ob);
-  document.getElementById('t-ob-bar').style.width=Math.min(100,obPct).toFixed(1)+'%';
-  document.getElementById('t-ob-sub').textContent=obPct.toFixed(1)+'% of target secured in order book';
+  var totalRem=clientJobs.reduce(function(s,j){return s+remaining(j);},0);
+  var remPct=pct(totalRem,annual);
 
-  // Debtors
-  var collected=invoiced-(outstanding||0);
-  document.getElementById('d-inv').textContent=fmtFull(invoiced);
-  document.getElementById('d-out').textContent=fmtFull(outstanding);
-  document.getElementById('d-paid').textContent=fmtFull(collected>0?collected:0);
-  document.getElementById('debtors-count').textContent=(invoicesYTD.count||0)+' invoices';
+  document.getElementById('t-ob-pct').textContent=fmt(totalRem);
+  document.getElementById('t-ob-bar').style.width=Math.min(100,remPct).toFixed(1)+'%';
+  document.getElementById('t-ob-sub').textContent=fmtFull(totalRem)+' still to invoice across '+clientJobs.filter(function(j){return remaining(j)>0;}).length+' jobs';
+
+  // This year stats panel
+  document.getElementById('yr-jobs-count').textContent=CUR_YEAR+' jobs';
+  document.getElementById('d-yr-count').textContent=thisYr.length;
+  document.getElementById('d-yr-val').textContent=fmtFull(wonYTD);
+  document.getElementById('d-yr-avg').textContent=thisYr.length?fmt(wonYTD/thisYr.length)+' avg':'—';
 }
 
 function renderChart(){
