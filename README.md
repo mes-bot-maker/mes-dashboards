@@ -1,5 +1,174 @@
 # MES Power Engineering — TV Dashboards
 
+## Architecture
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| Cloudflare Worker | `mes-api.mes-bot.workers.dev` | API proxy — fetches from simPRO + SharePoint |
+| GitHub Pages | `mes-bot-maker.github.io/mes-dashboards/` | Hosts the dashboard HTML files |
+| GitHub Repo | `github.com/mes-bot-maker/mes-dashboards` | Source for dashboards |
+
+---
+
+## Dashboards
+
+| Dashboard | URL | File |
+|-----------|-----|------|
+| BD Dashboard | `/bd/` | `bd/index.html` |
+| Quotes Pipeline | `/quotes/` | `quotes/index.html` |
+| Projects (TODO) | `/projects/` | `projects/index.html` |
+
+---
+
+## Worker Endpoints
+
+| Endpoint | Returns |
+|----------|---------|
+| `/api/all` | quotes + targets (parallel, no leads — keeps fast) |
+| `/api/quotes` | Quotes from 2024-01-01, cols: ID,Name,Stage,Total,DateIssued,DateApproved,DueDate,IsClosed |
+| `/api/jobs` | Jobs from 2026-01-01, cols: ID,ConvertedFromQuote,DateIssued |
+| `/api/leads` | Leads from 2026-01-01, cols: ID,LeadName,Stage,DateCreated |
+| `/api/targets` | Targets from SharePoint MES sheet (falls back to hardcoded if SP fails) |
+
+---
+
+## Cloudflare Environment Variables
+
+Go to: Workers → mes-api → Settings → Variables & Secrets
+
+| Name | Type | Value / Notes |
+|------|------|---------------|
+| `SIMPRO_BASE_URL` | Text | `https://mes-power.simprosuite.com` |
+| `SIMPRO_API_KEY` | Secret | simPRO API key |
+| `AZURE_CLIENT_ID` | Text | Azure app client ID |
+| `AZURE_TENANT_ID` | Text | Azure tenant ID |
+| `AZURE_CLIENT_SECRET` | Secret | Azure app secret |
+| `SP_DRIVE_ID` | Text | `b!lqS9e4ABZEG8zi3gJ_wIpiQ6SCO-alRNodHfLjoj1fV1igdVlSgxRJ9wvEbU93fF` |
+| `SP_ITEM_ID` | Text | `01RTE6GZ65M3IYZ63CSJCLOGCRJINH6OQN` |
+| `SP_SHEET_NAME` | Text | `MES` |
+
+---
+
+## SharePoint Targets File
+
+**File:** `2026 Sales Targets North.xlsx`
+**Location:** Commercial site → Shared Documents/Targets (DO NOT DELETE)/
+**Sheet:** `MES`
+
+Structure the worker expects:
+- Header row: `Market | Annual Target | Jan-26 | Feb-26 | ... | Dec-26`
+- Sector rows: EV Hubs, 33kV Connections, BESS, C&I Connections etc
+- Total row: blank | £9,000,000 | £360,000 | £630,000 | ...
+
+---
+
+## Key Logic Decisions
+
+### Won Definition
+**Won = Quote has a job raised against it** (job appears in `/api/jobs` with `ConvertedFromQuote.ID` matching quote ID)
+- Grouped by **job DateIssued** (when job was raised, NOT quote DateApproved)
+- Matches Power BI: Jan £383K, Feb £177K, Mar £124K, Apr £98K — YTD ~£750K
+- `JobNo` column rejected by simPRO REST API (422) — use jobs endpoint instead
+
+### Archived Quotes
+**Archived = IsClosed=true AND not in jobsLookup (no job raised)**
+- Excluded from: Top 8, Due This Week/Month, Open Pipeline, By Stage, This Year filter
+
+### Auto Refresh
+Both dashboards auto-refresh every 5 minutes via setInterval — no manual refresh needed on TV.
+
+### Year Filters
+All year filters use `new Date().getFullYear()` — auto-updates at new year.
+
+---
+
+## CORS Fix (CRITICAL)
+Worker CORS must always be `CORS.headers` not `CORS`:
+```js
+const CORS = { headers: { 'Access-Control-Allow-Origin': '*', ... } };
+return new Response(null, { status: 204, headers: CORS.headers });
+function json(data, status = 200) { return new Response(JSON.stringify(data), { status, headers: CORS.headers }); }
+```
+If dashboards show "Failed to fetch" — check this first.
+
+---
+
+## simPRO Details
+- **Company ID:** 2
+- **Base URL:** `https://mes-power.simprosuite.com`
+- **Tugger Integration ID:** 4782
+
+---
+
+## GitHub Upload Process
+1. Go to `github.com/mes-bot-maker/mes-dashboards`
+2. Navigate to the file (e.g. `bd/index.html`)
+3. Click pencil → Select All → Paste → Commit
+
+---
+
+## TODO
+- [ ] Add SP_DRIVE_ID, SP_ITEM_ID, SP_SHEET_NAME to Cloudflare variables
+- [ ] Verify SharePoint targets loading live (currently using hardcoded fallback £9M)
+- [ ] Build Projects dashboard
+
+---
+
+## Projects Dashboard — Design Notes
+
+### Purpose
+TV dashboard for projects team — active jobs and order book.
+
+### Data Source
+SimproJobs — open/active jobs, no date filter (rolling, may include 2024 starts).
+
+### Proposed Panels
+
+**Banner KPIs:**
+- Total Order Book Value (all open jobs ex-tax)
+- Number of Active Projects
+- Jobs Started This Year
+- Invoiced to Date
+- Remaining to Invoice
+
+**Main Table — Active Projects (sorted by value):**
+- Job name, Customer, Value ex-tax, Date Issued, Project Manager, Stage
+- No year filter — shows all rolling open jobs regardless of start date
+- Exclude completed/archived
+
+**Chart — Order Book by Month Issued:**
+- Bar showing value of jobs raised per month
+- Shows pipeline shape and workload history
+
+**Invoicing Targets — Recommendation:**
+- Monthly invoicing targets only work if projects team is being fed a consistent flow of new work
+- Showing targets when the team is already resource-constrained is counterproductive
+- Better approach: show Invoiced This Month vs Last Month (trend) rather than vs a fixed target
+- If targets are wanted: needs a separate target figure agreed with projects team, stored in SharePoint
+
+**What NOT to include:**
+- Materials/stock costs or billable materials (these skew the contract value)
+- Completed or archived jobs
+- Quotes not yet converted to jobs
+
+### Worker Changes Needed
+New endpoint `/api/projects`:
+- Fetch open jobs: Stage not in Completed/Archived
+- Columns: ID, Name, Customer, DateIssued, Stage, Total_ExTax, ProjectManager
+- No dateFrom filter — all time, rolling
+
+### simPRO Fields Available (SimproJobs)
+- `Name` — job name
+- `DateIssued` — when raised
+- `Total_ExTax` — estimated value
+- `Stage` — current stage
+- `ConvertedFromQuoteID` — source quote
+- `ProjectManagerID` — PM
+- `CustomerID` — customer
+- `CompletedDate` — completion date
+
+# MES Power Engineering — TV Dashboards
+
 ## Architecture Overview
 
 ```
