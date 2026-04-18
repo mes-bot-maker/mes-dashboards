@@ -207,9 +207,8 @@ main { max-width:1600px; margin:0 auto; padding:20px 28px; }
 
   <div class="table-panel">
     <div class="tcontrols">
-      <input class="search" id="search" placeholder="Search by name or ID...">
       <button class="fbtn" data-f="all">All Time</button>
-      <button class="fbtn on" data-f="_year">2026 Only</button>
+      <button class="fbtn on" data-f="_year" id="year-btn">This Year</button>
       <button class="fbtn" data-f="InProgress">In Progress</button>
       <button class="fbtn" data-f="_won">Won</button>
       <button class="fbtn" data-f="Pending">Pending</button>
@@ -326,14 +325,15 @@ function renderDue(){
 
 function renderStages(){
   var map={};
-  all.forEach(function(q){
+  var curYearQuotes=all.filter(function(q){var d=new Date(q.DateIssued);return d.getFullYear()===new Date().getFullYear();});
+  curYearQuotes.forEach(function(q){
     var k=q.IsClosed?'_won':(q.Stage||'Unknown');
     if(!map[k]) map[k]={count:0,val:0,color:k==='_won'?'#007A3D':sc(q.Stage,false),label:k==='_won'?'Won':sl(q.Stage,false)};
     map[k].count++; map[k].val+=(q.Total?q.Total.ExTax||0:0);
   });
   var sorted=Object.entries(map).sort(function(a,b){return b[1].val-a[1].val;});
   var mx=sorted[0]?sorted[0][1].val:1;
-  document.getElementById('stage-total').textContent=all.length+' total';
+  document.getElementById('stage-total').textContent=curYearQuotes.length+' this year';
   document.getElementById('stage-list').innerHTML=sorted.map(function(e){
     var d=e[1];
     return '<div class="sr">'+
@@ -346,7 +346,7 @@ function renderStages(){
 }
 
 function renderTop(){
-  var top=[].concat(all).sort(function(a,b){return (b.Total?b.Total.ExTax||0:0)-(a.Total?a.Total.ExTax||0:0);}).slice(0,8);
+  var top=[].concat(all).filter(function(q){return !q.IsClosed || (q.Stage==='Approved'||q.Stage==='Complete');}).sort(function(a,b){return (b.Total?b.Total.ExTax||0:0)-(a.Total?a.Total.ExTax||0:0);}).slice(0,8);
   document.getElementById('top-body').innerHTML=top.map(function(q){
     var col=sc(q.Stage,q.IsClosed),lbl=sl(q.Stage,q.IsClosed);
     return '<tr>'+
@@ -360,7 +360,7 @@ function renderTop(){
 function getFiltered(){
   return all.filter(function(q){
     var curYear=new Date().getFullYear(); var fs=curF==='all'?true:curF==='_year'?(new Date(q.DateIssued).getFullYear()===curYear):curF==='_won'?q.IsClosed===true&&(q.Stage==='Approved'||q.Stage==='Complete'):q.Stage===curF;
-    var ft=!curS||q.Name.toLowerCase().includes(curS)||String(q.ID).includes(curS);
+    var ft=true;
     return fs&&ft;
   }).sort(function(a,b){
     var av=a[sKey],bv=b[sKey];
@@ -399,7 +399,6 @@ document.querySelectorAll('.fbtn').forEach(function(b){b.addEventListener('click
   document.querySelectorAll('.fbtn').forEach(function(x){x.classList.remove('on');});
   b.classList.add('on'); curF=b.dataset.f; renderTable();
 });});
-document.getElementById('search').addEventListener('input',function(e){curS=e.target.value.toLowerCase().trim();renderTable();});
 document.querySelectorAll('.qtable th[data-s]').forEach(function(th){th.addEventListener('click',function(){
   var k=th.dataset.s; sDir=sKey===k?sDir*-1:-1; sKey=k; renderTable();
 });});
