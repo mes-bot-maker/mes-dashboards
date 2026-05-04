@@ -1,1 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MES Power Engineering — Operating Model</title>
+<style>
+  :root {
+    --green-900: #0f2a0a;
+    --green-800: #1a4011;
+    --green-700: #245818;
+    --green-600: #2e7020;
+    --green-500: #3a8828;
+    --green-400: #5aad44;
+    --green-300: #7ecb65;
+    --green-100: #e8f5e2;
+    --green-50:  #f4faf1;
+    --accent: #f0a500;
+    --danger: #d93025;
+    --text: #1a1a1a;
+    --text-light: #555;
+    --border: #d0dcc8;
+    --white: #ffffff;
+    --shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--green-50); color: var(--text); min-height: 100vh; }
 
+  /* HEADER */
+  .header { background: var(--green-800); color: white; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 56px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+  .header-title { display: flex; align-items: center; gap: 12px; }
+  .header-logo { width: 32px; height: 32px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; color: var(--green-900); }
+  .header-title h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.3px; }
+  .header-title span { font-size: 12px; color: var(--green-300); }
+  .header-actions { display: flex; gap: 8px; }
+  .btn-sm { padding: 5px 12px; border-radius: 5px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; }
+  .btn-export { background: var(--green-600); color: white; }
+  .btn-export:hover { background: var(--green-500); }
+
+  /* LAYOUT */
+  .layout { display: flex; height: calc(100vh - 56px); }
+
+  /* SIDEBAR */
+  .sidebar { width: 200px; background: var(--green-900); padding: 16px 0; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; overflow-y: auto; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer; color: var(--green-300); font-size: 13px; font-weight: 500; border-left: 3px solid transparent; transition: all 0.15s; }
+  .nav-item:hover { background: rgba(255,255,255,0.07); color: white; }
+  .nav-item.active { background: var(--green-800); color: white; border-left-color: var(--accent); }
+  .nav-icon { font-size: 16px; width: 18px; text-align: center; }
+  .nav-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 8px 16px; }
+
+  /* MAIN CONTENT */
+  .main { flex: 1; overflow-y: auto; padding: 24px; }
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* PAGE HEADER */
+  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .page-title { font-size: 20px; font-weight: 700; color: var(--green-800); }
+  .page-subtitle { font-size: 13px; color: var(--text-light); margin-top: 2px; }
+
+  /* BUTTONS */
+  .btn { padding: 7px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s; }
+  .btn-primary { background: var(--green-600); color: white; }
+  .btn-primary:hover { background: var(--green-700); }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn-secondary { background: var(--border); color: var(--text); }
+  .btn-secondary:hover { background: #c0cdb8; }
+  .btn-icon { padding: 4px 8px; font-size: 12px; border-radius: 4px; }
+
+  /* STATS BAR */
+  .stats-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .stat-card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 12px 20px; min-width: 120px; }
+  .stat-number { font-size: 24px; font-weight: 800; color: var(--green-700); }
+  .stat-label { font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+  /* TABLES */
+  .table-wrap { background: white; border-radius: 10px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead tr { background: var(--green-800); color: white; }
+  th { padding: 10px 14px; text-align: left; font-weight: 600; font-size: 12px; letter-spacing: 0.4px; white-space: nowrap; }
+  td { padding: 9px 14px; border-bottom: 1px solid #eef2eb; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--green-50); }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .tag-green { background: var(--green-100); color: var(--green-800); }
+  .tag-amber { background: #fff3d6; color: #8a6200; }
+  .tag-blue { background: #e3f0ff; color: #1a5fa8; }
+  .tag-red { background: #fdecea; color: #c62828; }
+  .tag-grey { background: #f0f0f0; color: #666; }
+
+  /* SEARCH & FILTER BAR */
+  .filter-bar { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+  .search-box { flex: 1; min-width: 200px; max-width: 320px; position: relative; }
+  .search-box input { width: 100%; padding: 7px 12px 7px 32px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: white; }
+  .search-box::before { content: '🔍'; position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; }
+  select.filter-select { padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: white; }
+
+  /* SUB TABS */
+  .sub-tabs { display: flex; gap: 0; margin-bottom: 16px; background: white; border-radius: 8px; padding: 4px; border: 1px solid var(--border); width: fit-content; }
+  .sub-tab { padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text-light); transition: all 0.15s; }
+  .sub-tab.active { background: var(--green-700); color: white; }
+  .sub-tab:hover:not(.active) { background: var(--green-50); color: var(--text); }
+
+  /* RACI MATRIX */
+  .raci-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+  .raci-table { border-collapse: collapse; font-size: 11px; white-space: nowrap; background: white; }
+  .raci-table th { background: var(--green-800); color: white; padding: 8px 10px; text-align: center; font-size: 10px; letter-spacing: 0.3px; position: sticky; top: 0; }
+  .raci-table th.activity-col { text-align: left; position: sticky; left: 0; z-index: 3; min-width: 220px; max-width: 280px; white-space: normal; }
+  .raci-table td { padding: 6px 8px; border-bottom: 1px solid #eef2eb; border-right: 1px solid #eef2eb; text-align: center; }
+  .raci-table td.activity-cell { text-align: left; background: #f8fdf5; position: sticky; left: 0; z-index: 1; padding: 6px 10px; max-width: 280px; white-space: normal; font-weight: 500; }
+  .raci-table tr:hover td { background: var(--green-50); }
+  .raci-table tr:hover td.activity-cell { background: var(--green-100); }
+  .raci-badge { display: inline-block; width: 22px; height: 22px; border-radius: 4px; font-size: 11px; font-weight: 800; line-height: 22px; cursor: pointer; user-select: none; transition: all 0.1s; }
+  .raci-R { background: #2e7020; color: white; }
+  .raci-A { background: #f0a500; color: white; }
+  .raci-C { background: #1a5fa8; color: white; }
+  .raci-I { background: #888; color: white; }
+  .raci-empty { background: #f0f0f0; color: #bbb; font-size: 9px; }
+  .raci-section-header td { background: var(--green-700) !important; color: white; font-weight: 700; padding: 5px 10px; font-size: 11px; }
+
+  /* ORG CHART */
+  .org-wrap { overflow-x: auto; padding: 20px 0; }
+  .org-tree { display: flex; flex-direction: column; align-items: center; min-width: 900px; }
+  .org-level { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px; }
+  .org-node { background: white; border: 2px solid var(--green-600); border-radius: 10px; padding: 10px 14px; min-width: 140px; max-width: 180px; text-align: center; box-shadow: var(--shadow); position: relative; }
+  .org-node.dept { background: var(--green-800); color: white; border-color: var(--green-700); }
+  .org-node.directors { background: var(--green-900); color: white; border-color: var(--accent); }
+  .org-node-title { font-size: 12px; font-weight: 700; }
+  .org-node-sub { font-size: 10px; color: var(--green-300); margin-top: 2px; }
+  .org-node.dept .org-node-sub { color: var(--green-300); }
+  .org-node .people-list { margin-top: 6px; font-size: 10px; color: var(--green-300); line-height: 1.4; }
+  .org-node .roles-list { margin-top: 4px; font-size: 10px; color: rgba(255,255,255,0.7); line-height: 1.4; }
+  .org-connector { width: 2px; height: 20px; background: var(--green-400); margin: 0 auto; }
+  .org-hline { height: 2px; background: var(--green-400); position: relative; }
+
+  /* SOP LINK */
+  .sop-link { color: var(--green-700); text-decoration: underline; font-size: 11px; cursor: pointer; }
+  .sop-link:hover { color: var(--green-500); }
+  .sop-empty { color: #bbb; font-size: 11px; font-style: italic; }
+  .link-input { width: 100%; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
+
+  /* MODAL */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: none; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 12px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .modal-header { background: var(--green-800); color: white; padding: 16px 20px; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: space-between; }
+  .modal-header h3 { font-size: 15px; font-weight: 700; }
+  .modal-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; line-height: 1; }
+  .modal-body { padding: 20px; }
+  .form-row { margin-bottom: 14px; }
+  .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-light); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-input { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+  .form-input:focus { outline: none; border-color: var(--green-500); box-shadow: 0 0 0 3px rgba(58,136,40,0.15); }
+  textarea.form-input { min-height: 70px; resize: vertical; }
+  .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+
+  /* RACI LEGEND */
+  .raci-legend { display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+
+  /* EMPTY STATE */
+  .empty-state { text-align: center; padding: 40px; color: var(--text-light); }
+  .empty-state .empty-icon { font-size: 40px; margin-bottom: 10px; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* NOTICE BANNER */
+  .notice { background: #fff3d6; border: 1px solid #f0c060; border-radius: 8px; padding: 10px 16px; font-size: 12px; color: #7a5000; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 8px; }
+
+  .dept-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; background: var(--green-100); color: var(--green-800); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">
+    <div class="header-logo">MES</div>
+    <div>
+      <h1>MES Power Engineering</h1>
+      <span>Operating Model</span>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="btn-sm btn-export" onclick="exportAllCSV()">⬇ Export Data</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="nav-item active" onclick="showView('orgchart')"><span class="nav-icon">🏢</span> Org Chart</div>
+    <div class="nav-item" onclick="showView('departments')"><span class="nav-icon">📁</span> Departments</div>
+    <div class="nav-item" onclick="showView('roles')"><span class="nav-icon">🎖</span> Roles</div>
+    <div class="nav-item" onclick="showView('people')"><span class="nav-icon">👥</span> People</div>
+    <div class="nav-divider"></div>
+    <div class="nav-item" onclick="showView('coreprocesses')"><span class="nav-icon">🔄</span> Core Processes</div>
+    <div class="nav-item" onclick="showView('processcontrols')"><span class="nav-icon">⚙️</span> Process Controls</div>
+    <div class="nav-divider"></div>
+    <div class="nav-item" onclick="showView('raci')"><span class="nav-icon">📊</span> RACI Matrix</div>
+  </div>
+
+  <div class="main">
+
+    <!-- ORG CHART -->
+    <div id="view-orgchart" class="view active">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Organogram</div>
+          <div class="page-subtitle">Departmental structure, roles and people</div>
+        </div>
+      </div>
+      <div id="orgchart-container"></div>
+    </div>
+
+    <!-- DEPARTMENTS -->
+    <div id="view-departments" class="view">
+      <div class="page-header">
+        <div><div class="page-title">Departments</div><div class="page-subtitle">Business units and reporting structure</div></div>
+        <button class="btn btn-primary" onclick="openModal('dept')">+ Add Department</button>
+      </div>
+      <div id="dept-stats" class="stats-bar"></div>
+      <div class="table-wrap">
+        <table id="dept-table">
+          <thead><tr><th>Department</th><th>Reports To</th><th>Roles</th><th>People</th><th></th></tr></thead>
+          <tbody id="dept-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ROLES -->
+    <div id="view-roles" class="view">
+      <div class="page-header">
+        <div><div class="page-title">Roles</div><div class="page-subtitle">All positions across the business</div></div>
+        <button class="btn btn-primary" onclick="openModal('role')">+ Add Role</button>
+      </div>
+      <div class="filter-bar">
+        <div class="search-box"><input id="role-search" oninput="renderRoles()" placeholder="Search roles..."></div>
+        <select id="role-dept-filter" class="filter-select" onchange="renderRoles()"><option value="">All Departments</option></select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Role Name</th><th>Department</th><th>Seniority Order</th><th>People in Role</th><th></th></tr></thead>
+          <tbody id="roles-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PEOPLE -->
+    <div id="view-people" class="view">
+      <div class="page-header">
+        <div><div class="page-title">People</div><div class="page-subtitle">Employees and role assignments</div></div>
+        <button class="btn btn-primary" onclick="openModal('person')">+ Add Person</button>
+      </div>
+      <div class="filter-bar">
+        <div class="search-box"><input id="people-search" oninput="renderPeople()" placeholder="Search people..."></div>
+        <select id="people-dept-filter" class="filter-select" onchange="renderPeople()"><option value="">All Departments</option></select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Primary Role</th><th>Department</th><th>Status</th><th></th></tr></thead>
+          <tbody id="people-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CORE PROCESSES -->
+    <div id="view-coreprocesses" class="view">
+      <div class="page-header">
+        <div><div class="page-title">Core Processes</div><div class="page-subtitle">The 7 core business processes</div></div>
+        <button class="btn btn-primary" onclick="openModal('coreprocess')">+ Add Process</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Process Name</th><th>Purpose</th><th>Controls</th><th></th></tr></thead>
+          <tbody id="coreprocess-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PROCESS CONTROLS -->
+    <div id="view-processcontrols" class="view">
+      <div class="page-header">
+        <div><div class="page-title">Process Controls</div><div class="page-subtitle" id="pc-count"></div></div>
+        <button class="btn btn-primary" onclick="openModal('pc')">+ Add Control</button>
+      </div>
+      <div class="notice">⚠️ Add SharePoint links by clicking the 📎 icon on any row. Links open directly in your browser.</div>
+      <div class="sub-tabs">
+        <div class="sub-tab active" onclick="setPCTab('all',this)">All Controls</div>
+        <div class="sub-tab" onclick="setPCTab('procedure',this)">📄 Procedures / SOPs</div>
+        <div class="sub-tab" onclick="setPCTab('expectation',this)">🎯 Role Expectations</div>
+        <div class="sub-tab" onclick="setPCTab('control',this)">⚙️ Process Controls</div>
+      </div>
+      <div class="filter-bar">
+        <div class="search-box"><input id="pc-search" oninput="renderPCs()" placeholder="Search activities..."></div>
+        <select id="pc-role-filter" class="filter-select" onchange="renderPCs()"><option value="">All Roles</option></select>
+        <select id="pc-core-filter" class="filter-select" onchange="renderPCs()"><option value="">All Core Processes</option></select>
+        <select id="pc-cat-filter" class="filter-select" onchange="renderPCs()"><option value="">All Categories</option></select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Activity</th><th>Type</th><th>Category</th><th>Core Process</th><th>Owner Role</th><th>Owner Name</th><th>SOP / Link</th><th>Freq.</th><th></th></tr></thead>
+          <tbody id="pc-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RACI MATRIX -->
+    <div id="view-raci" class="view">
+      <div class="page-header">
+        <div><div class="page-title">RACI Matrix</div><div class="page-subtitle">Roles vs activities — click any cell to assign R/A/C/I</div></div>
+        <select id="raci-filter" class="filter-select" onchange="renderRaci()"><option value="">All Core Processes</option></select>
+      </div>
+      <div class="raci-legend">
+        <div class="legend-item"><span class="raci-badge raci-R">R</span> Responsible</div>
+        <div class="legend-item"><span class="raci-badge raci-A">A</span> Accountable</div>
+        <div class="legend-item"><span class="raci-badge raci-C">C</span> Consulted</div>
+        <div class="legend-item"><span class="raci-badge raci-I">I</span> Informed</div>
+      </div>
+      <div class="raci-wrap">
+        <div id="raci-container"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3 id="modal-title">Edit</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" id="modal-delete-btn" style="display:none" onclick="modalDelete()">Delete</button>
+      <button class="btn btn-primary" onclick="modalSave()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const DEFAULT_DATA = {
+  departments: [
+    {id:'dept-1', name:'Directors', reportsTo:''},
+    {id:'dept-2', name:'Quotes & Design', reportsTo:'Directors'},
+    {id:'dept-3', name:'Commercial', reportsTo:'Directors'},
+    {id:'dept-4', name:'Projects', reportsTo:'Directors'},
+    {id:'dept-5', name:'Accounts', reportsTo:'Directors'},
+    {id:'dept-6', name:'SHEQ', reportsTo:'Directors'},
+    {id:'dept-7', name:'HR & People', reportsTo:'Directors'},
+    {id:'dept-8', name:'Facilities Management', reportsTo:'Directors'},
+    {id:'dept-9', name:'Business Support', reportsTo:'Directors'}
+  ],
+  roles: [
+    {id:'role-1',  name:'CEO',                       dept:'Directors',              order:0},
+    {id:'role-2',  name:'Finance Director',           dept:'Directors',              order:10},
+    {id:'role-3',  name:'Managing Director',          dept:'Directors',              order:20},
+    {id:'role-4',  name:'Business Support Manager',   dept:'Business Support',       order:30},
+    {id:'role-5',  name:'SHEQ Manager',               dept:'SHEQ',                   order:30},
+    {id:'role-6',  name:'People & Culture (HR)',       dept:'HR & People',            order:30},
+    {id:'role-7',  name:'General Manager',            dept:'Projects',               order:30},
+    {id:'role-8',  name:'Design Manager',             dept:'Quotes & Design',        order:30},
+    {id:'role-9',  name:'Commercial Manager',         dept:'Commercial',             order:30},
+    {id:'role-10', name:'Management Accountant',      dept:'Accounts',               order:40},
+    {id:'role-11', name:'Project Engineer',           dept:'Projects',               order:49},
+    {id:'role-12', name:'Assessing Officer',          dept:'Projects',               order:49},
+    {id:'role-13', name:'Electrical Engineer',        dept:'Projects',               order:50},
+    {id:'role-14', name:'Project Manager',            dept:'Projects',               order:50},
+    {id:'role-15', name:'FM Manager',                 dept:'Facilities Management',  order:50},
+    {id:'role-16', name:'Site Manager',               dept:'Projects',               order:50},
+    {id:'role-17', name:'Estimator',                  dept:'Quotes & Design',        order:50},
+    {id:'role-18', name:'Chargehand',                 dept:'Projects',               order:60},
+    {id:'role-19', name:'Project Co-Ordinator',       dept:'Projects',               order:70},
+    {id:'role-20', name:'Craftsman',                  dept:'Projects',               order:70},
+    {id:'role-21', name:'Admin Support',              dept:'Business Support',       order:70},
+    {id:'role-22', name:'Craft Assistant',            dept:'Projects',               order:80},
+    {id:'role-23', name:'Trainee Electrical',         dept:'Projects',               order:80},
+    {id:'role-24', name:'Accounting (External)',      dept:'Accounts',               order:100}
+  ],
+  people: [
+    {id:'per-1',  name:'Alan Bowie',         role:'',                       dept:'',                      status:'Active'},
+    {id:'per-2',  name:'Alan Shepherd',      role:'',                       dept:'',                      status:'Active'},
+    {id:'per-3',  name:'Amanda McKenzie',    role:'',                       dept:'Directors',             status:'Active'},
+    {id:'per-4',  name:'Andrea Moir',        role:'SHEQ Manager',           dept:'SHEQ',                  status:'Active'},
+    {id:'per-5',  name:'Chris Todd',         role:'',                       dept:'Projects',              status:'Active'},
+    {id:'per-6',  name:'Dion Moutrey',       role:'',                       dept:'Projects',              status:'Active'},
+    {id:'per-7',  name:'Ethan McKenzie',     role:'',                       dept:'Projects',              status:'Active'},
+    {id:'per-8',  name:'Ewan Bennett',       role:'',                       dept:'Commercial',            status:'Active'},
+    {id:'per-9',  name:'Jamie Taylor',       role:'',                       dept:'Quotes & Design',       status:'Active'},
+    {id:'per-10', name:'Josh Anderson',      role:'',                       dept:'Projects',              status:'Active'},
+    {id:'per-11', name:'Liam Duthie',        role:'',                       dept:'Projects',              status:'Active'},
+    {id:'per-12', name:'Luca Ivory-Hunter',  role:'',                       dept:'Quotes & Design',       status:'Active'},
+    {id:'per-13', name:'Luke Mutch',         role:'',                       dept:'Projects',              status:'Active'},
+    {id:'per-14', name:'Mark Stevenson',     role:'',                       dept:'Projects',              status:'Active'},
+    {id:'per-15', name:'Neil McKenzie',      role:'Managing Director',      dept:'Directors',             status:'Active'},
+    {id:'per-16', name:'Neil Ritchie',       role:'',                       dept:'Projects',              status:'Active'},
+    {id:'per-17', name:'Oakley Allan-Cooper',role:'',                       dept:'Projects',              status:'Active'},
+    {id:'per-18', name:'Alan Shepherd',      role:'',                       dept:'Projects',              status:'Active'},
+    {id:'per-19', name:'Luca Ivory-Hunter',  role:'Commercial Manager',     dept:'Commercial',            status:'Active'},
+    {id:'per-20', name:'Jamie Taylor',       role:'Design Manager',         dept:'Quotes & Design',       status:'Active'}
+  ],
+  coreProcesses: [
+    {id:'cp-1', code:'CP-0001', name:'Bid / Estimate to Contract',    purpose:'To secure commercially viable contracts'},
+    {id:'cp-2', code:'CP-0002', name:'Design',                        purpose:'Design management and approval'},
+    {id:'cp-3', code:'CP-0003', name:'Pre-Construction Planning',     purpose:'Pre-construction planning and mobilisation'},
+    {id:'cp-4', code:'CP-0004', name:'Project Delivery',              purpose:'Execution and delivery of projects'},
+    {id:'cp-5', code:'CP-0005', name:'Commissioning & Handover',      purpose:'Commissioning, testing and client handover'},
+    {id:'cp-6', code:'CP-0006', name:'Commercial Close-Out',          purpose:'Financial close-out and final accounts'},
+    {id:'cp-7', code:'CP-0007', name:'Governance & Compliance',       purpose:'Business governance and compliance management'}
+  ],
+  processControls: [
+    // --- PROCEDURES / SOPs ---
+    {id:'pc-001', activity:'COSHH & data sheets', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'Annually', notes:''},
+    {id:'pc-002', activity:'DSE', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'Annually', notes:''},
+    {id:'pc-003', activity:'Reporting & analysis', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'Monthly', notes:''},
+    {id:'pc-004', activity:'HAVs', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-005', activity:'Site audits', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-006', activity:'Implementation & compliance with company practices', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-007', activity:'DVLA checks', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-008', activity:'First aid', type:'procedure', category:'Safety', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-009', activity:'PPE', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-010', activity:'SHEQ objectives & initiatives', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-011', activity:'NCRs', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-012', activity:'Tool box talks', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-013', activity:'Manage company BMS system', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-014', activity:'Environmental aspects & impacts', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-015', activity:'Vehicle weekly checks', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'Weekly', notes:''},
+    {id:'pc-016', activity:'Fire safety', type:'procedure', category:'Safety', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-017', activity:'Annual audit programme', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'Annually', notes:''},
+    {id:'pc-018', activity:'ISO 9001, 14001 & 45001 management', type:'procedure', category:'Systems', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-019', activity:'SHEQ legislation, standards & safe working practices', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-020', activity:'Manage SEAR + QAR databases', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-021', activity:'Subcontractor co-ordination (certification, admin etc.)', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-022', activity:'SHEQ awareness & compliance', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-023', activity:'Accidents, incidents & near misses', type:'procedure', category:'Safety', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-024', activity:'SHEQ KPI', type:'procedure', category:'Quality', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
+    {id:'pc-025', activity:'Company objectives & metrics', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'Managing Director', ownerName:'Neil McKenzie', sopLink:'', frequency:'', notes:''},
+    {id:'pc-026', activity:'Risks & opportunities', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'Managing Director', ownerName:'Neil McKenzie', sopLink:'', frequency:'', notes:''},
+    {id:'pc-027', activity:'Company Insurances', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'Managing Director', ownerName:'Neil McKenzie', sopLink:'', frequency:'', notes:''},
+    {id:'pc-028', activity:'Social media', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'Managing Director', ownerName:'Neil McKenzie', sopLink:'', frequency:'', notes:''},
+    {id:'pc-029', activity:'Website & SEO', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'Managing Director', ownerName:'Neil McKenzie', sopLink:'', frequency:'', notes:''},
+    {id:'pc-030', activity:'Sales & Business Development', type:'procedure', category:'', coreProcess:'CP-0001 | Bid / Estimate to Contract', supportProcess:'', ownerRole:'Commercial Manager', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-031', activity:'CRM (Customer Relations Management)', type:'procedure', category:'', coreProcess:'CP-0001 | Bid / Estimate to Contract', supportProcess:'', ownerRole:'Commercial Manager', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-032', activity:'Target markets & research', type:'procedure', category:'', coreProcess:'CP-0001 | Bid / Estimate to Contract', supportProcess:'', ownerRole:'Commercial Manager', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-033', activity:'Competitor analysis', type:'procedure', category:'', coreProcess:'CP-0001 | Bid / Estimate to Contract', supportProcess:'', ownerRole:'Commercial Manager', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-034', activity:'Enquiry received, info collated & lead added to ERP', type:'procedure', category:'', coreProcess:'CP-0001 | Bid / Estimate to Contract', supportProcess:'', ownerRole:'Commercial Manager', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-035', activity:'Quotation started', type:'procedure', category:'', coreProcess:'CP-0001 | Bid / Estimate to Contract', supportProcess:'', ownerRole:'Commercial Manager', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-036', activity:'Design requirements review', type:'procedure', category:'', coreProcess:'CP-0002 | Design', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-037', activity:'High level project plan created (if required)', type:'procedure', category:'', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-038', activity:'Prepare final quotation summary & submit to customer', type:'procedure', category:'', coreProcess:'CP-0001 | Bid / Estimate to Contract', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-039', activity:'Project folder created (& docs copied over)', type:'procedure', category:'', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-040', activity:'Design pack created & approved', type:'procedure', category:'', coreProcess:'CP-0002 | Design', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-041', activity:'Project handover & convert quote to job in ERP', type:'procedure', category:'', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-042', activity:'Credit control', type:'procedure', category:'', coreProcess:'CP-0006 | Commercial Close-Out', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-043', activity:'Quote accepted, payment plan agreed & initial stage invoiced', type:'procedure', category:'', coreProcess:'CP-0001 | Bid / Estimate to Contract', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-044', activity:'Project Purchasing', type:'procedure', category:'', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-045', activity:'Track changes / variations throughout', type:'procedure', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-046', activity:'Monthly applications and progress claims', type:'procedure', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'Monthly', notes:''},
+    {id:'pc-047', activity:'Stage Invoicing', type:'procedure', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-048', activity:'Asset claims - Connections', type:'procedure', category:'', coreProcess:'CP-0005 | Commissioning & Handover', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-049', activity:'Prepare weekly invoicing for manager sign-off', type:'procedure', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'Weekly', notes:''},
+    {id:'pc-050', activity:'Final Invoice', type:'procedure', category:'', coreProcess:'CP-0006 | Commercial Close-Out', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-051', activity:'Design & drawings review and approval throughout', type:'procedure', category:'', coreProcess:'CP-0002 | Design', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-052', activity:'Site team checks (NERs, qualifications, training etc)', type:'procedure', category:'', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-053', activity:'Paperwork check (Issue)', type:'procedure', category:'', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-054', activity:"Create PO's for project", type:'procedure', category:'', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-055', activity:'Goods receipting - GRN (Site)', type:'procedure', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-056', activity:'Technical Audits (As per schedule)', type:'procedure', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-057', activity:'Complete daily diary sheets', type:'procedure', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'Daily', notes:''},
+    {id:'pc-058', activity:'Site paperwork checked and signed off (Returns)', type:'procedure', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-059', activity:'Project Close out - EPR', type:'procedure', category:'', coreProcess:'CP-0006 | Commercial Close-Out', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-060', activity:'Project closeout meeting (with customer)', type:'procedure', category:'', coreProcess:'CP-0006 | Commercial Close-Out', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-061', activity:'Customer feedback', type:'procedure', category:'', coreProcess:'CP-0006 | Commercial Close-Out', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-062', activity:'Project Review / lessons learned held with team', type:'procedure', category:'', coreProcess:'CP-0006 | Commercial Close-Out', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-063', activity:'Site SHEQ Audits - as per SHEQ Audit Programme', type:'procedure', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-064', activity:'Financial forecasting', type:'procedure', category:'', coreProcess:'CP-0007 | Governance & Compliance', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-065', activity:'Cashflow', type:'procedure', category:'', coreProcess:'CP-0007 | Governance & Compliance', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-066', activity:'PAT testing', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'Annually', notes:''},
+    {id:'pc-067', activity:'Harness inspections', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-068', activity:'Calibrations', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-069', activity:'Goods receipting - GRN (Stores)', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-070', activity:'MES Asset management', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-071', activity:'Position agreed', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-072', activity:'Job Advertisement', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-073', activity:'Interview', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-074', activity:'Interview follow up responses sent', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-075', activity:'Offer made (include new start information requirements)', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-076', activity:'IT logins setup', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-077', activity:'Computer/tablet/phone etc', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-078', activity:'Keys; Pass (prepared on day 1)', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-079', activity:'HR System Login', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-080', activity:'Induction', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-081', activity:'PPE issued on start day', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-082', activity:'Training co-ordination; NERS ECS etc', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-083', activity:'Training & development plans & CPD', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-084', activity:'Performance management', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-085', activity:'Probationary review', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-086', activity:'Appraisals', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'Annually', notes:''},
+    {id:'pc-087', activity:'Lead Review Meeting', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-088', activity:'Absence management', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-089', activity:'Occupational health', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-090', activity:'Booking accommodation & travel (Non Project, e.g. training, quote meetings)', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-091', activity:'Disciplinaries & Grievances', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-092', activity:'Offboarding', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
+    // --- ROLE EXPECTATIONS ---
+    {id:'pc-101', activity:'Memberships & associations', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-102', activity:'Build client relationships', type:'expectation', category:'', coreProcess:'CP-0001 | Bid / Estimate to Contract', supportProcess:'', ownerRole:'Managing Director', ownerName:'Neil McKenzie', sopLink:'', frequency:'', notes:''},
+    {id:'pc-103', activity:'EPR Management', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0005 | Business Support & Systems', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-104', activity:'Schedule price planning - 100% efficiency on programme', type:'expectation', category:'', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'SNCP-0005 | Business Support & Systems', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-105', activity:'Booking accommodation & travel (Project Works)', type:'expectation', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'SNCP-0005 | Business Support & Systems', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-106', activity:'Day to day works (Ongoing)', type:'expectation', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'SNCP-0005 | Business Support & Systems', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-107', activity:'Weekly project review (timesheets/programme/project plans)', type:'expectation', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'Weekly', notes:''},
+    {id:'pc-108', activity:'Review daily diary sheets and resolve queries', type:'expectation', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'Daily', notes:''},
+    {id:'pc-109', activity:'On Call Rota - Maintenance', type:'expectation', category:'', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'SNCP-0005 | Business Support & Systems', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-110', activity:'Collate & summarise weekly timesheet returns', type:'expectation', category:'', coreProcess:'CP-0006 | Commercial Close-Out', supportProcess:'SNCP-0005 | Business Support & Systems', ownerRole:'', ownerName:'', sopLink:'', frequency:'Weekly', notes:''},
+    {id:'pc-111', activity:'Document control on project files', type:'expectation', category:'', coreProcess:'CP-0005 | Commissioning & Handover', supportProcess:'SNCP-0005 | Business Support & Systems', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-112', activity:'Feedback to project manager', type:'expectation', category:'', coreProcess:'CP-0006 | Commercial Close-Out', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-113', activity:'Sales ledger', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-114', activity:'Purchase ledger', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-115', activity:'Banking', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-116', activity:'Credit card & reconciliation', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-117', activity:'Bank reconciliation', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'Monthly', notes:''},
+    {id:'pc-118', activity:'Expenses', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'Monthly', notes:''},
+    {id:'pc-119', activity:'Payroll', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'Monthly', notes:''},
+    {id:'pc-120', activity:'Pensions', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'Monthly', notes:''},
+    {id:'pc-121', activity:'Stock - stores management cost control allocation', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-122', activity:'VAT returns', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'Quarterly', notes:''},
+    {id:'pc-123', activity:'Management accounts', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'Monthly', notes:''},
+    {id:'pc-124', activity:'Accounts KPI', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'Monthly', notes:''},
+    {id:'pc-125', activity:'Stores & Yard Management', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0004 | Stores, Plant & Facilities', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-126', activity:'Budget management (transport, tools, electric, repairs)', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0004 | Stores, Plant & Facilities', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-127', activity:'Equipment inspections, certification and repair', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0004 | Stores, Plant & Facilities', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-128', activity:"Transport & Plant Management (Servicing; MOT's; Repairs)", type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0004 | Stores, Plant & Facilities', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-129', activity:'Overall responsibility of Depot', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0004 | Stores, Plant & Facilities', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-130', activity:'Stock management', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0004 | Stores, Plant & Facilities', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-131', activity:'Scrap management to ensure all scrap being returned to stores', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0004 | Stores, Plant & Facilities', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-132', activity:'Material returns', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0004 | Stores, Plant & Facilities', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-133', activity:'Facilities Management KPI', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0005 | Business Support & Systems', ownerRole:'', ownerName:'', sopLink:'', frequency:'Monthly', notes:''},
+    {id:'pc-134', activity:'Stationery - Office Supplies', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0004 | Stores, Plant & Facilities', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    // --- PROCESS CONTROLS ---
+    {id:'pc-201', activity:'RAMS created & approved', type:'control', category:'SHEQ', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-202', activity:"MSRA's Systems", type:'control', category:'SHEQ', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-203', activity:'Site induction / client induction', type:'control', category:'SHEQ', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
+    {id:'pc-204', activity:'Quality Plans - ITP (Inspection & Test Plan)', type:'control', category:'Quality', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''}
+  ],
+  raci: {}
+};
+
+// ============================================================
+// STATE
+// ============================================================
+let data;
+let modalMode = null;
+let modalEditId = null;
+let pcTabFilter = 'all';
+
+function loadData() {
+  const stored = localStorage.getItem('mes-operating-model-v2');
+  data = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+function saveData() {
+  localStorage.setItem('mes-operating-model-v2', JSON.stringify(data));
+}
+function resetData() {
+  if (confirm('Reset all data to defaults? This cannot be undone.')) {
+    localStorage.removeItem('mes-operating-model-v2');
+    loadData();
+    renderAll();
+  }
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (name === 'orgchart') renderOrgChart();
+  if (name === 'departments') renderDepts();
+  if (name === 'roles') renderRoles();
+  if (name === 'people') renderPeople();
+  if (name === 'coreprocesses') renderCoreProcesses();
+  if (name === 'processcontrols') renderPCs();
+  if (name === 'raci') renderRaci();
+}
+
+// ============================================================
+// RENDER HELPERS
+// ============================================================
+function typeTag(type) {
+  const map = { procedure: ['tag-blue','📄 Procedure/SOP'], expectation: ['tag-green','🎯 Role Expectation'], control: ['tag-amber','⚙️ Process Control'] };
+  const [cls, label] = map[type] || ['tag-grey', type];
+  return `<span class="tag ${cls}">${label}</span>`;
+}
+function freq(f) { return f ? `<span class="tag tag-grey" style="font-size:10px">${f}</span>` : ''; }
+
+function actionBtns(id, editFn, deletable=true) {
+  return `<div style="display:flex;gap:4px;white-space:nowrap">
+    <button class="btn btn-sm btn-secondary btn-icon" onclick="${editFn}('${id}')">✏️</button>
+    ${deletable ? `<button class="btn btn-sm btn-danger btn-icon" onclick="deleteItem('${id}')">🗑</button>` : ''}
+  </div>`;
+}
+
+// ============================================================
+// ORG CHART
+// ============================================================
+function renderOrgChart() {
+  const container = document.getElementById('orgchart-container');
+
+  // Build lookup: dept → roles, role → people
+  const deptRoles = {};
+  const rolePeople = {};
+  data.roles.forEach(r => {
+    if (!deptRoles[r.dept]) deptRoles[r.dept] = [];
+    deptRoles[r.dept].push(r.name);
+  });
+  data.people.forEach(p => {
+    if (p.role) {
+      if (!rolePeople[p.role]) rolePeople[p.role] = [];
+      rolePeople[p.role].push(p.name);
+    }
+  });
+
+  const deptPeople = {};
+  data.people.forEach(p => {
+    if (p.dept) {
+      if (!deptPeople[p.dept]) deptPeople[p.dept] = [];
+      deptPeople[p.dept].push(p.name);
+    }
+  });
+
+  const depts = data.departments.filter(d => d.name !== 'Directors');
+  const directors = data.departments.find(d => d.name === 'Directors');
+  const dirPeople = deptPeople['Directors'] || [];
+  const dirRoles = deptRoles['Directors'] || [];
+
+  let html = `<div style="overflow-x:auto;padding:20px 0">
+  <div style="min-width:900px">
+  <!-- Directors at top -->
+  <div style="display:flex;justify-content:center;margin-bottom:4px">
+    <div class="org-node directors" style="min-width:180px">
+      <div class="org-node-title">🏢 Directors (The Board)</div>
+      <div class="people-list">${dirPeople.join('<br>') || ''}</div>
+      <div class="roles-list" style="font-size:9px;margin-top:4px;opacity:0.7">${dirRoles.join(', ')}</div>
+    </div>
+  </div>
+  <div class="org-connector"></div>
+  <!-- Horizontal line -->
+  <div style="display:flex;align-items:flex-start;justify-content:center;gap:0;position:relative;margin-bottom:4px">`;
+
+  depts.forEach((dept, i) => {
+    const roles = deptRoles[dept.name] || [];
+    const people = deptPeople[dept.name] || [];
+    html += `<div style="display:flex;flex-direction:column;align-items:center;min-width:140px;max-width:160px;margin:0 6px">
+      <div style="width:2px;height:20px;background:var(--green-400)"></div>
+      <div class="org-node dept">
+        <div class="org-node-title">${dept.name}</div>
+        <div class="people-list">${people.slice(0,4).join('<br>')}${people.length > 4 ? `<br>+${people.length-4} more` : ''}</div>
+        <div class="roles-list">${roles.slice(0,3).join(', ')}${roles.length > 3 ? ` +${roles.length-3}` : ''}</div>
+      </div>
+    </div>`;
+  });
+
+  html += `</div></div></div>`;
+  container.innerHTML = html;
+}
+
+// ============================================================
+// DEPARTMENTS
+// ============================================================
+function renderDepts() {
+  const tbody = document.getElementById('dept-tbody');
+  const roleCount = {};
+  const peopleCount = {};
+  data.roles.forEach(r => { roleCount[r.dept] = (roleCount[r.dept]||0)+1; });
+  data.people.forEach(p => { if(p.dept) peopleCount[p.dept] = (peopleCount[p.dept]||0)+1; });
+
+  tbody.innerHTML = data.departments.map(d => `<tr>
+    <td><strong>${d.name}</strong></td>
+    <td>${d.reportsTo ? `<span class="dept-badge">${d.reportsTo}</span>` : '<span style="color:#bbb">—</span>'}</td>
+    <td>${roleCount[d.name]||0}</td>
+    <td>${peopleCount[d.name]||0}</td>
+    <td>${actionBtns(d.id, 'editDept')}</td>
+  </tr>`).join('');
+}
+
+// ============================================================
+// ROLES
+// ============================================================
+function renderRoles() {
+  const q = (document.getElementById('role-search')?.value||'').toLowerCase();
+  const deptF = document.getElementById('role-dept-filter')?.value||'';
+
+  // Populate dept filter
+  const df = document.getElementById('role-dept-filter');
+  if (df && df.options.length === 1) {
+    data.departments.forEach(d => {
+      const o = document.createElement('option');
+      o.value = d.name; o.textContent = d.name;
+      df.appendChild(o);
+    });
+  }
+
+  const personByRole = {};
+  data.people.forEach(p => { if(p.role) { if(!personByRole[p.role]) personByRole[p.role]=[]; personByRole[p.role].push(p.name); }});
+
+  const rows = data.roles
+    .filter(r => (!q || r.name.toLowerCase().includes(q)) && (!deptF || r.dept === deptF))
+    .sort((a,b) => a.order - b.order);
+
+  document.getElementById('roles-tbody').innerHTML = rows.map(r => `<tr>
+    <td><strong>${r.name}</strong></td>
+    <td><span class="dept-badge">${r.dept}</span></td>
+    <td><span class="tag tag-grey">${r.order}</span></td>
+    <td style="font-size:12px">${(personByRole[r.name]||[]).join(', ') || '<span style="color:#bbb">Unassigned</span>'}</td>
+    <td>${actionBtns(r.id,'editRole')}</td>
+  </tr>`).join('');
+}
+
+// ============================================================
+// PEOPLE
+// ============================================================
+function renderPeople() {
+  const q = (document.getElementById('people-search')?.value||'').toLowerCase();
+  const deptF = document.getElementById('people-dept-filter')?.value||'';
+
+  const pdf = document.getElementById('people-dept-filter');
+  if (pdf && pdf.options.length === 1) {
+    data.departments.forEach(d => {
+      const o = document.createElement('option');
+      o.value = d.name; o.textContent = d.name;
+      pdf.appendChild(o);
+    });
+  }
+
+  const rows = data.people.filter(p =>
+    (!q || p.name.toLowerCase().includes(q)) &&
+    (!deptF || p.dept === deptF)
+  );
+
+  document.getElementById('people-tbody').innerHTML = rows.map(p => `<tr>
+    <td><strong>${p.name}</strong></td>
+    <td>${p.role || '<span style="color:#bbb">—</span>'}</td>
+    <td>${p.dept ? `<span class="dept-badge">${p.dept}</span>` : '<span style="color:#bbb">—</span>'}</td>
+    <td><span class="tag ${p.status==='Active'?'tag-green':'tag-grey'}">${p.status||'Active'}</span></td>
+    <td>${actionBtns(p.id,'editPerson')}</td>
+  </tr>`).join('');
+}
+
+// ============================================================
+// CORE PROCESSES
+// ============================================================
+function renderCoreProcesses() {
+  const cpCount = {};
+  data.processControls.forEach(pc => {
+    const cp = pc.coreProcess.split('|')[0]?.trim();
+    if (cp) cpCount[cp] = (cpCount[cp]||0)+1;
+  });
+
+  document.getElementById('coreprocess-tbody').innerHTML = data.coreProcesses.map(cp => `<tr>
+    <td><strong>${cp.code}</strong></td>
+    <td><strong>${cp.name}</strong></td>
+    <td style="font-size:12px;color:var(--text-light)">${cp.purpose||'—'}</td>
+    <td><span class="tag tag-green">${cpCount[cp.code]||0} controls</span></td>
+    <td>${actionBtns(cp.id,'editCP')}</td>
+  </tr>`).join('');
+}
+
+// ============================================================
+// PROCESS CONTROLS
+// ============================================================
+function setPCTab(tab, el) {
+  pcTabFilter = tab;
+  document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderPCs();
+}
+
+function renderPCs() {
+  const q = (document.getElementById('pc-search')?.value||'').toLowerCase();
+  const roleF = document.getElementById('pc-role-filter')?.value||'';
+  const coreF = document.getElementById('pc-core-filter')?.value||'';
+  const catF = document.getElementById('pc-cat-filter')?.value||'';
+
+  // Populate filters on first load
+  const rf = document.getElementById('pc-role-filter');
+  if (rf && rf.options.length === 1) {
+    const roles = [...new Set(data.processControls.map(p=>p.ownerRole).filter(Boolean))].sort();
+    roles.forEach(r => { const o = document.createElement('option'); o.value=r; o.textContent=r; rf.appendChild(o); });
+  }
+  const cf = document.getElementById('pc-core-filter');
+  if (cf && cf.options.length === 1) {
+    data.coreProcesses.forEach(cp => { const o = document.createElement('option'); o.value=cp.code; o.textContent=cp.name; cf.appendChild(o); });
+  }
+  const catf = document.getElementById('pc-cat-filter');
+  if (catf && catf.options.length === 1) {
+    const cats = [...new Set(data.processControls.map(p=>p.category).filter(Boolean))].sort();
+    cats.forEach(c => { const o = document.createElement('option'); o.value=c; o.textContent=c; catf.appendChild(o); });
+  }
+
+  let rows = data.processControls.filter(pc => {
+    if (pcTabFilter === 'procedure' && pc.type !== 'procedure') return false;
+    if (pcTabFilter === 'expectation' && pc.type !== 'expectation') return false;
+    if (pcTabFilter === 'control' && pc.type !== 'control') return false;
+    if (q && !pc.activity.toLowerCase().includes(q)) return false;
+    if (roleF && pc.ownerRole !== roleF) return false;
+    if (coreF && !pc.coreProcess.includes(coreF)) return false;
+    if (catF && pc.category !== catF) return false;
+    return true;
+  });
+
+  document.getElementById('pc-count').textContent = `${rows.length} controls`;
+
+  document.getElementById('pc-tbody').innerHTML = rows.map(pc => `<tr>
+    <td style="font-size:10px;color:var(--text-light)">${pc.id}</td>
+    <td style="max-width:260px">${pc.activity}</td>
+    <td>${typeTag(pc.type)}</td>
+    <td>${pc.category ? `<span class="tag tag-grey">${pc.category}</span>` : ''}</td>
+    <td style="font-size:11px;max-width:160px">${pc.coreProcess ? `<span class="tag tag-blue" style="font-size:10px">${pc.coreProcess.split('|')[0]?.trim()}</span>` : (pc.supportProcess ? `<span style="font-size:10px;color:var(--text-light)">${pc.supportProcess}</span>` : '')}</td>
+    <td style="font-size:12px">${pc.ownerRole||'<span style="color:#bbb">—</span>'}</td>
+    <td style="font-size:12px">${pc.ownerName||'<span style="color:#bbb">—</span>'}</td>
+    <td>${pc.sopLink ? `<a class="sop-link" href="${pc.sopLink}" target="_blank">📎 Open Link</a>` : `<span class="sop-empty" onclick="quickAddLink('${pc.id}')" style="cursor:pointer" title="Click to add SharePoint link">+ Add link</span>`}</td>
+    <td>${freq(pc.frequency)}</td>
+    <td>${actionBtns(pc.id,'editPC')}</td>
+  </tr>`).join('');
+}
+
+// ============================================================
+// RACI MATRIX
+// ============================================================
+function renderRaci() {
+  // Populate filter
+  const rf = document.getElementById('raci-filter');
+  if (rf && rf.options.length === 1) {
+    data.coreProcesses.forEach(cp => { const o = document.createElement('option'); o.value=cp.code; o.textContent=`${cp.code} | ${cp.name}`; rf.appendChild(o); });
+  }
+  const coreF = rf?.value||'';
+
+  // Show only Role Expectations + Procedures for RACI (they have roles)
+  let activities = data.processControls.filter(pc =>
+    pc.type === 'expectation' || pc.ownerRole
+  );
+  if (coreF) activities = activities.filter(pc => pc.coreProcess.includes(coreF) || pc.supportProcess.includes(coreF));
+
+  // Roles to show in RACI (senior roles only for readability)
+  const seniorRoles = data.roles.filter(r => r.order <= 70).sort((a,b) => a.order - b.order);
+
+  const container = document.getElementById('raci-container');
+  if (!activities.length) { container.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><p>No activities to display. Try changing the filter.</p></div>'; return; }
+
+  let html = `<table class="raci-table"><thead><tr>
+    <th class="activity-col">Activity</th>
+    ${seniorRoles.map(r => `<th title="${r.dept}" style="writing-mode:vertical-lr;transform:rotate(180deg);height:80px;vertical-align:bottom;padding:4px 8px">${r.name}</th>`).join('')}
+  </tr></thead><tbody>`;
+
+  // Group by support process / core process
+  activities.forEach(pc => {
+    const coreLabel = pc.coreProcess || pc.supportProcess || 'General';
+    html += `<tr>
+      <td class="activity-cell">${pc.activity}${pc.type==='expectation'?'<br><span style="font-size:9px;color:#999">Role Expectation</span>':''}${pc.type==='procedure'?'<br><span style="font-size:9px;color:#999">Procedure</span>':''}</td>
+      ${seniorRoles.map(r => {
+        const key = `${pc.id}|${r.id}`;
+        const val = data.raci[key] || (pc.ownerRole === r.name ? 'R' : '');
+        return `<td onclick="cycleRaci('${pc.id}','${r.id}',this)">${val ? `<span class="raci-badge raci-${val}">${val}</span>` : `<span class="raci-badge raci-empty">·</span>`}</td>`;
+      }).join('')}
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+function cycleRaci(pcId, roleId, cell) {
+  const key = `${pcId}|${roleId}`;
+  const order = ['','R','A','C','I'];
+  const cur = data.raci[key]||'';
+  const next = order[(order.indexOf(cur)+1) % order.length];
+  if (next) data.raci[key] = next;
+  else delete data.raci[key];
+  saveData();
+  cell.innerHTML = next ? `<span class="raci-badge raci-${next}">${next}</span>` : `<span class="raci-badge raci-empty">·</span>`;
+}
+
+// ============================================================
+// QUICK ADD SOP LINK
+// ============================================================
+function quickAddLink(pcId) {
+  const url = prompt('Paste SharePoint / SOP URL:');
+  if (url && url.trim()) {
+    const pc = data.processControls.find(p => p.id === pcId);
+    if (pc) { pc.sopLink = url.trim(); saveData(); renderPCs(); }
+  }
+}
+
+// ============================================================
+// MODALS
+// ============================================================
+function openModal(type, id) {
+  modalMode = type;
+  modalEditId = id || null;
+  const overlay = document.getElementById('modal-overlay');
+  const title = document.getElementById('modal-title');
+  const body = document.getElementById('modal-body');
+  const delBtn = document.getElementById('modal-delete-btn');
+  delBtn.style.display = id ? 'block' : 'none';
+  overlay.classList.add('open');
+
+  if (type === 'dept') {
+    const item = id ? data.departments.find(d=>d.id===id) : null;
+    title.textContent = id ? 'Edit Department' : 'Add Department';
+    body.innerHTML = `
+      <div class="form-row"><label class="form-label">Department Name</label><input class="form-input" id="f-name" value="${item?.name||''}"></div>
+      <div class="form-row"><label class="form-label">Reports To</label>
+        <select class="form-input" id="f-reportsTo">
+          <option value="">None (Top Level)</option>
+          ${data.departments.filter(d=>d.id!==id).map(d=>`<option value="${d.name}" ${item?.reportsTo===d.name?'selected':''}>${d.name}</option>`).join('')}
+        </select></div>`;
+  } else if (type === 'role') {
+    const item = id ? data.roles.find(r=>r.id===id) : null;
+    title.textContent = id ? 'Edit Role' : 'Add Role';
+    body.innerHTML = `
+      <div class="form-row"><label class="form-label">Role Name</label><input class="form-input" id="f-name" value="${item?.name||''}"></div>
+      <div class="form-row"><label class="form-label">Department</label>
+        <select class="form-input" id="f-dept">
+          ${data.departments.map(d=>`<option value="${d.name}" ${item?.dept===d.name?'selected':''}>${d.name}</option>`).join('')}
+        </select></div>
+      <div class="form-row"><label class="form-label">Seniority Order (lower = more senior)</label><input class="form-input" id="f-order" type="number" value="${item?.order??50}"></div>`;
+  } else if (type === 'person') {
+    const item = id ? data.people.find(p=>p.id===id) : null;
+    title.textContent = id ? 'Edit Person' : 'Add Person';
+    body.innerHTML = `
+      <div class="form-row"><label class="form-label">Full Name</label><input class="form-input" id="f-name" value="${item?.name||''}"></div>
+      <div class="form-row"><label class="form-label">Primary Role</label>
+        <select class="form-input" id="f-role">
+          <option value="">— Select Role —</option>
+          ${data.roles.map(r=>`<option value="${r.name}" ${item?.role===r.name?'selected':''}>${r.name}</option>`).join('')}
+        </select></div>
+      <div class="form-row"><label class="form-label">Department</label>
+        <select class="form-input" id="f-dept">
+          <option value="">— Select Department —</option>
+          ${data.departments.map(d=>`<option value="${d.name}" ${item?.dept===d.name?'selected':''}>${d.name}</option>`).join('')}
+        </select></div>
+      <div class="form-row"><label class="form-label">Status</label>
+        <select class="form-input" id="f-status">
+          <option value="Active" ${item?.status==='Active'?'selected':''}>Active</option>
+          <option value="On Leave" ${item?.status==='On Leave'?'selected':''}>On Leave</option>
+          <option value="Inactive" ${item?.status==='Inactive'?'selected':''}>Inactive</option>
+        </select></div>`;
+  } else if (type === 'coreprocess') {
+    const item = id ? data.coreProcesses.find(c=>c.id===id) : null;
+    title.textContent = id ? 'Edit Core Process' : 'Add Core Process';
+    body.innerHTML = `
+      <div class="form-row"><label class="form-label">Process Code (e.g. CP-0008)</label><input class="form-input" id="f-code" value="${item?.code||''}"></div>
+      <div class="form-row"><label class="form-label">Process Name</label><input class="form-input" id="f-name" value="${item?.name||''}"></div>
+      <div class="form-row"><label class="form-label">Purpose</label><textarea class="form-input" id="f-purpose">${item?.purpose||''}</textarea></div>`;
+  } else if (type === 'pc') {
+    const item = id ? data.processControls.find(p=>p.id===id) : null;
+    title.textContent = id ? 'Edit Process Control' : 'Add Process Control';
+    body.innerHTML = `
+      <div class="form-row"><label class="form-label">Activity</label><textarea class="form-input" id="f-activity">${item?.activity||''}</textarea></div>
+      <div class="form-row"><label class="form-label">Type</label>
+        <select class="form-input" id="f-type">
+          <option value="procedure" ${item?.type==='procedure'?'selected':''}>📄 Procedure / SOP</option>
+          <option value="expectation" ${item?.type==='expectation'?'selected':''}>🎯 Role Expectation</option>
+          <option value="control" ${item?.type==='control'?'selected':''}>⚙️ Process Control</option>
+        </select></div>
+      <div class="form-row"><label class="form-label">Category</label><input class="form-input" id="f-category" value="${item?.category||''}"></div>
+      <div class="form-row"><label class="form-label">Core Process</label>
+        <select class="form-input" id="f-coreProcess">
+          <option value="">— None —</option>
+          ${data.coreProcesses.map(cp=>`<option value="${cp.code} | ${cp.name}" ${item?.coreProcess?.includes(cp.code)?'selected':''}>${cp.code} | ${cp.name}</option>`).join('')}
+        </select></div>
+      <div class="form-row"><label class="form-label">Support Process</label><input class="form-input" id="f-supportProcess" value="${item?.supportProcess||''}"></div>
+      <div class="form-row"><label class="form-label">Owner Role</label>
+        <select class="form-input" id="f-ownerRole">
+          <option value="">— Unassigned —</option>
+          ${data.roles.map(r=>`<option value="${r.name}" ${item?.ownerRole===r.name?'selected':''}>${r.name}</option>`).join('')}
+        </select></div>
+      <div class="form-row"><label class="form-label">Owner Name</label>
+        <select class="form-input" id="f-ownerName">
+          <option value="">— Unassigned —</option>
+          ${data.people.map(p=>`<option value="${p.name}" ${item?.ownerName===p.name?'selected':''}>${p.name}</option>`).join('')}
+        </select></div>
+      <div class="form-row"><label class="form-label">SharePoint / SOP Link</label><input class="form-input" id="f-sopLink" placeholder="https://yourtenant.sharepoint.com/..." value="${item?.sopLink||''}"></div>
+      <div class="form-row"><label class="form-label">Frequency</label>
+        <select class="form-input" id="f-frequency">
+          <option value="" ${!item?.frequency?'selected':''}>—</option>
+          <option value="Daily" ${item?.frequency==='Daily'?'selected':''}>Daily</option>
+          <option value="Weekly" ${item?.frequency==='Weekly'?'selected':''}>Weekly</option>
+          <option value="Monthly" ${item?.frequency==='Monthly'?'selected':''}>Monthly</option>
+          <option value="Quarterly" ${item?.frequency==='Quarterly'?'selected':''}>Quarterly</option>
+          <option value="Annually" ${item?.frequency==='Annually'?'selected':''}>Annually</option>
+        </select></div>
+      <div class="form-row"><label class="form-label">Notes</label><textarea class="form-input" id="f-notes">${item?.notes||''}</textarea></div>`;
+  }
+}
+
+function editDept(id) { openModal('dept', id); }
+function editRole(id) { openModal('role', id); }
+function editPerson(id) { openModal('person', id); }
+function editCP(id) { openModal('coreprocess', id); }
+function editPC(id) { openModal('pc', id); }
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('open');
+    modalMode = null; modalEditId = null;
+  }
+}
+
+function modalSave() {
+  const g = id => document.getElementById(id)?.value||'';
+  if (modalMode === 'dept') {
+    const obj = { id: modalEditId || 'dept-'+Date.now(), name: g('f-name'), reportsTo: g('f-reportsTo') };
+    if (modalEditId) { const i = data.departments.findIndex(d=>d.id===modalEditId); data.departments[i] = obj; }
+    else data.departments.push(obj);
+    saveData(); closeModal(); renderDepts();
+  } else if (modalMode === 'role') {
+    const obj = { id: modalEditId || 'role-'+Date.now(), name: g('f-name'), dept: g('f-dept'), order: parseInt(g('f-order'))||50 };
+    if (modalEditId) { const i = data.roles.findIndex(r=>r.id===modalEditId); data.roles[i] = obj; }
+    else data.roles.push(obj);
+    saveData(); closeModal(); renderRoles();
+  } else if (modalMode === 'person') {
+    const obj = { id: modalEditId || 'per-'+Date.now(), name: g('f-name'), role: g('f-role'), dept: g('f-dept'), status: g('f-status') };
+    if (modalEditId) { const i = data.people.findIndex(p=>p.id===modalEditId); data.people[i] = obj; }
+    else data.people.push(obj);
+    saveData(); closeModal(); renderPeople();
+  } else if (modalMode === 'coreprocess') {
+    const obj = { id: modalEditId || 'cp-'+Date.now(), code: g('f-code'), name: g('f-name'), purpose: g('f-purpose') };
+    if (modalEditId) { const i = data.coreProcesses.findIndex(c=>c.id===modalEditId); data.coreProcesses[i] = obj; }
+    else data.coreProcesses.push(obj);
+    saveData(); closeModal(); renderCoreProcesses();
+  } else if (modalMode === 'pc') {
+    const obj = { id: modalEditId || 'pc-'+Date.now(), activity: g('f-activity'), type: g('f-type'), category: g('f-category'), coreProcess: g('f-coreProcess'), supportProcess: g('f-supportProcess'), ownerRole: g('f-ownerRole'), ownerName: g('f-ownerName'), sopLink: g('f-sopLink'), frequency: g('f-frequency'), notes: g('f-notes') };
+    if (modalEditId) { const i = data.processControls.findIndex(p=>p.id===modalEditId); data.processControls[i] = obj; }
+    else data.processControls.push(obj);
+    saveData(); closeModal(); renderPCs();
+  }
+}
+
+function modalDelete() {
+  if (!confirm('Delete this item?')) return;
+  deleteItem(modalEditId);
+  closeModal();
+}
+
+function deleteItem(id) {
+  data.departments = data.departments.filter(d=>d.id!==id);
+  data.roles = data.roles.filter(r=>r.id!==id);
+  data.people = data.people.filter(p=>p.id!==id);
+  data.coreProcesses = data.coreProcesses.filter(c=>c.id!==id);
+  data.processControls = data.processControls.filter(p=>p.id!==id);
+  saveData();
+  renderDepts(); renderRoles(); renderPeople(); renderCoreProcesses(); renderPCs();
+}
+
+// ============================================================
+// EXPORT
+// ============================================================
+function exportAllCSV() {
+  const csvParts = [
+    toCSV('Process Controls', data.processControls, ['id','activity','type','category','coreProcess','supportProcess','ownerRole','ownerName','sopLink','frequency','notes'])
+  ];
+  const blob = new Blob([csvParts.join('\n\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'MES-Operating-Model-Export.csv';
+  a.click();
+}
+
+function toCSV(name, rows, cols) {
+  const lines = [`# ${name}`, cols.join(',')];
+  rows.forEach(r => lines.push(cols.map(c => `"${(r[c]||'').replace(/"/g,'""')}"`).join(',')));
+  return lines.join('\n');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+function renderAll() {
+  renderOrgChart();
+}
+
+loadData();
+renderAll();
+</script>
+</body>
+</html>
