@@ -819,7 +819,7 @@ function renderPCs(){
      <td style="font-size:11px">${pc.coreProcess?'<span class="tag tb" style="font-size:10px">'+pc.coreProcess.split('|')[0].trim()+'</span>':(pc.supportProcess?'<span style="font-size:10px;color:var(--textl)">'+pc.supportProcess+'</span>':'')}</td>
      <td style="font-size:12px">${pc.ownerRole||'<span style="color:#bbb">—</span>'}</td>
      <td style="font-size:12px">${pc.ownerName||'<span style="color:#bbb">—</span>'}</td>
-     <td>${pc.sopLink?'<a href="'+pc.sopLink+'" target="_blank" style="color:var(--g600);font-size:12px">📎 Open</a>':'<span style="color:#bbb;font-size:11px;cursor:pointer" onclick="quickLink(''+pc.id+'')">+ Add link</span>'}</td>
+     <td>${pc.sopLink?'<a href="'+pc.sopLink+'" target="_blank" style="color:var(--g600);font-size:12px">📎 Open</a>':'<span style="color:#bbb;font-size:11px;cursor:pointer" onclick="quickLink(\''+pc.id+'\'')">+ Add link</span>'}</td>
      <td style="font-size:11px">${pc.frequency?'<span class="tag tgr" style="font-size:10px">'+pc.frequency+'</span>':''}</td>
      <td>${editBtns(pc.id,'editPC')}</td></tr>`).join('');
 }
