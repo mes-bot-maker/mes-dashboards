@@ -5,1093 +5,1091 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MES Power Engineering — Operating Model</title>
 <style>
-  :root {
-    --green-900: #0f2a0a;
-    --green-800: #1a4011;
-    --green-700: #245818;
-    --green-600: #2e7020;
-    --green-500: #3a8828;
-    --green-400: #5aad44;
-    --green-300: #7ecb65;
-    --green-100: #e8f5e2;
-    --green-50:  #f4faf1;
-    --accent: #f0a500;
-    --danger: #d93025;
-    --text: #1a1a1a;
-    --text-light: #555;
-    --border: #d0dcc8;
-    --white: #ffffff;
-    --shadow: 0 2px 8px rgba(0,0,0,0.12);
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--green-50); color: var(--text); min-height: 100vh; }
+:root {
+  --g900:#0d2409; --g800:#1a3d10; --g700:#245818; --g600:#2e7020;
+  --g500:#3a8828; --g400:#5aad44; --g300:#8ecb72; --g100:#e8f5e2; --g50:#f4faf1;
+  --amber:#f0a500; --red:#d93025; --blue:#1a5fa8; --blue-lt:#e3f0ff;
+  --text:#1a1a1a; --text-lt:#5a6a52; --border:#cddbc5; --white:#fff;
+  --shadow:0 2px 10px rgba(0,0,0,.12); --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--g50);color:var(--text);min-height:100vh}
 
-  /* HEADER */
-  .header { background: var(--green-800); color: white; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; height: 56px; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-  .header-title { display: flex; align-items: center; gap: 12px; }
-  .header-logo { width: 32px; height: 32px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; color: var(--green-900); }
-  .header-title h1 { font-size: 16px; font-weight: 600; letter-spacing: 0.3px; }
-  .header-title span { font-size: 12px; color: var(--green-300); }
-  .header-actions { display: flex; gap: 8px; }
-  .btn-sm { padding: 5px 12px; border-radius: 5px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; }
-  .btn-export { background: var(--green-600); color: white; }
-  .btn-export:hover { background: var(--green-500); }
+/* ── HEADER ── */
+.hdr{background:var(--g800);color:#fff;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-shadow:0 2px 8px rgba(0,0,0,.35);position:sticky;top:0;z-index:50}
+.hdr-left{display:flex;align-items:center;gap:12px}
+.hdr-logo{width:36px;height:36px;border-radius:50%;overflow:hidden;background:white;display:flex;align-items:center;justify-content:center}
+.hdr-logo img{width:32px;height:32px;object-fit:contain}
+.hdr-title{font-size:15px;font-weight:700;letter-spacing:.2px}
+.hdr-sub{font-size:11px;color:var(--g300);margin-top:1px}
+.hdr-right{display:flex;gap:8px;align-items:center}
+.sync-status{font-size:11px;color:var(--g300);display:flex;align-items:center;gap:5px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--g400)}
+.sync-dot.saving{background:var(--amber);animation:pulse .8s infinite}
+.sync-dot.error{background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-  /* LAYOUT */
-  .layout { display: flex; height: calc(100vh - 56px); }
+/* ── LAYOUT ── */
+.layout{display:flex;height:calc(100vh - 54px)}
+.sidebar{width:190px;background:var(--g900);flex-shrink:0;overflow-y:auto;padding:10px 0}
+.nav-section{font-size:10px;font-weight:700;color:var(--g400);text-transform:uppercase;letter-spacing:1px;padding:12px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 16px;cursor:pointer;color:#9bbf8a;font-size:13px;font-weight:500;border-left:3px solid transparent;transition:.15s;white-space:nowrap}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav-item.active{background:var(--g800);color:#fff;border-left-color:var(--amber)}
+.nav-icon{font-size:15px;width:17px;text-align:center}
+.main{flex:1;overflow-y:auto;padding:24px}
+.view{display:none}.view.active{display:block}
 
-  /* SIDEBAR */
-  .sidebar { width: 200px; background: var(--green-900); padding: 16px 0; display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; overflow-y: auto; }
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 16px; cursor: pointer; color: var(--green-300); font-size: 13px; font-weight: 500; border-left: 3px solid transparent; transition: all 0.15s; }
-  .nav-item:hover { background: rgba(255,255,255,0.07); color: white; }
-  .nav-item.active { background: var(--green-800); color: white; border-left-color: var(--accent); }
-  .nav-icon { font-size: 16px; width: 18px; text-align: center; }
-  .nav-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 8px 16px; }
+/* ── PAGE HEADER ── */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.ph-title{font-size:19px;font-weight:800;color:var(--g800)}
+.ph-sub{font-size:12px;color:var(--text-lt);margin-top:3px}
+.ph-actions{display:flex;gap:8px;flex-wrap:wrap}
 
-  /* MAIN CONTENT */
-  .main { flex: 1; overflow-y: auto; padding: 24px; }
-  .view { display: none; }
-  .view.active { display: block; }
+/* ── BUTTONS ── */
+.btn{padding:7px 16px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:.15s;display:inline-flex;align-items:center;gap:5px}
+.btn-primary{background:var(--g600);color:#fff}.btn-primary:hover{background:var(--g700)}
+.btn-outline{background:#fff;color:var(--g700);border:1.5px solid var(--g600)}.btn-outline:hover{background:var(--g50)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-ghost{background:transparent;color:var(--g700);border:1px solid var(--border)}.btn-ghost:hover{background:var(--g50)}
+.btn-amber{background:var(--amber);color:#fff}
+.btn-sm{padding:4px 10px;font-size:12px;border-radius:5px}
+.btn-icon{padding:4px 8px;font-size:13px;border-radius:5px}
 
-  /* PAGE HEADER */
-  .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-  .page-title { font-size: 20px; font-weight: 700; color: var(--green-800); }
-  .page-subtitle { font-size: 13px; color: var(--text-light); margin-top: 2px; }
+/* ── TABLES ── */
+.tbl-wrap{background:#fff;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:var(--g800);color:#fff}
+th{padding:10px 14px;text-align:left;font-weight:600;font-size:11px;letter-spacing:.5px;white-space:nowrap}
+td{padding:8px 14px;border-bottom:1px solid #edf2e8;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--g50)}
 
-  /* BUTTONS */
-  .btn { padding: 7px 16px; border-radius: 6px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s; }
-  .btn-primary { background: var(--green-600); color: white; }
-  .btn-primary:hover { background: var(--green-700); }
-  .btn-danger { background: var(--danger); color: white; }
-  .btn-secondary { background: var(--border); color: var(--text); }
-  .btn-secondary:hover { background: #c0cdb8; }
-  .btn-icon { padding: 4px 8px; font-size: 12px; border-radius: 4px; }
+/* ── TAGS ── */
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;line-height:1.4}
+.tg{background:var(--g100);color:var(--g800)}
+.ta{background:#fff3d6;color:#7a5000}
+.tb{background:var(--blue-lt);color:var(--blue)}
+.tr{background:#fdecea;color:#c62828}
+.tgr{background:#f0f0f0;color:#555}
 
-  /* STATS BAR */
-  .stats-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-  .stat-card { background: white; border: 1px solid var(--border); border-radius: 8px; padding: 12px 20px; min-width: 120px; }
-  .stat-number { font-size: 24px; font-weight: 800; color: var(--green-700); }
-  .stat-label { font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+/* ── FILTER BAR ── */
+.fbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.search-wrap{position:relative;flex:1;min-width:180px;max-width:300px}
+.search-wrap input{width:100%;padding:7px 10px 7px 30px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff}
+.search-wrap::before{content:'🔍';position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none}
+select.fsel{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff}
 
-  /* TABLES */
-  .table-wrap { background: white; border-radius: 10px; border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow); }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  thead tr { background: var(--green-800); color: white; }
-  th { padding: 10px 14px; text-align: left; font-weight: 600; font-size: 12px; letter-spacing: 0.4px; white-space: nowrap; }
-  td { padding: 9px 14px; border-bottom: 1px solid #eef2eb; vertical-align: middle; }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--green-50); }
-  .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-  .tag-green { background: var(--green-100); color: var(--green-800); }
-  .tag-amber { background: #fff3d6; color: #8a6200; }
-  .tag-blue { background: #e3f0ff; color: #1a5fa8; }
-  .tag-red { background: #fdecea; color: #c62828; }
-  .tag-grey { background: #f0f0f0; color: #666; }
+/* ── SUB TABS ── */
+.stabs{display:flex;gap:2px;margin-bottom:14px;background:#fff;border-radius:8px;padding:4px;border:1px solid var(--border);width:fit-content}
+.stab{padding:5px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-lt);transition:.15s}
+.stab.active{background:var(--g700);color:#fff}
+.stab:hover:not(.active){background:var(--g50)}
 
-  /* SEARCH & FILTER BAR */
-  .filter-bar { display: flex; gap: 10px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
-  .search-box { flex: 1; min-width: 200px; max-width: 320px; position: relative; }
-  .search-box input { width: 100%; padding: 7px 12px 7px 32px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: white; }
-  .search-box::before { content: '🔍'; position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-size: 12px; }
-  select.filter-select { padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; background: white; }
+/* ── STATS ── */
+.stats{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.stat{background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px 18px;min-width:110px}
+.stat-n{font-size:26px;font-weight:800;color:var(--g700)}
+.stat-l{font-size:10px;color:var(--text-lt);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
 
-  /* SUB TABS */
-  .sub-tabs { display: flex; gap: 0; margin-bottom: 16px; background: white; border-radius: 8px; padding: 4px; border: 1px solid var(--border); width: fit-content; }
-  .sub-tab { padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text-light); transition: all 0.15s; }
-  .sub-tab.active { background: var(--green-700); color: white; }
-  .sub-tab:hover:not(.active) { background: var(--green-50); color: var(--text); }
+/* ── ORG CHART ── */
+#org-print-area{padding:20px}
+.org-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--g700)}
+.org-header-left{display:flex;align-items:center;gap:14px}
+.org-header-logo{width:52px;height:52px;border-radius:50%;overflow:hidden;background:white;border:2px solid var(--g600)}
+.org-header-logo img{width:48px;height:48px;object-fit:contain}
+.org-header-title{font-size:22px;font-weight:800;color:var(--g800)}
+.org-header-sub{font-size:12px;color:var(--text-lt);margin-top:2px}
+.org-date{font-size:13px;font-weight:600;color:var(--g700);background:var(--g100);padding:6px 14px;border-radius:20px}
 
-  /* RACI MATRIX */
-  .raci-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid var(--border); box-shadow: var(--shadow); }
-  .raci-table { border-collapse: collapse; font-size: 11px; white-space: nowrap; background: white; }
-  .raci-table th { background: var(--green-800); color: white; padding: 8px 10px; text-align: center; font-size: 10px; letter-spacing: 0.3px; position: sticky; top: 0; }
-  .raci-table th.activity-col { text-align: left; position: sticky; left: 0; z-index: 3; min-width: 220px; max-width: 280px; white-space: normal; }
-  .raci-table td { padding: 6px 8px; border-bottom: 1px solid #eef2eb; border-right: 1px solid #eef2eb; text-align: center; }
-  .raci-table td.activity-cell { text-align: left; background: #f8fdf5; position: sticky; left: 0; z-index: 1; padding: 6px 10px; max-width: 280px; white-space: normal; font-weight: 500; }
-  .raci-table tr:hover td { background: var(--green-50); }
-  .raci-table tr:hover td.activity-cell { background: var(--green-100); }
-  .raci-badge { display: inline-block; width: 22px; height: 22px; border-radius: 4px; font-size: 11px; font-weight: 800; line-height: 22px; cursor: pointer; user-select: none; transition: all 0.1s; }
-  .raci-R { background: #2e7020; color: white; }
-  .raci-A { background: #f0a500; color: white; }
-  .raci-C { background: #1a5fa8; color: white; }
-  .raci-I { background: #888; color: white; }
-  .raci-empty { background: #f0f0f0; color: #bbb; font-size: 9px; }
-  .raci-section-header td { background: var(--green-700) !important; color: white; font-weight: 700; padding: 5px 10px; font-size: 11px; }
+/* CSS Tree */
+.tree{overflow-x:auto;padding:10px 20px 30px}
+.tree ul{display:flex;flex-direction:row;list-style:none;padding-top:28px;position:relative;transition:.5s}
+.tree ul::before{content:'';position:absolute;top:0;left:50%;border-left:2px solid var(--g400);height:28px;width:0}
+.tree li{display:flex;flex-direction:column;align-items:center;position:relative;padding:0 8px}
+.tree li::before,.tree li::after{content:'';position:absolute;top:0;right:50%;width:50%;height:28px;border-top:2px solid var(--g400)}
+.tree li::after{right:auto;left:50%;border-left:2px solid var(--g400)}
+.tree li:only-child::before,.tree li:only-child::after{display:none}
+.tree li:first-child::before,.tree li:last-child::after{border:0 none}
+.tree li:first-child::after{border-radius:6px 0 0 0}
+.tree li:last-child::before{border-radius:0 6px 0 0}
+.tree li:only-child{padding-top:0}
 
-  /* ORG CHART */
-  .org-wrap { overflow-x: auto; padding: 20px 0; }
-  .org-tree { display: flex; flex-direction: column; align-items: center; min-width: 900px; }
-  .org-level { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 8px; }
-  .org-node { background: white; border: 2px solid var(--green-600); border-radius: 10px; padding: 10px 14px; min-width: 140px; max-width: 180px; text-align: center; box-shadow: var(--shadow); position: relative; }
-  .org-node.dept { background: var(--green-800); color: white; border-color: var(--green-700); }
-  .org-node.directors { background: var(--green-900); color: white; border-color: var(--accent); }
-  .org-node-title { font-size: 12px; font-weight: 700; }
-  .org-node-sub { font-size: 10px; color: var(--green-300); margin-top: 2px; }
-  .org-node.dept .org-node-sub { color: var(--green-300); }
-  .org-node .people-list { margin-top: 6px; font-size: 10px; color: var(--green-300); line-height: 1.4; }
-  .org-node .roles-list { margin-top: 4px; font-size: 10px; color: rgba(255,255,255,0.7); line-height: 1.4; }
-  .org-connector { width: 2px; height: 20px; background: var(--green-400); margin: 0 auto; }
-  .org-hline { height: 2px; background: var(--green-400); position: relative; }
+/* Node cards */
+.org-node{border-radius:10px;min-width:140px;max-width:200px;text-align:center;box-shadow:var(--shadow);position:relative;cursor:default}
+.org-node-board{background:var(--g800);color:#fff;border:2px solid var(--amber);padding:12px 16px}
+.org-node-director{background:var(--g700);color:#fff;border:2px solid var(--g500);padding:10px 14px}
+.org-node-dept{background:#fff;border:2px solid var(--g500);padding:10px 14px}
+.org-node-person{background:#fff;border:2px solid var(--border);padding:8px 12px}
+.org-node-title{font-size:12px;font-weight:700;line-height:1.3}
+.org-node-role{font-size:10px;opacity:.8;margin-top:2px}
+.org-node-people{margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.2);font-size:10px;line-height:1.5;text-align:left}
+.org-node-dept .org-node-people{border-top-color:var(--border);color:var(--text-lt)}
+.org-node-dept .org-node-title{color:var(--g800)}
+.org-node-dept .org-node-role{color:var(--text-lt)}
+.org-node-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;justify-content:center}
+.org-badge{font-size:9px;padding:1px 6px;border-radius:8px;background:rgba(255,255,255,.2);color:#fff;white-space:nowrap}
+.org-node-dept .org-badge{background:var(--g100);color:var(--g800)}
 
-  /* SOP LINK */
-  .sop-link { color: var(--green-700); text-decoration: underline; font-size: 11px; cursor: pointer; }
-  .sop-link:hover { color: var(--green-500); }
-  .sop-empty { color: #bbb; font-size: 11px; font-style: italic; }
-  .link-input { width: 100%; padding: 4px 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 12px; }
+/* ── RACI ── */
+.raci-wrap{overflow:auto;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow)}
+.raci-tbl{border-collapse:collapse;font-size:11px;background:#fff;white-space:nowrap}
+.raci-tbl th{background:var(--g800);color:#fff;padding:8px 10px;font-size:10px;letter-spacing:.3px;position:sticky;top:0;z-index:2}
+.raci-tbl th.act-col{text-align:left;position:sticky;left:0;z-index:3;min-width:220px;max-width:270px;white-space:normal}
+.raci-tbl td{padding:5px 8px;border-bottom:1px solid #edf2e8;border-right:1px solid #edf2e8;text-align:center}
+.raci-tbl td.act-cell{text-align:left;background:#f8fdf5;position:sticky;left:0;z-index:1;padding:5px 10px;max-width:270px;white-space:normal;font-weight:500;font-size:12px}
+.raci-tbl tr:hover td{background:var(--g50)}.raci-tbl tr:hover td.act-cell{background:var(--g100)}
+.raci-head-role{writing-mode:vertical-lr;transform:rotate(180deg);height:90px;font-size:10px;vertical-align:bottom;padding:4px 8px!important;cursor:default}
+.rb{display:inline-block;width:22px;height:22px;border-radius:4px;font-size:11px;font-weight:800;line-height:22px;cursor:pointer;user-select:none;transition:.1s}
+.rb-R{background:#2e7020;color:#fff}.rb-A{background:var(--amber);color:#fff}
+.rb-C{background:var(--blue);color:#fff}.rb-I{background:#777;color:#fff}
+.rb-empty{background:#eee;color:#bbb;font-size:9px}
+.raci-legend{display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+.rl{display:flex;align-items:center;gap:5px;font-size:12px}
 
-  /* MODAL */
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: none; align-items: center; justify-content: center; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: white; border-radius: 12px; width: 560px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-  .modal-header { background: var(--green-800); color: white; padding: 16px 20px; border-radius: 12px 12px 0 0; display: flex; align-items: center; justify-content: space-between; }
-  .modal-header h3 { font-size: 15px; font-weight: 700; }
-  .modal-close { background: none; border: none; color: white; font-size: 20px; cursor: pointer; line-height: 1; }
-  .modal-body { padding: 20px; }
-  .form-row { margin-bottom: 14px; }
-  .form-label { display: block; font-size: 12px; font-weight: 600; color: var(--text-light); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
-  .form-input { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
-  .form-input:focus { outline: none; border-color: var(--green-500); box-shadow: 0 0 0 3px rgba(58,136,40,0.15); }
-  textarea.form-input { min-height: 70px; resize: vertical; }
-  .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:12px;width:540px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-hdr{background:var(--g800);color:#fff;padding:15px 20px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between}
+.modal-hdr h3{font-size:15px;font-weight:700}
+.modal-x{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1}
+.modal-body{padding:20px}
+.modal-ftr{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.fr{margin-bottom:14px}
+.fl{display:block;font-size:11px;font-weight:700;color:var(--text-lt);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.fi{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px}
+.fi:focus{outline:none;border-color:var(--g500);box-shadow:0 0 0 3px rgba(58,136,40,.15)}
+textarea.fi{min-height:65px;resize:vertical}
 
-  /* RACI LEGEND */
-  .raci-legend { display: flex; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
-  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
 
-  /* EMPTY STATE */
-  .empty-state { text-align: center; padding: 40px; color: var(--text-light); }
-  .empty-state .empty-icon { font-size: 40px; margin-bottom: 10px; }
 
-  /* SCROLLBAR */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+/* ── NOTICE ── */
+.notice{background:#fff3d6;border:1px solid #f0c060;border-radius:8px;padding:9px 14px;font-size:12px;color:#7a5000;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
 
-  /* NOTICE BANNER */
-  .notice { background: #fff3d6; border: 1px solid #f0c060; border-radius: 8px; padding: 10px 16px; font-size: 12px; color: #7a5000; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 8px; }
+/* ── LINK ── */
+.sop-link{color:var(--g700);text-decoration:underline;font-size:12px;cursor:pointer}
+.sop-link:hover{color:var(--g500)}
+.sop-add{font-size:11px;color:#bbb;cursor:pointer;font-style:italic}
+.sop-add:hover{color:var(--g600)}
 
-  .dept-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; background: var(--green-100); color: var(--green-800); font-weight: 600; }
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ── PRINT ── */
+@media print{
+  .sidebar,.hdr,.ph-actions,.fbar,.stabs,.modal-bg,.setup-screen,.no-print{display:none!important}
+  .layout{display:block;height:auto}
+  .main{padding:0;overflow:visible}
+  .view{display:none!important}
+  #view-orgchart{display:block!important}
+  #org-print-area{padding:10px}
+  .tree{overflow:visible}
+  .org-node{break-inside:avoid}
+  body{background:#fff}
+  @page{size:A3 landscape;margin:8mm}
+  #org-tree svg{width:100%!important;height:auto!important;max-height:none!important}
+}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-title">
-    <div class="header-logo">MES</div>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-logo"><img src="data:image/png;base64,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" alt="MES Logo"></div>
     <div>
-      <h1>MES Power Engineering</h1>
-      <span>Operating Model</span>
+      <div class="hdr-title">MES Power Engineering</div>
+      <div class="hdr-sub">Operating Model</div>
     </div>
   </div>
-  <div class="header-actions">
-    <button class="btn-sm btn-export" onclick="exportAllCSV()">⬇ Export Data</button>
+  <div class="hdr-right">
+    <div class="sync-status"><span class="sync-dot" id="sync-dot"></span><span id="sync-text">Ready</span></div>
+    <button class="btn btn-ghost btn-sm no-print" onclick="manualSync()">↻ Sync</button>
+    <button class="btn btn-ghost btn-sm no-print" onclick="printOrgChart()">🖨 Print Org Chart</button>
+    
   </div>
 </div>
 
 <div class="layout">
-  <div class="sidebar">
-    <div class="nav-item active" onclick="showView('orgchart')"><span class="nav-icon">🏢</span> Org Chart</div>
-    <div class="nav-item" onclick="showView('departments')"><span class="nav-icon">📁</span> Departments</div>
-    <div class="nav-item" onclick="showView('roles')"><span class="nav-icon">🎖</span> Roles</div>
-    <div class="nav-item" onclick="showView('people')"><span class="nav-icon">👥</span> People</div>
-    <div class="nav-divider"></div>
-    <div class="nav-item" onclick="showView('coreprocesses')"><span class="nav-icon">🔄</span> Core Processes</div>
-    <div class="nav-item" onclick="showView('processcontrols')"><span class="nav-icon">⚙️</span> Process Controls</div>
-    <div class="nav-divider"></div>
-    <div class="nav-item" onclick="showView('raci')"><span class="nav-icon">📊</span> RACI Matrix</div>
+<div class="sidebar">
+  <div class="nav-section">Structure</div>
+  <div class="nav-item active" id="nav-orgchart" onclick="showView('orgchart',this)"><span class="nav-icon">🏢</span> Org Chart</div>
+  <div class="nav-item" id="nav-departments" onclick="showView('departments',this)"><span class="nav-icon">📁</span> Departments</div>
+  <div class="nav-item" id="nav-roles" onclick="showView('roles',this)"><span class="nav-icon">🎖</span> Roles</div>
+  <div class="nav-item" id="nav-people" onclick="showView('people',this)"><span class="nav-icon">👥</span> People</div>
+  <div class="nav-section">Processes</div>
+  <div class="nav-item" id="nav-coreprocesses" onclick="showView('coreprocesses',this)"><span class="nav-icon">🔄</span> Core Processes</div>
+  <div class="nav-item" id="nav-processcontrols" onclick="showView('processcontrols',this)"><span class="nav-icon">⚙️</span> Process Controls</div>
+  <div class="nav-section">Analysis</div>
+  <div class="nav-item" id="nav-raci" onclick="showView('raci',this)"><span class="nav-icon">📊</span> RACI Matrix</div>
+</div>
+
+<div class="main">
+
+<!-- ORG CHART VIEW -->
+<div id="view-orgchart" class="view active">
+  <div class="ph no-print">
+    <div><div class="ph-title">Organogram</div><div class="ph-sub">Reporting structure — edit People & Departments to update</div></div>
+    <div class="ph-actions">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('org-date-input').showPicker?.() || document.getElementById('org-date-input').focus()">📅 Change Date</button>
+      <input type="month" id="org-date-input" style="display:none" onchange="updateOrgDate(this.value)">
+      <button class="btn btn-amber btn-sm" onclick="printOrgChart()">🖨 Print / Export PDF</button>
+    </div>
   </div>
-
-  <div class="main">
-
-    <!-- ORG CHART -->
-    <div id="view-orgchart" class="view active">
-      <div class="page-header">
+  <div id="org-print-area">
+    <div class="org-header">
+      <div class="org-header-left">
+        <div class="org-header-logo"><img src="data:image/png;base64,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" alt="MES"></div>
         <div>
-          <div class="page-title">Organogram</div>
-          <div class="page-subtitle">Departmental structure, roles and people</div>
+          <div class="org-header-title">MES Power Engineering</div>
+          <div class="org-header-sub">Organisation Chart — Operating Model</div>
         </div>
       </div>
-      <div id="orgchart-container"></div>
+      <div class="org-date" id="org-date-display">May 2026</div>
     </div>
-
-    <!-- DEPARTMENTS -->
-    <div id="view-departments" class="view">
-      <div class="page-header">
-        <div><div class="page-title">Departments</div><div class="page-subtitle">Business units and reporting structure</div></div>
-        <button class="btn btn-primary" onclick="openModal('dept')">+ Add Department</button>
-      </div>
-      <div id="dept-stats" class="stats-bar"></div>
-      <div class="table-wrap">
-        <table id="dept-table">
-          <thead><tr><th>Department</th><th>Reports To</th><th>Roles</th><th>People</th><th></th></tr></thead>
-          <tbody id="dept-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- ROLES -->
-    <div id="view-roles" class="view">
-      <div class="page-header">
-        <div><div class="page-title">Roles</div><div class="page-subtitle">All positions across the business</div></div>
-        <button class="btn btn-primary" onclick="openModal('role')">+ Add Role</button>
-      </div>
-      <div class="filter-bar">
-        <div class="search-box"><input id="role-search" oninput="renderRoles()" placeholder="Search roles..."></div>
-        <select id="role-dept-filter" class="filter-select" onchange="renderRoles()"><option value="">All Departments</option></select>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Role Name</th><th>Department</th><th>Seniority Order</th><th>People in Role</th><th></th></tr></thead>
-          <tbody id="roles-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- PEOPLE -->
-    <div id="view-people" class="view">
-      <div class="page-header">
-        <div><div class="page-title">People</div><div class="page-subtitle">Employees and role assignments</div></div>
-        <button class="btn btn-primary" onclick="openModal('person')">+ Add Person</button>
-      </div>
-      <div class="filter-bar">
-        <div class="search-box"><input id="people-search" oninput="renderPeople()" placeholder="Search people..."></div>
-        <select id="people-dept-filter" class="filter-select" onchange="renderPeople()"><option value="">All Departments</option></select>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Name</th><th>Primary Role</th><th>Department</th><th>Status</th><th></th></tr></thead>
-          <tbody id="people-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- CORE PROCESSES -->
-    <div id="view-coreprocesses" class="view">
-      <div class="page-header">
-        <div><div class="page-title">Core Processes</div><div class="page-subtitle">The 7 core business processes</div></div>
-        <button class="btn btn-primary" onclick="openModal('coreprocess')">+ Add Process</button>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>ID</th><th>Process Name</th><th>Purpose</th><th>Controls</th><th></th></tr></thead>
-          <tbody id="coreprocess-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- PROCESS CONTROLS -->
-    <div id="view-processcontrols" class="view">
-      <div class="page-header">
-        <div><div class="page-title">Process Controls</div><div class="page-subtitle" id="pc-count"></div></div>
-        <button class="btn btn-primary" onclick="openModal('pc')">+ Add Control</button>
-      </div>
-      <div class="notice">⚠️ Add SharePoint links by clicking the 📎 icon on any row. Links open directly in your browser.</div>
-      <div class="sub-tabs">
-        <div class="sub-tab active" onclick="setPCTab('all',this)">All Controls</div>
-        <div class="sub-tab" onclick="setPCTab('procedure',this)">📄 Procedures / SOPs</div>
-        <div class="sub-tab" onclick="setPCTab('expectation',this)">🎯 Role Expectations</div>
-        <div class="sub-tab" onclick="setPCTab('control',this)">⚙️ Process Controls</div>
-      </div>
-      <div class="filter-bar">
-        <div class="search-box"><input id="pc-search" oninput="renderPCs()" placeholder="Search activities..."></div>
-        <select id="pc-role-filter" class="filter-select" onchange="renderPCs()"><option value="">All Roles</option></select>
-        <select id="pc-core-filter" class="filter-select" onchange="renderPCs()"><option value="">All Core Processes</option></select>
-        <select id="pc-cat-filter" class="filter-select" onchange="renderPCs()"><option value="">All Categories</option></select>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>ID</th><th>Activity</th><th>Type</th><th>Category</th><th>Core Process</th><th>Owner Role</th><th>Owner Name</th><th>SOP / Link</th><th>Freq.</th><th></th></tr></thead>
-          <tbody id="pc-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- RACI MATRIX -->
-    <div id="view-raci" class="view">
-      <div class="page-header">
-        <div><div class="page-title">RACI Matrix</div><div class="page-subtitle">Roles vs activities — click any cell to assign R/A/C/I</div></div>
-        <select id="raci-filter" class="filter-select" onchange="renderRaci()"><option value="">All Core Processes</option></select>
-      </div>
-      <div class="raci-legend">
-        <div class="legend-item"><span class="raci-badge raci-R">R</span> Responsible</div>
-        <div class="legend-item"><span class="raci-badge raci-A">A</span> Accountable</div>
-        <div class="legend-item"><span class="raci-badge raci-C">C</span> Consulted</div>
-        <div class="legend-item"><span class="raci-badge raci-I">I</span> Informed</div>
-      </div>
-      <div class="raci-wrap">
-        <div id="raci-container"></div>
-      </div>
-    </div>
-
+    <div class="tree" id="org-tree"></div>
   </div>
 </div>
 
-<!-- MODALS -->
-<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
-  <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-header">
-      <h3 id="modal-title">Edit</h3>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
+<!-- DEPARTMENTS -->
+<div id="view-departments" class="view">
+  <div class="ph"><div><div class="ph-title">Departments</div><div class="ph-sub">Business units and reporting structure</div></div>
+  <button class="btn btn-primary" onclick="openModal('dept')">+ Add Department</button></div>
+  <div id="dept-stats" class="stats"></div>
+  <div class="tbl-wrap"><table><thead><tr><th>Department</th><th>Reports To</th><th>Roles</th><th>Headcount</th><th></th></tr></thead><tbody id="dept-tbody"></tbody></table></div>
+</div>
+
+<!-- ROLES -->
+<div id="view-roles" class="view">
+  <div class="ph"><div><div class="ph-title">Roles</div><div class="ph-sub">All positions across the business (24 total)</div></div>
+  <button class="btn btn-primary" onclick="openModal('role')">+ Add Role</button></div>
+  <div class="fbar">
+    <div class="search-wrap"><input id="role-search" oninput="renderRoles()" placeholder="Search roles…"></div>
+    <select id="role-dept-filter" class="fsel" onchange="renderRoles()"><option value="">All Departments</option></select>
+  </div>
+  <div class="tbl-wrap"><table><thead><tr><th>Role</th><th>Department</th><th>Level</th><th>Current Holder(s)</th><th></th></tr></thead><tbody id="roles-tbody"></tbody></table></div>
+</div>
+
+<!-- PEOPLE -->
+<div id="view-people" class="view">
+  <div class="ph"><div><div class="ph-title">People</div><div class="ph-sub">Employees and role assignments</div></div>
+  <button class="btn btn-primary" onclick="openModal('person')">+ Add Person</button></div>
+  <div class="fbar">
+    <div class="search-wrap"><input id="ppl-search" oninput="renderPeople()" placeholder="Search people…"></div>
+    <select id="ppl-dept-filter" class="fsel" onchange="renderPeople()"><option value="">All Departments</option></select>
+  </div>
+  <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Primary Role</th><th>Department</th><th>Reports To</th><th>Level</th><th>Status</th><th></th></tr></thead><tbody id="ppl-tbody"></tbody></table></div>
+</div>
+
+<!-- CORE PROCESSES -->
+<div id="view-coreprocesses" class="view">
+  <div class="ph"><div><div class="ph-title">Core Processes</div><div class="ph-sub">The 7 end-to-end business processes</div></div>
+  <button class="btn btn-primary" onclick="openModal('coreprocess')">+ Add Process</button></div>
+  <div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Process Name</th><th>Purpose</th><th>Controls</th><th></th></tr></thead><tbody id="cp-tbody"></tbody></table></div>
+</div>
+
+<!-- PROCESS CONTROLS -->
+<div id="view-processcontrols" class="view">
+  <div class="ph"><div><div class="ph-title">Process Controls</div><div class="ph-sub" id="pc-count"></div></div>
+  <button class="btn btn-primary" onclick="openModal('pc')">+ Add Control</button></div>
+  <div class="notice">📎 Click <strong>+ Add link</strong> on any row to paste a SharePoint URL. Links open directly in browser.</div>
+  <div class="stabs">
+    <div class="stab active" onclick="setPCTab('all',this)">All</div>
+    <div class="stab" onclick="setPCTab('procedure',this)">📄 Procedures / SOPs</div>
+    <div class="stab" onclick="setPCTab('expectation',this)">🎯 Role Expectations</div>
+    <div class="stab" onclick="setPCTab('control',this)">⚙️ Process Controls</div>
+  </div>
+  <div class="fbar">
+    <div class="search-wrap"><input id="pc-search" oninput="renderPCs()" placeholder="Search activities…"></div>
+    <select id="pc-role-f" class="fsel" onchange="renderPCs()"><option value="">All Roles</option></select>
+    <select id="pc-cp-f" class="fsel" onchange="renderPCs()"><option value="">All Core Processes</option></select>
+    <select id="pc-cat-f" class="fsel" onchange="renderPCs()"><option value="">All Categories</option></select>
+  </div>
+  <div class="tbl-wrap"><table><thead><tr><th>Activity</th><th>Type</th><th>Category</th><th>Core Process</th><th>Owner Role</th><th>Owner</th><th>SharePoint Link</th><th>Freq.</th><th></th></tr></thead><tbody id="pc-tbody"></tbody></table></div>
+</div>
+
+<!-- RACI -->
+<div id="view-raci" class="view">
+  <div class="ph"><div><div class="ph-title">RACI Matrix</div><div class="ph-sub">Click any cell to cycle R → A → C → I → empty</div></div>
+  <select id="raci-cp-f" class="fsel" onchange="renderRaci()"><option value="">All Core Processes</option></select></div>
+  <div class="raci-legend">
+    <div class="rl"><span class="rb rb-R">R</span> Responsible</div>
+    <div class="rl"><span class="rb rb-A">A</span> Accountable</div>
+    <div class="rl"><span class="rb rb-C">C</span> Consulted</div>
+    <div class="rl"><span class="rb rb-I">I</span> Informed</div>
+  </div>
+  <div class="raci-wrap"><div id="raci-container"></div></div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-hdr"><h3 id="modal-title"></h3><button class="modal-x" onclick="closeModal()">✕</button></div>
     <div class="modal-body" id="modal-body"></div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-danger" id="modal-delete-btn" style="display:none" onclick="modalDelete()">Delete</button>
+    <div class="modal-ftr">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" id="modal-del" style="display:none" onclick="modalDel()">Delete</button>
       <button class="btn btn-primary" onclick="modalSave()">Save</button>
     </div>
   </div>
 </div>
 
 <script>
-// ============================================================
-// DATA
-// ============================================================
-const DEFAULT_DATA = {
-  departments: [
-    {id:'dept-1', name:'Directors', reportsTo:''},
-    {id:'dept-2', name:'Quotes & Design', reportsTo:'Directors'},
-    {id:'dept-3', name:'Commercial', reportsTo:'Directors'},
-    {id:'dept-4', name:'Projects', reportsTo:'Directors'},
-    {id:'dept-5', name:'Accounts', reportsTo:'Directors'},
-    {id:'dept-6', name:'SHEQ', reportsTo:'Directors'},
-    {id:'dept-7', name:'HR & People', reportsTo:'Directors'},
-    {id:'dept-8', name:'Facilities Management', reportsTo:'Directors'},
-    {id:'dept-9', name:'Business Support', reportsTo:'Directors'}
+// ═══════════════════════════════════════════════
+// CLOUDFLARE WORKER API
+// ═══════════════════════════════════════════════
+// 👇 Change these two lines after deploying your Worker
+const WORKER_URL = 'https://mes-operating-model.mes-bot.workers.dev';
+const WRITE_KEY  = 'MES-internal-2026';
+
+let saveTimer = null;
+
+function setSyncStatus(state, text) {
+  const dot = document.getElementById('sync-dot');
+  const txt = document.getElementById('sync-text');
+  dot.className = 'sync-dot' + (state === 'saving' ? ' saving' : state === 'error' ? ' error' : '');
+  txt.textContent = text;
+}
+
+async function loadFromWorker() {
+  setSyncStatus('saving', 'Loading…');
+  try {
+    const res = await fetch(WORKER_URL, { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+    setSyncStatus('ok', 'Live');
+    return d && d.departments ? d : null;
+  } catch (e) {
+    setSyncStatus('error', 'Offline — using local');
+    console.warn('Worker load failed:', e);
+    return null;
+  }
+}
+
+async function saveToWorker() {
+  setSyncStatus('saving', 'Saving…');
+  try {
+    const res = await fetch(WORKER_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Write-Key': WRITE_KEY },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    setSyncStatus('ok', 'Saved ✓');
+  } catch (e) {
+    setSyncStatus('error', 'Save failed');
+    console.warn('Worker save failed:', e);
+  }
+}
+
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => saveToWorker(), 1200);
+}
+
+async function manualSync() {
+  const d = await loadFromWorker();
+  if (d) { data = d; renderAll(); }
+}
+
+// Stub — not used with Worker approach
+function showSetup() {
+  alert('Edit WORKER_URL and WRITE_KEY at the top of the HTML script to change the data endpoint.');
+}
+
+// ═══════════════════════════════════════════════
+// DEFAULT DATA
+// ═══════════════════════════════════════════════
+const DEFAULT = {
+  orgDate: 'May 2026',
+  departments:[
+    {id:'d1',name:'Directors',reportsTo:''},
+    {id:'d2',name:'Quotes & Design',reportsTo:'Directors'},
+    {id:'d3',name:'Commercial',reportsTo:'Directors'},
+    {id:'d4',name:'Projects',reportsTo:'Directors'},
+    {id:'d5',name:'Accounts',reportsTo:'Directors'},
+    {id:'d6',name:'SHEQ',reportsTo:'Directors'},
+    {id:'d7',name:'HR & People',reportsTo:'Directors'},
+    {id:'d8',name:'Facilities Management',reportsTo:'Directors'},
+    {id:'d9',name:'Business Support',reportsTo:'Directors'}
   ],
-  roles: [
-    {id:'role-1',  name:'CEO',                       dept:'Directors',              order:0},
-    {id:'role-2',  name:'Finance Director',           dept:'Directors',              order:10},
-    {id:'role-3',  name:'Managing Director',          dept:'Directors',              order:20},
-    {id:'role-4',  name:'Business Support Manager',   dept:'Business Support',       order:30},
-    {id:'role-5',  name:'SHEQ Manager',               dept:'SHEQ',                   order:30},
-    {id:'role-6',  name:'People & Culture (HR)',       dept:'HR & People',            order:30},
-    {id:'role-7',  name:'General Manager',            dept:'Projects',               order:30},
-    {id:'role-8',  name:'Design Manager',             dept:'Quotes & Design',        order:30},
-    {id:'role-9',  name:'Commercial Manager',         dept:'Commercial',             order:30},
-    {id:'role-10', name:'Management Accountant',      dept:'Accounts',               order:40},
-    {id:'role-11', name:'Project Engineer',           dept:'Projects',               order:49},
-    {id:'role-12', name:'Assessing Officer',          dept:'Projects',               order:49},
-    {id:'role-13', name:'Electrical Engineer',        dept:'Projects',               order:50},
-    {id:'role-14', name:'Project Manager',            dept:'Projects',               order:50},
-    {id:'role-15', name:'FM Manager',                 dept:'Facilities Management',  order:50},
-    {id:'role-16', name:'Site Manager',               dept:'Projects',               order:50},
-    {id:'role-17', name:'Estimator',                  dept:'Quotes & Design',        order:50},
-    {id:'role-18', name:'Chargehand',                 dept:'Projects',               order:60},
-    {id:'role-19', name:'Project Co-Ordinator',       dept:'Projects',               order:70},
-    {id:'role-20', name:'Craftsman',                  dept:'Projects',               order:70},
-    {id:'role-21', name:'Admin Support',              dept:'Business Support',       order:70},
-    {id:'role-22', name:'Craft Assistant',            dept:'Projects',               order:80},
-    {id:'role-23', name:'Trainee Electrical',         dept:'Projects',               order:80},
-    {id:'role-24', name:'Accounting (External)',      dept:'Accounts',               order:100}
+  roles:[
+    {id:'r1',name:'CEO',dept:'Directors',order:0},
+    {id:'r2',name:'Finance Director',dept:'Directors',order:10},
+    {id:'r3',name:'Managing Director',dept:'Directors',order:20},
+    {id:'r4',name:'Business Support Manager',dept:'Business Support',order:30},
+    {id:'r5',name:'SHEQ Manager',dept:'SHEQ',order:30},
+    {id:'r6',name:'People & Culture (HR)',dept:'HR & People',order:30},
+    {id:'r7',name:'General Manager',dept:'Projects',order:30},
+    {id:'r8',name:'Design Manager',dept:'Quotes & Design',order:30},
+    {id:'r9',name:'Commercial Manager',dept:'Commercial',order:30},
+    {id:'r10',name:'Management Accountant',dept:'Accounts',order:40},
+    {id:'r11',name:'Project Engineer',dept:'Projects',order:49},
+    {id:'r12',name:'Assessing Officer',dept:'Projects',order:49},
+    {id:'r13',name:'Electrical Engineer',dept:'Projects',order:50},
+    {id:'r14',name:'Project Manager',dept:'Projects',order:50},
+    {id:'r15',name:'FM Manager',dept:'Facilities Management',order:50},
+    {id:'r16',name:'Site Manager',dept:'Projects',order:50},
+    {id:'r17',name:'Estimator',dept:'Quotes & Design',order:50},
+    {id:'r18',name:'Chargehand',dept:'Projects',order:60},
+    {id:'r19',name:'Project Co-Ordinator',dept:'Projects',order:70},
+    {id:'r20',name:'Craftsman',dept:'Projects',order:70},
+    {id:'r21',name:'Admin Support',dept:'Business Support',order:70},
+    {id:'r22',name:'Craft Assistant',dept:'Projects',order:80},
+    {id:'r23',name:'Trainee Electrical',dept:'Projects',order:80},
+    {id:'r24',name:'Accounting (External)',dept:'Accounts',order:100}
   ],
-  people: [
-    {id:'per-1',  name:'Alan Bowie',         role:'',                       dept:'',                      status:'Active'},
-    {id:'per-2',  name:'Alan Shepherd',      role:'',                       dept:'',                      status:'Active'},
-    {id:'per-3',  name:'Amanda McKenzie',    role:'',                       dept:'Directors',             status:'Active'},
-    {id:'per-4',  name:'Andrea Moir',        role:'SHEQ Manager',           dept:'SHEQ',                  status:'Active'},
-    {id:'per-5',  name:'Chris Todd',         role:'',                       dept:'Projects',              status:'Active'},
-    {id:'per-6',  name:'Dion Moutrey',       role:'',                       dept:'Projects',              status:'Active'},
-    {id:'per-7',  name:'Ethan McKenzie',     role:'',                       dept:'Projects',              status:'Active'},
-    {id:'per-8',  name:'Ewan Bennett',       role:'',                       dept:'Commercial',            status:'Active'},
-    {id:'per-9',  name:'Jamie Taylor',       role:'',                       dept:'Quotes & Design',       status:'Active'},
-    {id:'per-10', name:'Josh Anderson',      role:'',                       dept:'Projects',              status:'Active'},
-    {id:'per-11', name:'Liam Duthie',        role:'',                       dept:'Projects',              status:'Active'},
-    {id:'per-12', name:'Luca Ivory-Hunter',  role:'',                       dept:'Quotes & Design',       status:'Active'},
-    {id:'per-13', name:'Luke Mutch',         role:'',                       dept:'Projects',              status:'Active'},
-    {id:'per-14', name:'Mark Stevenson',     role:'',                       dept:'Projects',              status:'Active'},
-    {id:'per-15', name:'Neil McKenzie',      role:'Managing Director',      dept:'Directors',             status:'Active'},
-    {id:'per-16', name:'Neil Ritchie',       role:'',                       dept:'Projects',              status:'Active'},
-    {id:'per-17', name:'Oakley Allan-Cooper',role:'',                       dept:'Projects',              status:'Active'},
-    {id:'per-18', name:'Alan Shepherd',      role:'',                       dept:'Projects',              status:'Active'},
-    {id:'per-19', name:'Luca Ivory-Hunter',  role:'Commercial Manager',     dept:'Commercial',            status:'Active'},
-    {id:'per-20', name:'Jamie Taylor',       role:'Design Manager',         dept:'Quotes & Design',       status:'Active'}
+  people:[
+    {id:'p1', name:'Neil McKenzie',    role:'Managing Director', dept:'Directors',           reportsTo:'',               status:'Active'},
+    {id:'p2', name:'Amanda McKenzie',  role:'Finance Director',  dept:'Directors',           reportsTo:'Neil McKenzie',  status:'Active'},
+    {id:'p3', name:'Andrea Moir',      role:'SHEQ Manager',      dept:'SHEQ',                reportsTo:'Neil McKenzie',  status:'Active'},
+    {id:'p4', name:'Ewan Bennett',     role:'Commercial Manager', dept:'Commercial',         reportsTo:'Neil McKenzie',  status:'Active'},
+    {id:'p5', name:'Luca Ivory-Hunter',role:'Commercial Manager', dept:'Commercial',         reportsTo:'Neil McKenzie',  status:'Active'},
+    {id:'p6', name:'Jamie Taylor',     role:'Design Manager',    dept:'Quotes & Design',     reportsTo:'Neil McKenzie',  status:'Active'},
+    {id:'p7', name:'Mark Stevenson',   role:'General Manager',   dept:'Projects',            reportsTo:'Neil McKenzie',  status:'Active'},
+    {id:'p8', name:'Chris Todd',       role:'Project Engineer',  dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
+    {id:'p9', name:'Ethan McKenzie',   role:'Project Engineer',  dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
+    {id:'p10',name:'Luke Mutch',       role:'Project Co-Ordinator',dept:'Projects',          reportsTo:'Mark Stevenson', status:'Active'},
+    {id:'p11',name:'Liam Duthie',      role:'Project Co-Ordinator',dept:'Projects',          reportsTo:'Mark Stevenson', status:'Active'},
+    {id:'p12',name:'Dion Moutrey',     role:'Site Manager',      dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
+    {id:'p13',name:'Alan Bowie',       role:'Craftsman',         dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
+    {id:'p14',name:'Oakley Allan-Cooper',role:'Craft Assistant', dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
+    {id:'p15',name:'Josh Anderson',    role:'Trainee Electrical', dept:'Projects',           reportsTo:'Mark Stevenson', status:'Active'},
+    {id:'p16',name:'Alan Shepherd',    role:'Trainee Electrical', dept:'Projects',           reportsTo:'Mark Stevenson', status:'Active'},
+    {id:'p17',name:'Neil Ritchie',     role:'Chargehand',        dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
+    {id:'p18',name:'Josh Anderson',    role:'Admin Support',     dept:'Business Support',    reportsTo:'Amanda McKenzie',status:'Active'},
+    {id:'p19',name:'Luca Ivory-Hunter',role:'Estimator',         dept:'Quotes & Design',     reportsTo:'Jamie Taylor',   status:'Active'}
   ],
-  coreProcesses: [
-    {id:'cp-1', code:'CP-0001', name:'Bid / Estimate to Contract',    purpose:'To secure commercially viable contracts'},
-    {id:'cp-2', code:'CP-0002', name:'Design',                        purpose:'Design management and approval'},
-    {id:'cp-3', code:'CP-0003', name:'Pre-Construction Planning',     purpose:'Pre-construction planning and mobilisation'},
-    {id:'cp-4', code:'CP-0004', name:'Project Delivery',              purpose:'Execution and delivery of projects'},
-    {id:'cp-5', code:'CP-0005', name:'Commissioning & Handover',      purpose:'Commissioning, testing and client handover'},
-    {id:'cp-6', code:'CP-0006', name:'Commercial Close-Out',          purpose:'Financial close-out and final accounts'},
-    {id:'cp-7', code:'CP-0007', name:'Governance & Compliance',       purpose:'Business governance and compliance management'}
+  coreProcesses:[
+    {id:'cp1',code:'CP-0001',name:'Bid / Estimate to Contract', purpose:'To secure commercially viable contracts'},
+    {id:'cp2',code:'CP-0002',name:'Design',                      purpose:'Design management and approval process'},
+    {id:'cp3',code:'CP-0003',name:'Pre-Construction Planning',   purpose:'Planning and mobilisation of projects'},
+    {id:'cp4',code:'CP-0004',name:'Project Delivery',            purpose:'Execution and delivery of projects on site'},
+    {id:'cp5',code:'CP-0005',name:'Commissioning & Handover',    purpose:'Commissioning, testing and client handover'},
+    {id:'cp6',code:'CP-0006',name:'Commercial Close-Out',        purpose:'Financial close-out and final accounts'},
+    {id:'cp7',code:'CP-0007',name:'Governance & Compliance',     purpose:'Business governance and compliance management'}
   ],
-  processControls: [
-    // --- PROCEDURES / SOPs ---
-    {id:'pc-001', activity:'COSHH & data sheets', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'Annually', notes:''},
-    {id:'pc-002', activity:'DSE', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'Annually', notes:''},
-    {id:'pc-003', activity:'Reporting & analysis', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'Monthly', notes:''},
-    {id:'pc-004', activity:'HAVs', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-005', activity:'Site audits', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-006', activity:'Implementation & compliance with company practices', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-007', activity:'DVLA checks', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-008', activity:'First aid', type:'procedure', category:'Safety', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-009', activity:'PPE', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-010', activity:'SHEQ objectives & initiatives', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-011', activity:'NCRs', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-012', activity:'Tool box talks', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-013', activity:'Manage company BMS system', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-014', activity:'Environmental aspects & impacts', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-015', activity:'Vehicle weekly checks', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'Weekly', notes:''},
-    {id:'pc-016', activity:'Fire safety', type:'procedure', category:'Safety', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-017', activity:'Annual audit programme', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'Annually', notes:''},
-    {id:'pc-018', activity:'ISO 9001, 14001 & 45001 management', type:'procedure', category:'Systems', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-019', activity:'SHEQ legislation, standards & safe working practices', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-020', activity:'Manage SEAR + QAR databases', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-021', activity:'Subcontractor co-ordination (certification, admin etc.)', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-022', activity:'SHEQ awareness & compliance', type:'procedure', category:'Compliance', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-023', activity:'Accidents, incidents & near misses', type:'procedure', category:'Safety', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-024', activity:'SHEQ KPI', type:'procedure', category:'Quality', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'SHEQ Manager', ownerName:'Andrea Moir', sopLink:'', frequency:'', notes:''},
-    {id:'pc-025', activity:'Company objectives & metrics', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'Managing Director', ownerName:'Neil McKenzie', sopLink:'', frequency:'', notes:''},
-    {id:'pc-026', activity:'Risks & opportunities', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'Managing Director', ownerName:'Neil McKenzie', sopLink:'', frequency:'', notes:''},
-    {id:'pc-027', activity:'Company Insurances', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'Managing Director', ownerName:'Neil McKenzie', sopLink:'', frequency:'', notes:''},
-    {id:'pc-028', activity:'Social media', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'Managing Director', ownerName:'Neil McKenzie', sopLink:'', frequency:'', notes:''},
-    {id:'pc-029', activity:'Website & SEO', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'Managing Director', ownerName:'Neil McKenzie', sopLink:'', frequency:'', notes:''},
-    {id:'pc-030', activity:'Sales & Business Development', type:'procedure', category:'', coreProcess:'CP-0001 | Bid / Estimate to Contract', supportProcess:'', ownerRole:'Commercial Manager', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-031', activity:'CRM (Customer Relations Management)', type:'procedure', category:'', coreProcess:'CP-0001 | Bid / Estimate to Contract', supportProcess:'', ownerRole:'Commercial Manager', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-032', activity:'Target markets & research', type:'procedure', category:'', coreProcess:'CP-0001 | Bid / Estimate to Contract', supportProcess:'', ownerRole:'Commercial Manager', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-033', activity:'Competitor analysis', type:'procedure', category:'', coreProcess:'CP-0001 | Bid / Estimate to Contract', supportProcess:'', ownerRole:'Commercial Manager', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-034', activity:'Enquiry received, info collated & lead added to ERP', type:'procedure', category:'', coreProcess:'CP-0001 | Bid / Estimate to Contract', supportProcess:'', ownerRole:'Commercial Manager', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-035', activity:'Quotation started', type:'procedure', category:'', coreProcess:'CP-0001 | Bid / Estimate to Contract', supportProcess:'', ownerRole:'Commercial Manager', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-036', activity:'Design requirements review', type:'procedure', category:'', coreProcess:'CP-0002 | Design', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-037', activity:'High level project plan created (if required)', type:'procedure', category:'', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-038', activity:'Prepare final quotation summary & submit to customer', type:'procedure', category:'', coreProcess:'CP-0001 | Bid / Estimate to Contract', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-039', activity:'Project folder created (& docs copied over)', type:'procedure', category:'', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-040', activity:'Design pack created & approved', type:'procedure', category:'', coreProcess:'CP-0002 | Design', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-041', activity:'Project handover & convert quote to job in ERP', type:'procedure', category:'', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-042', activity:'Credit control', type:'procedure', category:'', coreProcess:'CP-0006 | Commercial Close-Out', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-043', activity:'Quote accepted, payment plan agreed & initial stage invoiced', type:'procedure', category:'', coreProcess:'CP-0001 | Bid / Estimate to Contract', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-044', activity:'Project Purchasing', type:'procedure', category:'', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-045', activity:'Track changes / variations throughout', type:'procedure', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-046', activity:'Monthly applications and progress claims', type:'procedure', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'Monthly', notes:''},
-    {id:'pc-047', activity:'Stage Invoicing', type:'procedure', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-048', activity:'Asset claims - Connections', type:'procedure', category:'', coreProcess:'CP-0005 | Commissioning & Handover', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-049', activity:'Prepare weekly invoicing for manager sign-off', type:'procedure', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'Weekly', notes:''},
-    {id:'pc-050', activity:'Final Invoice', type:'procedure', category:'', coreProcess:'CP-0006 | Commercial Close-Out', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-051', activity:'Design & drawings review and approval throughout', type:'procedure', category:'', coreProcess:'CP-0002 | Design', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-052', activity:'Site team checks (NERs, qualifications, training etc)', type:'procedure', category:'', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-053', activity:'Paperwork check (Issue)', type:'procedure', category:'', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-054', activity:"Create PO's for project", type:'procedure', category:'', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-055', activity:'Goods receipting - GRN (Site)', type:'procedure', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-056', activity:'Technical Audits (As per schedule)', type:'procedure', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-057', activity:'Complete daily diary sheets', type:'procedure', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'Daily', notes:''},
-    {id:'pc-058', activity:'Site paperwork checked and signed off (Returns)', type:'procedure', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-059', activity:'Project Close out - EPR', type:'procedure', category:'', coreProcess:'CP-0006 | Commercial Close-Out', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-060', activity:'Project closeout meeting (with customer)', type:'procedure', category:'', coreProcess:'CP-0006 | Commercial Close-Out', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-061', activity:'Customer feedback', type:'procedure', category:'', coreProcess:'CP-0006 | Commercial Close-Out', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-062', activity:'Project Review / lessons learned held with team', type:'procedure', category:'', coreProcess:'CP-0006 | Commercial Close-Out', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-063', activity:'Site SHEQ Audits - as per SHEQ Audit Programme', type:'procedure', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-064', activity:'Financial forecasting', type:'procedure', category:'', coreProcess:'CP-0007 | Governance & Compliance', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-065', activity:'Cashflow', type:'procedure', category:'', coreProcess:'CP-0007 | Governance & Compliance', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-066', activity:'PAT testing', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'Annually', notes:''},
-    {id:'pc-067', activity:'Harness inspections', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-068', activity:'Calibrations', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-069', activity:'Goods receipting - GRN (Stores)', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-070', activity:'MES Asset management', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-071', activity:'Position agreed', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-072', activity:'Job Advertisement', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-073', activity:'Interview', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-074', activity:'Interview follow up responses sent', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-075', activity:'Offer made (include new start information requirements)', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-076', activity:'IT logins setup', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-077', activity:'Computer/tablet/phone etc', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-078', activity:'Keys; Pass (prepared on day 1)', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-079', activity:'HR System Login', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-080', activity:'Induction', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-081', activity:'PPE issued on start day', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-082', activity:'Training co-ordination; NERS ECS etc', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-083', activity:'Training & development plans & CPD', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-084', activity:'Performance management', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-085', activity:'Probationary review', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-086', activity:'Appraisals', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'Annually', notes:''},
-    {id:'pc-087', activity:'Lead Review Meeting', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-088', activity:'Absence management', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-089', activity:'Occupational health', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-090', activity:'Booking accommodation & travel (Non Project, e.g. training, quote meetings)', type:'procedure', category:'', coreProcess:'', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-091', activity:'Disciplinaries & Grievances', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-092', activity:'Offboarding', type:'procedure', category:'HR', coreProcess:'', supportProcess:'SNCP-0003 | People & HR', ownerRole:'People & Culture (HR)', ownerName:'', sopLink:'', frequency:'', notes:''},
-    // --- ROLE EXPECTATIONS ---
-    {id:'pc-101', activity:'Memberships & associations', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-102', activity:'Build client relationships', type:'expectation', category:'', coreProcess:'CP-0001 | Bid / Estimate to Contract', supportProcess:'', ownerRole:'Managing Director', ownerName:'Neil McKenzie', sopLink:'', frequency:'', notes:''},
-    {id:'pc-103', activity:'EPR Management', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0005 | Business Support & Systems', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-104', activity:'Schedule price planning - 100% efficiency on programme', type:'expectation', category:'', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'SNCP-0005 | Business Support & Systems', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-105', activity:'Booking accommodation & travel (Project Works)', type:'expectation', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'SNCP-0005 | Business Support & Systems', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-106', activity:'Day to day works (Ongoing)', type:'expectation', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'SNCP-0005 | Business Support & Systems', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-107', activity:'Weekly project review (timesheets/programme/project plans)', type:'expectation', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'Weekly', notes:''},
-    {id:'pc-108', activity:'Review daily diary sheets and resolve queries', type:'expectation', category:'', coreProcess:'CP-0004 | Project Delivery', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'Daily', notes:''},
-    {id:'pc-109', activity:'On Call Rota - Maintenance', type:'expectation', category:'', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'SNCP-0005 | Business Support & Systems', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-110', activity:'Collate & summarise weekly timesheet returns', type:'expectation', category:'', coreProcess:'CP-0006 | Commercial Close-Out', supportProcess:'SNCP-0005 | Business Support & Systems', ownerRole:'', ownerName:'', sopLink:'', frequency:'Weekly', notes:''},
-    {id:'pc-111', activity:'Document control on project files', type:'expectation', category:'', coreProcess:'CP-0005 | Commissioning & Handover', supportProcess:'SNCP-0005 | Business Support & Systems', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-112', activity:'Feedback to project manager', type:'expectation', category:'', coreProcess:'CP-0006 | Commercial Close-Out', supportProcess:'', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-113', activity:'Sales ledger', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-114', activity:'Purchase ledger', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-115', activity:'Banking', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-116', activity:'Credit card & reconciliation', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-117', activity:'Bank reconciliation', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'Monthly', notes:''},
-    {id:'pc-118', activity:'Expenses', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'Monthly', notes:''},
-    {id:'pc-119', activity:'Payroll', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'Monthly', notes:''},
-    {id:'pc-120', activity:'Pensions', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'Monthly', notes:''},
-    {id:'pc-121', activity:'Stock - stores management cost control allocation', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-122', activity:'VAT returns', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'Quarterly', notes:''},
-    {id:'pc-123', activity:'Management accounts', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'Monthly', notes:''},
-    {id:'pc-124', activity:'Accounts KPI', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0002 | Finance & Accounts', ownerRole:'', ownerName:'', sopLink:'', frequency:'Monthly', notes:''},
-    {id:'pc-125', activity:'Stores & Yard Management', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0004 | Stores, Plant & Facilities', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-126', activity:'Budget management (transport, tools, electric, repairs)', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0004 | Stores, Plant & Facilities', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-127', activity:'Equipment inspections, certification and repair', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0004 | Stores, Plant & Facilities', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-128', activity:"Transport & Plant Management (Servicing; MOT's; Repairs)", type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0004 | Stores, Plant & Facilities', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-129', activity:'Overall responsibility of Depot', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0004 | Stores, Plant & Facilities', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-130', activity:'Stock management', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0004 | Stores, Plant & Facilities', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-131', activity:'Scrap management to ensure all scrap being returned to stores', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0004 | Stores, Plant & Facilities', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-132', activity:'Material returns', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0004 | Stores, Plant & Facilities', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-133', activity:'Facilities Management KPI', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0005 | Business Support & Systems', ownerRole:'', ownerName:'', sopLink:'', frequency:'Monthly', notes:''},
-    {id:'pc-134', activity:'Stationery - Office Supplies', type:'expectation', category:'', coreProcess:'', supportProcess:'SNCP-0004 | Stores, Plant & Facilities', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    // --- PROCESS CONTROLS ---
-    {id:'pc-201', activity:'RAMS created & approved', type:'control', category:'SHEQ', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-202', activity:"MSRA's Systems", type:'control', category:'SHEQ', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-203', activity:'Site induction / client induction', type:'control', category:'SHEQ', coreProcess:'CP-0003 | Pre-Construction Planning', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''},
-    {id:'pc-204', activity:'Quality Plans - ITP (Inspection & Test Plan)', type:'control', category:'Quality', coreProcess:'', supportProcess:'SNCP-0001 | SHEQ & Compliance', ownerRole:'', ownerName:'', sopLink:'', frequency:'', notes:''}
+  processControls:[
+    {id:'pc001',activity:'COSHH & data sheets',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Annually',notes:''},
+    {id:'pc002',activity:'DSE',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Annually',notes:''},
+    {id:'pc003',activity:'Reporting & analysis',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Monthly',notes:''},
+    {id:'pc004',activity:'HAVs',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc005',activity:'Site audits',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc006',activity:'Implementation & compliance with company practices',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc007',activity:'DVLA checks',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc008',activity:'First aid',type:'procedure',category:'Safety',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc009',activity:'PPE',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc010',activity:'SHEQ objectives & initiatives',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc011',activity:'NCRs',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc012',activity:'Tool box talks',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc013',activity:'Manage company BMS system',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc014',activity:'Environmental aspects & impacts',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc015',activity:'Vehicle weekly checks',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Weekly',notes:''},
+    {id:'pc016',activity:'Fire safety',type:'procedure',category:'Safety',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc017',activity:'Annual audit programme',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Annually',notes:''},
+    {id:'pc018',activity:'ISO 9001, 14001 & 45001 management',type:'procedure',category:'Systems',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc019',activity:'SHEQ legislation, standards & safe working practices',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc020',activity:'Manage SEAR + QAR databases',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc021',activity:'Subcontractor co-ordination (certification, admin etc.)',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc022',activity:'SHEQ awareness & compliance',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc023',activity:'Accidents, incidents & near misses',type:'procedure',category:'Safety',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc024',activity:'SHEQ KPI',type:'procedure',category:'Quality',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Monthly',notes:''},
+    {id:'pc025',activity:'Company objectives & metrics',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
+    {id:'pc026',activity:'Risks & opportunities',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
+    {id:'pc027',activity:'Company Insurances',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'Annually',notes:''},
+    {id:'pc028',activity:'Social media',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
+    {id:'pc029',activity:'Website & SEO',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
+    {id:'pc030',activity:'Sales & Business Development',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc031',activity:'CRM (Customer Relations Management)',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc032',activity:'Target markets & research',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc033',activity:'Competitor analysis',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc034',activity:'Enquiry received, info collated & lead added to ERP',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc035',activity:'Quotation started',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc036',activity:'Design requirements review',type:'procedure',category:'',coreProcess:'CP-0002 | Design',supportProcess:'',ownerRole:'Design Manager',ownerName:'Jamie Taylor',sopLink:'',frequency:'',notes:''},
+    {id:'pc037',activity:'High level project plan created (if required)',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc038',activity:'Prepare final quotation summary & submit to customer',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Estimator',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc039',activity:'Project folder created (& docs copied over)',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc040',activity:'Design pack created & approved',type:'procedure',category:'',coreProcess:'CP-0002 | Design',supportProcess:'',ownerRole:'Design Manager',ownerName:'Jamie Taylor',sopLink:'',frequency:'',notes:''},
+    {id:'pc041',activity:'Project handover & convert quote to job in ERP',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc042',activity:'Credit control',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
+    {id:'pc043',activity:'Quote accepted, payment plan agreed & initial stage invoiced',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc044',activity:'Project Purchasing',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc045',activity:'Track changes / variations throughout',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc046',activity:'Monthly applications and progress claims',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
+    {id:'pc047',activity:'Stage Invoicing',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc048',activity:'Asset claims - Connections',type:'procedure',category:'',coreProcess:'CP-0005 | Commissioning & Handover',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc049',activity:'Prepare weekly invoicing for manager sign-off',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Weekly',notes:''},
+    {id:'pc050',activity:'Final Invoice',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc051',activity:'Design & drawings review and approval throughout',type:'procedure',category:'',coreProcess:'CP-0002 | Design',supportProcess:'',ownerRole:'Design Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc052',activity:'Site team checks (NERs, qualifications, training etc)',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'General Manager',ownerName:'Mark Stevenson',sopLink:'',frequency:'',notes:''},
+    {id:'pc053',activity:'Paperwork check (Issue)',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc054',activity:"Create PO's for project",type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc055',activity:'Goods receipting - GRN (Site)',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Site Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc056',activity:'Technical Audits (as per schedule)',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc057',activity:'Complete daily diary sheets',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Site Manager',ownerName:'',sopLink:'',frequency:'Daily',notes:''},
+    {id:'pc058',activity:'Site paperwork checked and signed off (Returns)',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc059',activity:'Project Close out - EPR',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc060',activity:'Project closeout meeting (with customer)',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc061',activity:'Customer feedback',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc062',activity:'Project Review / lessons learned held with team',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'General Manager',ownerName:'Mark Stevenson',sopLink:'',frequency:'',notes:''},
+    {id:'pc063',activity:'Site SHEQ Audits - as per SHEQ Audit Programme',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc064',activity:'Financial forecasting',type:'procedure',category:'',coreProcess:'CP-0007 | Governance & Compliance',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
+    {id:'pc065',activity:'Cashflow',type:'procedure',category:'',coreProcess:'CP-0007 | Governance & Compliance',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
+    {id:'pc066',activity:'PAT testing',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'Annually',notes:''},
+    {id:'pc067',activity:'Harness inspections',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc068',activity:'Calibrations',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc069',activity:'Goods receipting - GRN (Stores)',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc070',activity:'MES Asset management',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc071',activity:'Position agreed',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc072',activity:'Job Advertisement',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc073',activity:'Interview',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc074',activity:'Interview follow up responses sent',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc075',activity:'Offer made (include new start information requirements)',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc076',activity:'IT logins setup',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc077',activity:'Induction',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc078',activity:'Training & development plans & CPD',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc079',activity:'Performance management',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc080',activity:'Appraisals',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'Annually',notes:''},
+    {id:'pc081',activity:'Absence management',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc082',activity:'Disciplinaries & Grievances',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc083',activity:'Offboarding',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc101',activity:'Build client relationships',type:'expectation',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
+    {id:'pc102',activity:'EPR Management',type:'expectation',category:'',coreProcess:'',supportProcess:'SNCP-0005 | Business Support & Systems',ownerRole:'',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc103',activity:'Schedule price planning - 100% efficiency on programme',type:'expectation',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc104',activity:'Day to day works (Ongoing)',type:'expectation',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Site Manager',ownerName:'',sopLink:'',frequency:'Daily',notes:''},
+    {id:'pc105',activity:'Weekly project review (timesheets / programme / project plans)',type:'expectation',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'Weekly',notes:''},
+    {id:'pc106',activity:'Review daily diary sheets and resolve queries',type:'expectation',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'Daily',notes:''},
+    {id:'pc107',activity:'Collate & summarise weekly timesheet returns',type:'expectation',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'Weekly',notes:''},
+    {id:'pc108',activity:'Document control on project files',type:'expectation',category:'',coreProcess:'CP-0005 | Commissioning & Handover',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc109',activity:'Sales ledger',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc110',activity:'Purchase ledger',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc111',activity:'Payroll',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
+    {id:'pc112',activity:'VAT returns',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Quarterly',notes:''},
+    {id:'pc113',activity:'Management accounts',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
+    {id:'pc114',activity:'Stores & Yard Management',type:'expectation',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc115',activity:'Transport & Plant Management (Servicing; MOTs; Repairs)',type:'expectation',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc116',activity:'Equipment inspections, certification and repair',type:'expectation',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc201',activity:'RAMS created & approved',type:'control',category:'SHEQ',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc202',activity:"MSRA's Systems",type:'control',category:'SHEQ',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
+    {id:'pc203',activity:'Site induction / client induction',type:'control',category:'SHEQ',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'Site Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
+    {id:'pc204',activity:'Quality Plans - ITP (Inspection & Test Plan)',type:'control',category:'Quality',coreProcess:'CP-0004 | Project Delivery',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''}
   ],
-  raci: {}
+  raci:{}
 };
 
-// ============================================================
-// STATE
-// ============================================================
-let data;
+let data = JSON.parse(JSON.stringify(DEFAULT));
 let modalMode = null;
 let modalEditId = null;
 let pcTabFilter = 'all';
+let orgDateStr = 'May 2026';
 
-function loadData() {
-  const stored = localStorage.getItem('mes-operating-model-v2');
-  data = stored ? JSON.parse(stored) : JSON.parse(JSON.stringify(DEFAULT_DATA));
-}
-function saveData() {
-  localStorage.setItem('mes-operating-model-v2', JSON.stringify(data));
-}
-function resetData() {
-  if (confirm('Reset all data to defaults? This cannot be undone.')) {
-    localStorage.removeItem('mes-operating-model-v2');
-    loadData();
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  // Load from Cloudflare Worker on startup — no setup needed for staff
+  loadFromWorker().then(d => {
+    if (d) data = d;
     renderAll();
-  }
+  });
+});
+
+function renderAll(){
+  renderOrgChart();
+  renderDepts();
+  renderRoles();
+  renderPeople();
+  renderCPs();
+  renderPCs();
+  renderRaci();
+  populateFilters();
 }
 
-// ============================================================
+// ═══════════════════════════════════════════════
 // NAVIGATION
-// ============================================================
-function showView(name) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('view-' + name).classList.add('active');
-  event.currentTarget.classList.add('active');
-  if (name === 'orgchart') renderOrgChart();
-  if (name === 'departments') renderDepts();
-  if (name === 'roles') renderRoles();
-  if (name === 'people') renderPeople();
-  if (name === 'coreprocesses') renderCoreProcesses();
-  if (name === 'processcontrols') renderPCs();
-  if (name === 'raci') renderRaci();
+// ═══════════════════════════════════════════════
+function showView(name, el){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  if(el) el.classList.add('active');
 }
 
-// ============================================================
-// RENDER HELPERS
-// ============================================================
-function typeTag(type) {
-  const map = { procedure: ['tag-blue','📄 Procedure/SOP'], expectation: ['tag-green','🎯 Role Expectation'], control: ['tag-amber','⚙️ Process Control'] };
-  const [cls, label] = map[type] || ['tag-grey', type];
-  return `<span class="tag ${cls}">${label}</span>`;
-}
-function freq(f) { return f ? `<span class="tag tag-grey" style="font-size:10px">${f}</span>` : ''; }
-
-function actionBtns(id, editFn, deletable=true) {
-  return `<div style="display:flex;gap:4px;white-space:nowrap">
-    <button class="btn btn-sm btn-secondary btn-icon" onclick="${editFn}('${id}')">✏️</button>
-    ${deletable ? `<button class="btn btn-sm btn-danger btn-icon" onclick="deleteItem('${id}')">🗑</button>` : ''}
-  </div>`;
-}
-
-// ============================================================
+// ═══════════════════════════════════════════════
 // ORG CHART
-// ============================================================
-function renderOrgChart() {
-  const container = document.getElementById('orgchart-container');
-
-  // Build lookup: dept → roles, role → people
-  const deptRoles = {};
-  const rolePeople = {};
-  data.roles.forEach(r => {
-    if (!deptRoles[r.dept]) deptRoles[r.dept] = [];
-    deptRoles[r.dept].push(r.name);
-  });
-  data.people.forEach(p => {
-    if (p.role) {
-      if (!rolePeople[p.role]) rolePeople[p.role] = [];
-      rolePeople[p.role].push(p.name);
-    }
-  });
-
-  const deptPeople = {};
-  data.people.forEach(p => {
-    if (p.dept) {
-      if (!deptPeople[p.dept]) deptPeople[p.dept] = [];
-      deptPeople[p.dept].push(p.name);
-    }
-  });
-
-  const depts = data.departments.filter(d => d.name !== 'Directors');
-  const directors = data.departments.find(d => d.name === 'Directors');
-  const dirPeople = deptPeople['Directors'] || [];
-  const dirRoles = deptRoles['Directors'] || [];
-
-  let html = `<div style="overflow-x:auto;padding:20px 0">
-  <div style="min-width:900px">
-  <!-- Directors at top -->
-  <div style="display:flex;justify-content:center;margin-bottom:4px">
-    <div class="org-node directors" style="min-width:180px">
-      <div class="org-node-title">🏢 Directors (The Board)</div>
-      <div class="people-list">${dirPeople.join('<br>') || ''}</div>
-      <div class="roles-list" style="font-size:9px;margin-top:4px;opacity:0.7">${dirRoles.join(', ')}</div>
-    </div>
-  </div>
-  <div class="org-connector"></div>
-  <!-- Horizontal line -->
-  <div style="display:flex;align-items:flex-start;justify-content:center;gap:0;position:relative;margin-bottom:4px">`;
-
-  depts.forEach((dept, i) => {
-    const roles = deptRoles[dept.name] || [];
-    const people = deptPeople[dept.name] || [];
-    html += `<div style="display:flex;flex-direction:column;align-items:center;min-width:140px;max-width:160px;margin:0 6px">
-      <div style="width:2px;height:20px;background:var(--green-400)"></div>
-      <div class="org-node dept">
-        <div class="org-node-title">${dept.name}</div>
-        <div class="people-list">${people.slice(0,4).join('<br>')}${people.length > 4 ? `<br>+${people.length-4} more` : ''}</div>
-        <div class="roles-list">${roles.slice(0,3).join(', ')}${roles.length > 3 ? ` +${roles.length-3}` : ''}</div>
-      </div>
-    </div>`;
-  });
-
-  html += `</div></div></div>`;
-  container.innerHTML = html;
+// ═══════════════════════════════════════════════
+function updateOrgDate(val){
+  if(!val) return;
+  const [yr, mo] = val.split('-');
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  orgDateStr = months[parseInt(mo)-1] + ' ' + yr;
+  data.orgDate = orgDateStr;
+  document.getElementById('org-date-display').textContent = orgDateStr;
+  scheduleSave();
 }
 
-// ============================================================
+function printOrgChart(){
+  showView('orgchart', document.getElementById('nav-orgchart'));
+  setTimeout(()=>window.print(), 200);
+}
+
+function renderOrgChart(){
+  if(data.orgDate) orgDateStr=data.orgDate;
+  document.getElementById('org-date-display').textContent=orgDateStr;
+
+  // Build lookups
+  const dp={};
+  data.people.forEach(p=>{ if(p.dept){if(!dp[p.dept])dp[p.dept]=[];dp[p.dept].push(p);} });
+  // Top of tree = person with no reportsTo and lowest level (or just no reportsTo)
+  const allSorted = [...data.people].sort((a,b)=>(a.level??50)-(b.level??50));
+  const neil   = allSorted.find(p=>!p.reportsTo) || data.people[0] || {name:'Managing Director',role:''};
+  // Second tier: people who report directly to neil and are managers
+  const neilReports = data.people.filter(p=>p.reportsTo===neil.name);
+  // Amanda = first manager-level person who reports to neil and manages depts (Accounts/BS/HR/FM)
+  const amandaDeptNames = ['Accounts','Business Support','HR & People','Facilities Management'];
+  const amanda = neilReports.find(p=>
+    amandaDeptNames.includes(p.dept) ||
+    data.people.some(r=>r.reportsTo===p.name && amandaDeptNames.includes(r.dept))
+  ) || data.people.find(p=>p.reportsTo===neil.name && p.isManager && p.name!==neil.name)
+    || {name:'Director',role:'Director'};
+  // Mark = GM of Projects (person who reports to neil, in Projects dept, or is manager of projects people)
+  const mark = data.people.find(p=>p.dept==='Projects'&&p.isManager&&p.reportsTo===neil.name)
+    || data.people.find(p=>p.dept==='Projects'&&p.isManager)
+    || data.people.find(p=>p.dept==='Projects'&&(p.level??50)<=35)
+    || {name:'General Manager',role:'General Manager'};
+  const projTeam = data.people.filter(p=>p.dept==='Projects'&&p.name!==mark.name).sort((a,b)=>(a.level??50)-(b.level??50));
+  const qdPpl  = (dp['Quotes & Design']||[]);
+  const cmPpl  = (dp['Commercial']||[]);
+  const sqPpl  = (dp['SHEQ']||[]);
+
+  const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const mid=(x,w)=>Math.round(x+w/2);
+
+  // ── Layout constants ──────────────────────────────────
+  const W=1360, H=315;
+
+  // Neil
+  const NX=595,NY=15,NW=200,NH=62, NCX=695;
+
+  // Level 1  y=117, bar at y=107
+  const L1Y=117, BAR1Y=107;
+  const QD={x:150,y:L1Y,w:150,h:100};
+  const CM={x:310,y:L1Y,w:150,h:100};
+  const SQ={x:470,y:L1Y,w:130,h:80};
+  const AM={x:610,y:L1Y,w:175,h:62};   // Amanda person box
+  const PR={x:990,y:L1Y,w:340,h:210};  // Projects dept box
+
+  // Level 2 — Amanda's depts, bar at y=207, boxes at y=217
+  const BAR2Y=207, L2Y=217;
+  const AC={x:428,y:L2Y,w:115,h:62};
+  const BS={x:551,y:L2Y,w:140,h:72};
+  const HR={x:699,y:L2Y,w:115,h:62};
+  const FM={x:822,y:L2Y,w:145,h:62};
+
+  // ── SVG helpers ───────────────────────────────────────
+  const rect=(x,y,w,h,fill,stroke,sw,r=8)=>
+    `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
+  const tx=(x,y,t,sz,fw,fill,anchor='middle')=>
+    `<text x="${x}" y="${y}" font-size="${sz}" font-weight="${fw}" fill="${fill}" text-anchor="${anchor}" dominant-baseline="middle">${esc(t)}</text>`;
+  const ln=(x1,y1,x2,y2)=>
+    `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#5aad44" stroke-width="1.5"/>`;
+  const divLine=(x,y,w)=>
+    `<line x1="${x+8}" y1="${y}" x2="${x+w-8}" y2="${y}" stroke="#cddbc5" stroke-width="1"/>`;
+
+  // ── Department box helper ─────────────────────────────
+  function deptBox(n, label, people=[], subtitle=''){
+    const cx=mid(n.x,n.w);
+    let s='';
+    // outer rect
+    s+=rect(n.x,n.y,n.w,n.h,'#fff','#2e7020',1.5);
+    // header strip
+    s+=rect(n.x,n.y,n.w,24,'#245818','',0);
+    s+=rect(n.x,n.y+16,n.w,8,'#245818','',0,0); // fill corner gap
+    s+=tx(cx,n.y+13,label,10,700,'#fff');
+    if(subtitle){
+      s+=divLine(n.x,n.y+29,n.w);
+      s+=tx(cx,n.y+38,subtitle,9,600,'#1a3d10');
+    }
+    let py = n.y+(subtitle?52:30);
+    people.slice(0,5).forEach(p=>{
+      const star=p.isManager?'★ ':'';
+      s+=tx(cx,py,star+p.name,9,p.isManager?600:400,'#1a3d10');
+      if(p.role) { s+=tx(cx,py+10,p.role,8,400,'#7a9a6a'); py+=22; }
+      else py+=15;
+    });
+    return s;
+  }
+
+  // ── Director/person box helper ────────────────────────
+  function personBox(n, name, role, color='#1a3d10', borderColor='#f0a500', headerFill='#f0a500', headerText='#1a3d10'){
+    const cx=mid(n.x,n.w);
+    let s='';
+    s+=rect(n.x,n.y,n.w,n.h,color,borderColor,2.5);
+    s+=rect(n.x,n.y,n.w,26,headerFill,'',0);
+    s+=rect(n.x,n.y+18,n.w,8,headerFill,'',0,0);
+    s+=tx(cx,n.y+14,name,11,700,headerText);
+    s+=tx(cx,n.y+40,role,9,400,color==='#1a3d10'?'#9bbf8a':'#5a6a52');
+    return s;
+  }
+
+  // ── Projects box (special — has manager + team) ───────
+  function projectsBox(n, mgr, team){
+    const cx=mid(n.x,n.w);
+    let s='';
+    s+=rect(n.x,n.y,n.w,n.h,'#f4faf1','#245818',1.5);
+    // header
+    s+=rect(n.x,n.y,n.w,24,'#245818','',0);
+    s+=rect(n.x,n.y+16,n.w,8,'#245818','',0,0);
+    s+=tx(cx,n.y+13,'Projects',10,700,'#fff');
+    // manager sub-section
+    s+=divLine(n.x,n.y+34,n.w);
+    s+=tx(cx,n.y+44,mgr.name,10,700,'#1a3d10');
+    s+=tx(cx,n.y+56,mgr.role||'General Manager',9,400,'#5a6a52');
+    s+=divLine(n.x,n.y+66,n.w);
+    // team in 2 cols
+    const col1x=n.x+n.w*0.27, col2x=n.x+n.w*0.73;
+    let ty=n.y+80;
+    team.slice(0,14).forEach((p,i)=>{
+      const tx2 = i%2===0 ? col1x : col2x;
+      s+=`<text x="${tx2}" y="${ty}" font-size="9" fill="#245818" text-anchor="middle" dominant-baseline="middle">${esc(p.name)}</text>`;
+      if(i%2===1) ty+=14;
+    });
+    if(team.length>14) s+=tx(cx,ty+8,`+${team.length-14} more`,8,400,'#7a9a6a');
+    return s;
+  }
+
+  // ── Build SVG ─────────────────────────────────────────
+  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" `+
+        `style="width:100%;height:auto;font-family:'Segoe UI',Arial,sans-serif;display:block">`;
+
+  // ── Connector lines ───────────────────────────────────
+  // Neil → bar1
+  s+=ln(NCX, NY+NH, NCX, BAR1Y);
+  // Bar1
+  s+=ln(mid(QD.x,QD.w), BAR1Y, mid(PR.x,PR.w), BAR1Y);
+  // Bar1 → each L1 node
+  [QD,CM,SQ,AM,PR].forEach(n=>s+=ln(mid(n.x,n.w),BAR1Y,mid(n.x,n.w),n.y));
+  // Amanda → bar2
+  s+=ln(mid(AM.x,AM.w), AM.y+AM.h, mid(AM.x,AM.w), BAR2Y);
+  // Bar2
+  s+=ln(mid(AC.x,AC.w), BAR2Y, mid(FM.x,FM.w), BAR2Y);
+  // Bar2 → each L2 node
+  [AC,BS,HR,FM].forEach(n=>s+=ln(mid(n.x,n.w),BAR2Y,mid(n.x,n.w),n.y));
+
+  // ── Boxes ─────────────────────────────────────────────
+  // Neil (board box)
+  s+=personBox({x:NX,y:NY,w:NW,h:NH}, neil.name, neil.role||'Managing Director / CEO',
+               '#1a3d10','#f0a500','#f0a500','#1a3d10');
+
+  // Level 1
+  s+=deptBox(QD, 'Quotes & Design', qdPpl);
+  s+=deptBox(CM, 'Commercial', cmPpl);
+  s+=deptBox(SQ, 'SHEQ', sqPpl);
+  // Amanda — director box (white with green border)
+  s+=personBox(AM, amanda.name, amanda.role||'Finance Director',
+               '#fff','#2e7020','#2e7020','#fff');
+
+  // Projects
+  s+=projectsBox(PR, mark, projTeam);
+
+  // Level 2 — Amanda's depts
+  const amandaDepts=['Accounts','Business Support','HR & People','Facilities Management'];
+  const amBoxes=[AC,BS,HR,FM];
+  amandaDepts.forEach((dept,i)=>{
+    s+=deptBox(amBoxes[i], dept, dp[dept]||[]);
+  });
+
+  s+='</svg>';
+  document.getElementById('org-tree').innerHTML=s;
+}
+
+// ═══════════════════════════════════════════════
 // DEPARTMENTS
-// ============================================================
-function renderDepts() {
-  const tbody = document.getElementById('dept-tbody');
-  const roleCount = {};
-  const peopleCount = {};
-  data.roles.forEach(r => { roleCount[r.dept] = (roleCount[r.dept]||0)+1; });
-  data.people.forEach(p => { if(p.dept) peopleCount[p.dept] = (peopleCount[p.dept]||0)+1; });
-
-  tbody.innerHTML = data.departments.map(d => `<tr>
+// ═══════════════════════════════════════════════
+function renderDepts(){
+  const rc={}, pc={};
+  data.roles.forEach(r=>{ rc[r.dept]=(rc[r.dept]||0)+1; });
+  data.people.forEach(p=>{ if(p.dept) pc[p.dept]=(pc[p.dept]||0)+1; });
+  const total = data.departments.length;
+  document.getElementById('dept-stats').innerHTML = `
+    <div class="stat"><div class="stat-n">${total}</div><div class="stat-l">Departments</div></div>
+    <div class="stat"><div class="stat-n">${data.roles.length}</div><div class="stat-l">Roles</div></div>
+    <div class="stat"><div class="stat-n">${data.people.length}</div><div class="stat-l">People</div></div>
+  `;
+  document.getElementById('dept-tbody').innerHTML = data.departments.map(d=>`<tr>
     <td><strong>${d.name}</strong></td>
-    <td>${d.reportsTo ? `<span class="dept-badge">${d.reportsTo}</span>` : '<span style="color:#bbb">—</span>'}</td>
-    <td>${roleCount[d.name]||0}</td>
-    <td>${peopleCount[d.name]||0}</td>
-    <td>${actionBtns(d.id, 'editDept')}</td>
+    <td>${d.reportsTo?rtag(d.reportsTo):'<span style="color:#bbb">—</span>'}</td>
+    <td><span class="tag tgr">${rc[d.name]||0} roles</span></td>
+    <td><span class="tag tg">${pc[d.name]||0} people</span></td>
+    <td>${abtn(d.id,'editDept')}</td>
   </tr>`).join('');
 }
 
-// ============================================================
+// ═══════════════════════════════════════════════
 // ROLES
-// ============================================================
-function renderRoles() {
-  const q = (document.getElementById('role-search')?.value||'').toLowerCase();
-  const deptF = document.getElementById('role-dept-filter')?.value||'';
-
-  // Populate dept filter
-  const df = document.getElementById('role-dept-filter');
-  if (df && df.options.length === 1) {
-    data.departments.forEach(d => {
-      const o = document.createElement('option');
-      o.value = d.name; o.textContent = d.name;
-      df.appendChild(o);
-    });
-  }
-
-  const personByRole = {};
-  data.people.forEach(p => { if(p.role) { if(!personByRole[p.role]) personByRole[p.role]=[]; personByRole[p.role].push(p.name); }});
-
-  const rows = data.roles
-    .filter(r => (!q || r.name.toLowerCase().includes(q)) && (!deptF || r.dept === deptF))
-    .sort((a,b) => a.order - b.order);
-
-  document.getElementById('roles-tbody').innerHTML = rows.map(r => `<tr>
+// ═══════════════════════════════════════════════
+function renderRoles(){
+  const q=(document.getElementById('role-search')?.value||'').toLowerCase();
+  const df=document.getElementById('role-dept-filter')?.value||'';
+  const pByRole={};
+  data.people.forEach(p=>{ if(p.role){ if(!pByRole[p.role]) pByRole[p.role]=[]; pByRole[p.role].push(p.name); }});
+  const rows = data.roles.filter(r=>(!q||r.name.toLowerCase().includes(q))&&(!df||r.dept===df)).sort((a,b)=>a.order-b.order);
+  document.getElementById('roles-tbody').innerHTML = rows.map(r=>`<tr>
     <td><strong>${r.name}</strong></td>
-    <td><span class="dept-badge">${r.dept}</span></td>
-    <td><span class="tag tag-grey">${r.order}</span></td>
-    <td style="font-size:12px">${(personByRole[r.name]||[]).join(', ') || '<span style="color:#bbb">Unassigned</span>'}</td>
-    <td>${actionBtns(r.id,'editRole')}</td>
+    <td>${rtag(r.dept)}</td>
+    <td><span class="tag tgr">${r.order}</span></td>
+    <td style="font-size:12px">${(pByRole[r.name]||[]).join(', ')||'<span style="color:#bbb">Unassigned</span>'}</td>
+    <td>${abtn(r.id,'editRole')}</td>
   </tr>`).join('');
 }
 
-// ============================================================
+// ═══════════════════════════════════════════════
 // PEOPLE
-// ============================================================
-function renderPeople() {
-  const q = (document.getElementById('people-search')?.value||'').toLowerCase();
-  const deptF = document.getElementById('people-dept-filter')?.value||'';
-
-  const pdf = document.getElementById('people-dept-filter');
-  if (pdf && pdf.options.length === 1) {
-    data.departments.forEach(d => {
-      const o = document.createElement('option');
-      o.value = d.name; o.textContent = d.name;
-      pdf.appendChild(o);
-    });
-  }
-
-  const rows = data.people.filter(p =>
-    (!q || p.name.toLowerCase().includes(q)) &&
-    (!deptF || p.dept === deptF)
-  );
-
-  document.getElementById('people-tbody').innerHTML = rows.map(p => `<tr>
+// ═══════════════════════════════════════════════
+function renderPeople(){
+  const q=(document.getElementById('ppl-search')?.value||'').toLowerCase();
+  const df=document.getElementById('ppl-dept-filter')?.value||'';
+  const rows=data.people.filter(p=>(!q||p.name.toLowerCase().includes(q))&&(!df||p.dept===df));
+  document.getElementById('ppl-tbody').innerHTML = rows.map(p=>`<tr>
     <td><strong>${p.name}</strong></td>
-    <td>${p.role || '<span style="color:#bbb">—</span>'}</td>
-    <td>${p.dept ? `<span class="dept-badge">${p.dept}</span>` : '<span style="color:#bbb">—</span>'}</td>
-    <td><span class="tag ${p.status==='Active'?'tag-green':'tag-grey'}">${p.status||'Active'}</span></td>
-    <td>${actionBtns(p.id,'editPerson')}</td>
+    <td style="font-size:12px">${p.role||'<span style="color:#bbb">—</span>'}</td>
+    <td>${p.dept?rtag(p.dept):'<span style="color:#bbb">—</span>'}</td>
+    <td style="font-size:12px">${p.reportsTo||'<span style="color:#bbb">—</span>'}</td>
+    <td><span class="tag ${p.status==='Active'?'tg':'tgr'}">${p.status||'Active'}</span></td>
+    <td>${abtn(p.id,'editPerson')}</td>
   </tr>`).join('');
 }
 
-// ============================================================
+// ═══════════════════════════════════════════════
 // CORE PROCESSES
-// ============================================================
-function renderCoreProcesses() {
-  const cpCount = {};
-  data.processControls.forEach(pc => {
-    const cp = pc.coreProcess.split('|')[0]?.trim();
-    if (cp) cpCount[cp] = (cpCount[cp]||0)+1;
-  });
-
-  document.getElementById('coreprocess-tbody').innerHTML = data.coreProcesses.map(cp => `<tr>
+// ═══════════════════════════════════════════════
+function renderCPs(){
+  const cnt={};
+  data.processControls.forEach(pc=>{ const c=pc.coreProcess.split('|')[0]?.trim(); if(c) cnt[c]=(cnt[c]||0)+1; });
+  document.getElementById('cp-tbody').innerHTML = data.coreProcesses.map(cp=>`<tr>
     <td><strong>${cp.code}</strong></td>
     <td><strong>${cp.name}</strong></td>
-    <td style="font-size:12px;color:var(--text-light)">${cp.purpose||'—'}</td>
-    <td><span class="tag tag-green">${cpCount[cp.code]||0} controls</span></td>
-    <td>${actionBtns(cp.id,'editCP')}</td>
+    <td style="font-size:12px;color:var(--text-lt)">${cp.purpose||'—'}</td>
+    <td><span class="tag tg">${cnt[cp.code]||0} controls</span></td>
+    <td>${abtn(cp.id,'editCP')}</td>
   </tr>`).join('');
 }
 
-// ============================================================
+// ═══════════════════════════════════════════════
 // PROCESS CONTROLS
-// ============================================================
-function setPCTab(tab, el) {
-  pcTabFilter = tab;
-  document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  renderPCs();
-}
+// ═══════════════════════════════════════════════
+let pcTab = 'all';
+function setPCTab(t,el){ pcTab=t; document.querySelectorAll('.stab').forEach(s=>s.classList.remove('active')); el.classList.add('active'); renderPCs(); }
 
-function renderPCs() {
-  const q = (document.getElementById('pc-search')?.value||'').toLowerCase();
-  const roleF = document.getElementById('pc-role-filter')?.value||'';
-  const coreF = document.getElementById('pc-core-filter')?.value||'';
-  const catF = document.getElementById('pc-cat-filter')?.value||'';
-
-  // Populate filters on first load
-  const rf = document.getElementById('pc-role-filter');
-  if (rf && rf.options.length === 1) {
-    const roles = [...new Set(data.processControls.map(p=>p.ownerRole).filter(Boolean))].sort();
-    roles.forEach(r => { const o = document.createElement('option'); o.value=r; o.textContent=r; rf.appendChild(o); });
-  }
-  const cf = document.getElementById('pc-core-filter');
-  if (cf && cf.options.length === 1) {
-    data.coreProcesses.forEach(cp => { const o = document.createElement('option'); o.value=cp.code; o.textContent=cp.name; cf.appendChild(o); });
-  }
-  const catf = document.getElementById('pc-cat-filter');
-  if (catf && catf.options.length === 1) {
-    const cats = [...new Set(data.processControls.map(p=>p.category).filter(Boolean))].sort();
-    cats.forEach(c => { const o = document.createElement('option'); o.value=c; o.textContent=c; catf.appendChild(o); });
-  }
-
-  let rows = data.processControls.filter(pc => {
-    if (pcTabFilter === 'procedure' && pc.type !== 'procedure') return false;
-    if (pcTabFilter === 'expectation' && pc.type !== 'expectation') return false;
-    if (pcTabFilter === 'control' && pc.type !== 'control') return false;
-    if (q && !pc.activity.toLowerCase().includes(q)) return false;
-    if (roleF && pc.ownerRole !== roleF) return false;
-    if (coreF && !pc.coreProcess.includes(coreF)) return false;
-    if (catF && pc.category !== catF) return false;
+function renderPCs(){
+  const q=(document.getElementById('pc-search')?.value||'').toLowerCase();
+  const rf=document.getElementById('pc-role-f')?.value||'';
+  const cpf=document.getElementById('pc-cp-f')?.value||'';
+  const catf=document.getElementById('pc-cat-f')?.value||'';
+  let rows=data.processControls.filter(pc=>{
+    if(pcTab==='procedure'&&pc.type!=='procedure') return false;
+    if(pcTab==='expectation'&&pc.type!=='expectation') return false;
+    if(pcTab==='control'&&pc.type!=='control') return false;
+    if(q&&!pc.activity.toLowerCase().includes(q)) return false;
+    if(rf&&pc.ownerRole!==rf) return false;
+    if(cpf&&!pc.coreProcess.includes(cpf)) return false;
+    if(catf&&pc.category!==catf) return false;
     return true;
   });
-
-  document.getElementById('pc-count').textContent = `${rows.length} controls`;
-
-  document.getElementById('pc-tbody').innerHTML = rows.map(pc => `<tr>
-    <td style="font-size:10px;color:var(--text-light)">${pc.id}</td>
+  document.getElementById('pc-count').textContent = rows.length+' controls shown';
+  document.getElementById('pc-tbody').innerHTML = rows.map(pc=>`<tr>
     <td style="max-width:260px">${pc.activity}</td>
-    <td>${typeTag(pc.type)}</td>
-    <td>${pc.category ? `<span class="tag tag-grey">${pc.category}</span>` : ''}</td>
-    <td style="font-size:11px;max-width:160px">${pc.coreProcess ? `<span class="tag tag-blue" style="font-size:10px">${pc.coreProcess.split('|')[0]?.trim()}</span>` : (pc.supportProcess ? `<span style="font-size:10px;color:var(--text-light)">${pc.supportProcess}</span>` : '')}</td>
+    <td>${ttag(pc.type)}</td>
+    <td>${pc.category?'<span class="tag tgr">'+pc.category+'</span>':''}</td>
+    <td style="font-size:11px">${pc.coreProcess?'<span class="tag tb" style="font-size:10px">'+pc.coreProcess.split('|')[0].trim()+'</span>':(pc.supportProcess?'<span style="font-size:10px;color:var(--text-lt)">'+pc.supportProcess+'</span>':'')}</td>
     <td style="font-size:12px">${pc.ownerRole||'<span style="color:#bbb">—</span>'}</td>
     <td style="font-size:12px">${pc.ownerName||'<span style="color:#bbb">—</span>'}</td>
-    <td>${pc.sopLink ? `<a class="sop-link" href="${pc.sopLink}" target="_blank">📎 Open Link</a>` : `<span class="sop-empty" onclick="quickAddLink('${pc.id}')" style="cursor:pointer" title="Click to add SharePoint link">+ Add link</span>`}</td>
-    <td>${freq(pc.frequency)}</td>
-    <td>${actionBtns(pc.id,'editPC')}</td>
+    <td>${pc.sopLink?'<a class="sop-link" href="'+pc.sopLink+'" target="_blank">📎 Open</a>':'<span class="sop-add" onclick="quickLink(\''+pc.id+'\')">+ Add link</span>'}</td>
+    <td style="font-size:11px">${pc.frequency?'<span class="tag tgr" style="font-size:10px">'+pc.frequency+'</span>':''}</td>
+    <td>${abtn(pc.id,'editPC')}</td>
   </tr>`).join('');
 }
 
-// ============================================================
-// RACI MATRIX
-// ============================================================
-function renderRaci() {
-  // Populate filter
-  const rf = document.getElementById('raci-filter');
-  if (rf && rf.options.length === 1) {
-    data.coreProcesses.forEach(cp => { const o = document.createElement('option'); o.value=cp.code; o.textContent=`${cp.code} | ${cp.name}`; rf.appendChild(o); });
+function quickLink(id){
+  const url=prompt('Paste SharePoint / SOP URL:');
+  if(url&&url.trim()){
+    const pc=data.processControls.find(p=>p.id===id);
+    if(pc){ pc.sopLink=url.trim(); renderPCs(); scheduleSave(); }
   }
-  const coreF = rf?.value||'';
+}
 
-  // Show only Role Expectations + Procedures for RACI (they have roles)
-  let activities = data.processControls.filter(pc =>
-    pc.type === 'expectation' || pc.ownerRole
-  );
-  if (coreF) activities = activities.filter(pc => pc.coreProcess.includes(coreF) || pc.supportProcess.includes(coreF));
-
-  // Roles to show in RACI (senior roles only for readability)
-  const seniorRoles = data.roles.filter(r => r.order <= 70).sort((a,b) => a.order - b.order);
-
-  const container = document.getElementById('raci-container');
-  if (!activities.length) { container.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><p>No activities to display. Try changing the filter.</p></div>'; return; }
-
-  let html = `<table class="raci-table"><thead><tr>
-    <th class="activity-col">Activity</th>
-    ${seniorRoles.map(r => `<th title="${r.dept}" style="writing-mode:vertical-lr;transform:rotate(180deg);height:80px;vertical-align:bottom;padding:4px 8px">${r.name}</th>`).join('')}
-  </tr></thead><tbody>`;
-
-  // Group by support process / core process
-  activities.forEach(pc => {
-    const coreLabel = pc.coreProcess || pc.supportProcess || 'General';
-    html += `<tr>
-      <td class="activity-cell">${pc.activity}${pc.type==='expectation'?'<br><span style="font-size:9px;color:#999">Role Expectation</span>':''}${pc.type==='procedure'?'<br><span style="font-size:9px;color:#999">Procedure</span>':''}</td>
-      ${seniorRoles.map(r => {
-        const key = `${pc.id}|${r.id}`;
-        const val = data.raci[key] || (pc.ownerRole === r.name ? 'R' : '');
-        return `<td onclick="cycleRaci('${pc.id}','${r.id}',this)">${val ? `<span class="raci-badge raci-${val}">${val}</span>` : `<span class="raci-badge raci-empty">·</span>`}</td>`;
-      }).join('')}
-    </tr>`;
+// ═══════════════════════════════════════════════
+// RACI
+// ═══════════════════════════════════════════════
+function renderRaci(){
+  const cpf=document.getElementById('raci-cp-f')?.value||'';
+  let acts=data.processControls.filter(pc=>pc.type==='expectation'||pc.ownerRole);
+  if(cpf) acts=acts.filter(pc=>pc.coreProcess.includes(cpf)||pc.supportProcess.includes(cpf));
+  const roles=data.roles.filter(r=>r.order<=70).sort((a,b)=>a.order-b.order);
+  if(!acts.length){ document.getElementById('raci-container').innerHTML='<div style="padding:40px;text-align:center;color:var(--text-lt)">No activities to show</div>'; return; }
+  let html=`<table class="raci-tbl"><thead><tr><th class="act-col">Activity</th>${roles.map(r=>`<th class="raci-head-role" title="${r.dept}">${r.name}</th>`).join('')}</tr></thead><tbody>`;
+  acts.forEach(pc=>{
+    html+=`<tr><td class="act-cell">${pc.activity}<br><span style="font-size:9px;color:#aaa">${pc.type==='expectation'?'Role Expectation':pc.type==='procedure'?'Procedure':'Control'}</span></td>`;
+    roles.forEach(r=>{
+      const key=pc.id+'|'+r.id;
+      const preAssign = pc.ownerRole===r.name ? 'R' : '';
+      const val=data.raci[key]!==undefined?data.raci[key]:preAssign;
+      html+=`<td onclick="cycleRaci('${pc.id}','${r.id}',this)">${val?'<span class="rb rb-'+val+'">'+val+'</span>':'<span class="rb rb-empty">·</span>'}</td>`;
+    });
+    html+='</tr>';
   });
+  html+='</tbody></table>';
+  document.getElementById('raci-container').innerHTML=html;
 
-  html += '</tbody></table>';
-  container.innerHTML = html;
+  // Populate RACI filter
+  const f=document.getElementById('raci-cp-f');
+  if(f.options.length<=1) data.coreProcesses.forEach(cp=>{ const o=document.createElement('option'); o.value=cp.code; o.textContent=cp.code+' | '+cp.name; f.appendChild(o); });
 }
 
-function cycleRaci(pcId, roleId, cell) {
-  const key = `${pcId}|${roleId}`;
-  const order = ['','R','A','C','I'];
-  const cur = data.raci[key]||'';
-  const next = order[(order.indexOf(cur)+1) % order.length];
-  if (next) data.raci[key] = next;
-  else delete data.raci[key];
-  saveData();
-  cell.innerHTML = next ? `<span class="raci-badge raci-${next}">${next}</span>` : `<span class="raci-badge raci-empty">·</span>`;
+function cycleRaci(pcId, rId, cell){
+  const key=pcId+'|'+rId;
+  const order=['','R','A','C','I'];
+  const cur=data.raci[key]||'';
+  const next=order[(order.indexOf(cur)+1)%order.length];
+  if(next) data.raci[key]=next; else delete data.raci[key];
+  cell.innerHTML=next?'<span class="rb rb-'+next+'">'+next+'</span>':'<span class="rb rb-empty">·</span>';
+  scheduleSave();
 }
 
-// ============================================================
-// QUICK ADD SOP LINK
-// ============================================================
-function quickAddLink(pcId) {
-  const url = prompt('Paste SharePoint / SOP URL:');
-  if (url && url.trim()) {
-    const pc = data.processControls.find(p => p.id === pcId);
-    if (pc) { pc.sopLink = url.trim(); saveData(); renderPCs(); }
-  }
+// ═══════════════════════════════════════════════
+// POPULATE FILTERS
+// ═══════════════════════════════════════════════
+function populateFilters(){
+  // Role dept filter
+  const rdf=document.getElementById('role-dept-filter');
+  rdf.innerHTML='<option value="">All Departments</option>';
+  data.departments.forEach(d=>{ const o=document.createElement('option'); o.value=d.name; o.textContent=d.name; rdf.appendChild(o); });
+
+  // People dept filter
+  const pdf=document.getElementById('ppl-dept-filter');
+  pdf.innerHTML='<option value="">All Departments</option>';
+  data.departments.forEach(d=>{ const o=document.createElement('option'); o.value=d.name; o.textContent=d.name; pdf.appendChild(o); });
+
+  // PC role filter
+  const prf=document.getElementById('pc-role-f');
+  prf.innerHTML='<option value="">All Roles</option>';
+  [...new Set(data.processControls.map(p=>p.ownerRole).filter(Boolean))].sort().forEach(r=>{ const o=document.createElement('option'); o.value=r; o.textContent=r; prf.appendChild(o); });
+
+  // PC core process filter
+  const cpf=document.getElementById('pc-cp-f');
+  cpf.innerHTML='<option value="">All Core Processes</option>';
+  data.coreProcesses.forEach(cp=>{ const o=document.createElement('option'); o.value=cp.code; o.textContent=cp.code+' | '+cp.name; cpf.appendChild(o); });
+
+  // PC category filter
+  const catf=document.getElementById('pc-cat-f');
+  catf.innerHTML='<option value="">All Categories</option>';
+  [...new Set(data.processControls.map(p=>p.category).filter(Boolean))].sort().forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; catf.appendChild(o); });
 }
 
-// ============================================================
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+function rtag(t){ return '<span class="tag tg">'+t+'</span>'; }
+function ttag(t){ return t==='procedure'?'<span class="tag tb">📄 Procedure</span>':t==='expectation'?'<span class="tag tg">🎯 Expectation</span>':'<span class="tag ta">⚙️ Control</span>'; }
+function abtn(id, fn){ return '<div style="display:flex;gap:4px"><button class="btn btn-ghost btn-sm btn-icon" onclick="'+fn+'(\''+id+'\')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="delItem(\''+id+'\')">🗑</button></div>'; }
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+function g(id){ return document.getElementById(id)?.value||''; }
+
+function delItem(id){
+  if(!confirm('Delete this item?')) return;
+  data.departments=data.departments.filter(x=>x.id!==id);
+  data.roles=data.roles.filter(x=>x.id!==id);
+  data.people=data.people.filter(x=>x.id!==id);
+  data.coreProcesses=data.coreProcesses.filter(x=>x.id!==id);
+  data.processControls=data.processControls.filter(x=>x.id!==id);
+  renderAll(); scheduleSave();
+}
+
+// ═══════════════════════════════════════════════
 // MODALS
-// ============================================================
-function openModal(type, id) {
-  modalMode = type;
-  modalEditId = id || null;
-  const overlay = document.getElementById('modal-overlay');
-  const title = document.getElementById('modal-title');
-  const body = document.getElementById('modal-body');
-  const delBtn = document.getElementById('modal-delete-btn');
-  delBtn.style.display = id ? 'block' : 'none';
-  overlay.classList.add('open');
+// ═══════════════════════════════════════════════
+function openModal(type,id){
+  modalMode=type; modalEditId=id||null;
+  document.getElementById('modal-del').style.display=id?'block':'none';
+  document.getElementById('modal-bg').classList.add('open');
+  const body=document.getElementById('modal-body');
 
-  if (type === 'dept') {
-    const item = id ? data.departments.find(d=>d.id===id) : null;
-    title.textContent = id ? 'Edit Department' : 'Add Department';
-    body.innerHTML = `
-      <div class="form-row"><label class="form-label">Department Name</label><input class="form-input" id="f-name" value="${item?.name||''}"></div>
-      <div class="form-row"><label class="form-label">Reports To</label>
-        <select class="form-input" id="f-reportsTo">
-          <option value="">None (Top Level)</option>
-          ${data.departments.filter(d=>d.id!==id).map(d=>`<option value="${d.name}" ${item?.reportsTo===d.name?'selected':''}>${d.name}</option>`).join('')}
-        </select></div>`;
-  } else if (type === 'role') {
-    const item = id ? data.roles.find(r=>r.id===id) : null;
-    title.textContent = id ? 'Edit Role' : 'Add Role';
-    body.innerHTML = `
-      <div class="form-row"><label class="form-label">Role Name</label><input class="form-input" id="f-name" value="${item?.name||''}"></div>
-      <div class="form-row"><label class="form-label">Department</label>
-        <select class="form-input" id="f-dept">
-          ${data.departments.map(d=>`<option value="${d.name}" ${item?.dept===d.name?'selected':''}>${d.name}</option>`).join('')}
-        </select></div>
-      <div class="form-row"><label class="form-label">Seniority Order (lower = more senior)</label><input class="form-input" id="f-order" type="number" value="${item?.order??50}"></div>`;
-  } else if (type === 'person') {
-    const item = id ? data.people.find(p=>p.id===id) : null;
-    title.textContent = id ? 'Edit Person' : 'Add Person';
-    body.innerHTML = `
-      <div class="form-row"><label class="form-label">Full Name</label><input class="form-input" id="f-name" value="${item?.name||''}"></div>
-      <div class="form-row"><label class="form-label">Primary Role</label>
-        <select class="form-input" id="f-role">
-          <option value="">— Select Role —</option>
-          ${data.roles.map(r=>`<option value="${r.name}" ${item?.role===r.name?'selected':''}>${r.name}</option>`).join('')}
-        </select></div>
-      <div class="form-row"><label class="form-label">Department</label>
-        <select class="form-input" id="f-dept">
-          <option value="">— Select Department —</option>
-          ${data.departments.map(d=>`<option value="${d.name}" ${item?.dept===d.name?'selected':''}>${d.name}</option>`).join('')}
-        </select></div>
-      <div class="form-row"><label class="form-label">Status</label>
-        <select class="form-input" id="f-status">
-          <option value="Active" ${item?.status==='Active'?'selected':''}>Active</option>
-          <option value="On Leave" ${item?.status==='On Leave'?'selected':''}>On Leave</option>
-          <option value="Inactive" ${item?.status==='Inactive'?'selected':''}>Inactive</option>
-        </select></div>`;
-  } else if (type === 'coreprocess') {
-    const item = id ? data.coreProcesses.find(c=>c.id===id) : null;
-    title.textContent = id ? 'Edit Core Process' : 'Add Core Process';
-    body.innerHTML = `
-      <div class="form-row"><label class="form-label">Process Code (e.g. CP-0008)</label><input class="form-input" id="f-code" value="${item?.code||''}"></div>
-      <div class="form-row"><label class="form-label">Process Name</label><input class="form-input" id="f-name" value="${item?.name||''}"></div>
-      <div class="form-row"><label class="form-label">Purpose</label><textarea class="form-input" id="f-purpose">${item?.purpose||''}</textarea></div>`;
-  } else if (type === 'pc') {
-    const item = id ? data.processControls.find(p=>p.id===id) : null;
-    title.textContent = id ? 'Edit Process Control' : 'Add Process Control';
-    body.innerHTML = `
-      <div class="form-row"><label class="form-label">Activity</label><textarea class="form-input" id="f-activity">${item?.activity||''}</textarea></div>
-      <div class="form-row"><label class="form-label">Type</label>
-        <select class="form-input" id="f-type">
-          <option value="procedure" ${item?.type==='procedure'?'selected':''}>📄 Procedure / SOP</option>
-          <option value="expectation" ${item?.type==='expectation'?'selected':''}>🎯 Role Expectation</option>
-          <option value="control" ${item?.type==='control'?'selected':''}>⚙️ Process Control</option>
-        </select></div>
-      <div class="form-row"><label class="form-label">Category</label><input class="form-input" id="f-category" value="${item?.category||''}"></div>
-      <div class="form-row"><label class="form-label">Core Process</label>
-        <select class="form-input" id="f-coreProcess">
-          <option value="">— None —</option>
-          ${data.coreProcesses.map(cp=>`<option value="${cp.code} | ${cp.name}" ${item?.coreProcess?.includes(cp.code)?'selected':''}>${cp.code} | ${cp.name}</option>`).join('')}
-        </select></div>
-      <div class="form-row"><label class="form-label">Support Process</label><input class="form-input" id="f-supportProcess" value="${item?.supportProcess||''}"></div>
-      <div class="form-row"><label class="form-label">Owner Role</label>
-        <select class="form-input" id="f-ownerRole">
-          <option value="">— Unassigned —</option>
-          ${data.roles.map(r=>`<option value="${r.name}" ${item?.ownerRole===r.name?'selected':''}>${r.name}</option>`).join('')}
-        </select></div>
-      <div class="form-row"><label class="form-label">Owner Name</label>
-        <select class="form-input" id="f-ownerName">
-          <option value="">— Unassigned —</option>
-          ${data.people.map(p=>`<option value="${p.name}" ${item?.ownerName===p.name?'selected':''}>${p.name}</option>`).join('')}
-        </select></div>
-      <div class="form-row"><label class="form-label">SharePoint / SOP Link</label><input class="form-input" id="f-sopLink" placeholder="https://yourtenant.sharepoint.com/..." value="${item?.sopLink||''}"></div>
-      <div class="form-row"><label class="form-label">Frequency</label>
-        <select class="form-input" id="f-frequency">
-          <option value="" ${!item?.frequency?'selected':''}>—</option>
-          <option value="Daily" ${item?.frequency==='Daily'?'selected':''}>Daily</option>
-          <option value="Weekly" ${item?.frequency==='Weekly'?'selected':''}>Weekly</option>
-          <option value="Monthly" ${item?.frequency==='Monthly'?'selected':''}>Monthly</option>
-          <option value="Quarterly" ${item?.frequency==='Quarterly'?'selected':''}>Quarterly</option>
-          <option value="Annually" ${item?.frequency==='Annually'?'selected':''}>Annually</option>
-        </select></div>
-      <div class="form-row"><label class="form-label">Notes</label><textarea class="form-input" id="f-notes">${item?.notes||''}</textarea></div>`;
+  if(type==='dept'){
+    const x=id?data.departments.find(d=>d.id===id):null;
+    document.getElementById('modal-title').textContent=id?'Edit Department':'Add Department';
+    body.innerHTML=`<div class="fr"><label class="fl">Department Name</label><input class="fi" id="f-name" value="${x?.name||''}"></div>
+    <div class="fr"><label class="fl">Reports To</label><select class="fi" id="f-rt"><option value="">None (Top Level)</option>${data.departments.filter(d=>d.id!==id).map(d=>`<option value="${d.name}" ${x?.reportsTo===d.name?'selected':''}>${d.name}</option>`).join('')}</select></div>`;
+  } else if(type==='role'){
+    const x=id?data.roles.find(r=>r.id===id):null;
+    document.getElementById('modal-title').textContent=id?'Edit Role':'Add Role';
+    body.innerHTML=`<div class="fr"><label class="fl">Role Name</label><input class="fi" id="f-name" value="${x?.name||''}"></div>
+    <div class="fr"><label class="fl">Department</label><select class="fi" id="f-dept">${data.departments.map(d=>`<option value="${d.name}" ${x?.dept===d.name?'selected':''}>${d.name}</option>`).join('')}</select></div>
+    <div class="fr"><label class="fl">Seniority Order (lower = more senior)</label><input class="fi" id="f-order" type="number" value="${x?.order??50}"></div>`;
+  } else if(type==='person'){
+    const x=id?data.people.find(p=>p.id===id):null;
+    document.getElementById('modal-title').textContent=id?'Edit Person':'Add Person';
+    body.innerHTML=`<div class="fr"><label class="fl">Full Name</label><input class="fi" id="f-name" value="${x?.name||''}"></div>
+    <div class="fr"><label class="fl">Primary Role</label><select class="fi" id="f-role"><option value="">— Select Role —</option>${data.roles.map(r=>`<option value="${r.name}" ${x?.role===r.name?'selected':''}>${r.name}</option>`).join('')}</select></div>
+    <div class="fr"><label class="fl">Department</label><select class="fi" id="f-dept"><option value="">— Select Department —</option>${data.departments.map(d=>`<option value="${d.name}" ${x?.dept===d.name?'selected':''}>${d.name}</option>`).join('')}</select></div>
+    <div class="fr"><label class="fl">Reports To</label><select class="fi" id="f-rt"><option value="">— None —</option>${data.people.filter(p=>p.id!==id).map(p=>`<option value="${p.name}" ${x?.reportsTo===p.name?'selected':''}>${p.name}</option>`).join('')}</select></div>
+    <div class="fr"><label class="fl">Status</label><select class="fi" id="f-status"><option value="Active" ${x?.status==='Active'?'selected':''}>Active</option><option value="On Leave" ${x?.status==='On Leave'?'selected':''}>On Leave</option><option value="Inactive" ${x?.status==='Inactive'?'selected':''}>Inactive</option></select></div>`;
+  } else if(type==='coreprocess'){
+    const x=id?data.coreProcesses.find(c=>c.id===id):null;
+    document.getElementById('modal-title').textContent=id?'Edit Core Process':'Add Core Process';
+    body.innerHTML=`<div class="fr"><label class="fl">Process Code (e.g. CP-0008)</label><input class="fi" id="f-code" value="${x?.code||''}"></div>
+    <div class="fr"><label class="fl">Process Name</label><input class="fi" id="f-name" value="${x?.name||''}"></div>
+    <div class="fr"><label class="fl">Purpose</label><textarea class="fi" id="f-purpose">${x?.purpose||''}</textarea></div>`;
+  } else if(type==='pc'){
+    const x=id?data.processControls.find(p=>p.id===id):null;
+    document.getElementById('modal-title').textContent=id?'Edit Process Control':'Add Process Control';
+    body.innerHTML=`<div class="fr"><label class="fl">Activity</label><textarea class="fi" id="f-act">${x?.activity||''}</textarea></div>
+    <div class="fr"><label class="fl">Type</label><select class="fi" id="f-type"><option value="procedure" ${x?.type==='procedure'?'selected':''}>📄 Procedure / SOP</option><option value="expectation" ${x?.type==='expectation'?'selected':''}>🎯 Role Expectation</option><option value="control" ${x?.type==='control'?'selected':''}>⚙️ Process Control</option></select></div>
+    <div class="fr"><label class="fl">Category</label><input class="fi" id="f-cat" value="${x?.category||''}"></div>
+    <div class="fr"><label class="fl">Core Process</label><select class="fi" id="f-cp"><option value="">— None —</option>${data.coreProcesses.map(cp=>`<option value="${cp.code} | ${cp.name}" ${x?.coreProcess?.includes(cp.code)?'selected':''}>${cp.code} | ${cp.name}</option>`).join('')}</select></div>
+    <div class="fr"><label class="fl">Support Process</label><input class="fi" id="f-sp" value="${x?.supportProcess||''}"></div>
+    <div class="fr"><label class="fl">Owner Role</label><select class="fi" id="f-oRole"><option value="">— Unassigned —</option>${data.roles.map(r=>`<option value="${r.name}" ${x?.ownerRole===r.name?'selected':''}>${r.name}</option>`).join('')}</select></div>
+    <div class="fr"><label class="fl">Owner Name</label><select class="fi" id="f-oName"><option value="">— Unassigned —</option>${data.people.map(p=>`<option value="${p.name}" ${x?.ownerName===p.name?'selected':''}>${p.name}</option>`).join('')}</select></div>
+    <div class="fr"><label class="fl">SharePoint / SOP Link</label><input class="fi" id="f-link" placeholder="https://mespower.sharepoint.com/…" value="${x?.sopLink||''}"></div>
+    <div class="fr"><label class="fl">Frequency</label><select class="fi" id="f-freq"><option value="">—</option>${['Daily','Weekly','Monthly','Quarterly','Annually'].map(f=>`<option value="${f}" ${x?.frequency===f?'selected':''}>${f}</option>`).join('')}</select></div>
+    <div class="fr"><label class="fl">Notes</label><textarea class="fi" id="f-notes">${x?.notes||''}</textarea></div>`;
   }
 }
 
-function editDept(id) { openModal('dept', id); }
-function editRole(id) { openModal('role', id); }
-function editPerson(id) { openModal('person', id); }
-function editCP(id) { openModal('coreprocess', id); }
-function editPC(id) { openModal('pc', id); }
+function editDept(id){ openModal('dept',id); }
+function editRole(id){ openModal('role',id); }
+function editPerson(id){ openModal('person',id); }
+function editCP(id){ openModal('coreprocess',id); }
+function editPC(id){ openModal('pc',id); }
+function closeModal(){ document.getElementById('modal-bg').classList.remove('open'); modalMode=null; modalEditId=null; }
 
-function closeModal(e) {
-  if (!e || e.target === document.getElementById('modal-overlay')) {
-    document.getElementById('modal-overlay').classList.remove('open');
-    modalMode = null; modalEditId = null;
+function modalSave(){
+  if(modalMode==='dept'){
+    const obj={id:modalEditId||uid(),name:g('f-name'),reportsTo:g('f-rt')};
+    if(modalEditId){ const i=data.departments.findIndex(x=>x.id===modalEditId); data.departments[i]=obj; } else data.departments.push(obj);
+  } else if(modalMode==='role'){
+    const obj={id:modalEditId||uid(),name:g('f-name'),dept:g('f-dept'),order:parseInt(g('f-order'))||50};
+    if(modalEditId){ const i=data.roles.findIndex(x=>x.id===modalEditId); data.roles[i]=obj; } else data.roles.push(obj);
+  } else if(modalMode==='person'){
+    const obj={id:modalEditId||uid(),name:g('f-name'),role:g('f-role'),dept:g('f-dept'),reportsTo:g('f-rt'),status:g('f-status'),level:parseInt(document.getElementById('f-level')?.value)||50,isManager:document.getElementById('f-mgr')?.value==='true'};
+    if(modalEditId){ const i=data.people.findIndex(x=>x.id===modalEditId); data.people[i]=obj; } else data.people.push(obj);
+  } else if(modalMode==='coreprocess'){
+    const obj={id:modalEditId||uid(),code:g('f-code'),name:g('f-name'),purpose:g('f-purpose')};
+    if(modalEditId){ const i=data.coreProcesses.findIndex(x=>x.id===modalEditId); data.coreProcesses[i]=obj; } else data.coreProcesses.push(obj);
+  } else if(modalMode==='pc'){
+    const obj={id:modalEditId||uid(),activity:g('f-act'),type:g('f-type'),category:g('f-cat'),coreProcess:g('f-cp'),supportProcess:g('f-sp'),ownerRole:g('f-oRole'),ownerName:g('f-oName'),sopLink:g('f-link'),frequency:g('f-freq'),notes:g('f-notes')};
+    if(modalEditId){ const i=data.processControls.findIndex(x=>x.id===modalEditId); data.processControls[i]=obj; } else data.processControls.push(obj);
   }
-}
-
-function modalSave() {
-  const g = id => document.getElementById(id)?.value||'';
-  if (modalMode === 'dept') {
-    const obj = { id: modalEditId || 'dept-'+Date.now(), name: g('f-name'), reportsTo: g('f-reportsTo') };
-    if (modalEditId) { const i = data.departments.findIndex(d=>d.id===modalEditId); data.departments[i] = obj; }
-    else data.departments.push(obj);
-    saveData(); closeModal(); renderDepts();
-  } else if (modalMode === 'role') {
-    const obj = { id: modalEditId || 'role-'+Date.now(), name: g('f-name'), dept: g('f-dept'), order: parseInt(g('f-order'))||50 };
-    if (modalEditId) { const i = data.roles.findIndex(r=>r.id===modalEditId); data.roles[i] = obj; }
-    else data.roles.push(obj);
-    saveData(); closeModal(); renderRoles();
-  } else if (modalMode === 'person') {
-    const obj = { id: modalEditId || 'per-'+Date.now(), name: g('f-name'), role: g('f-role'), dept: g('f-dept'), status: g('f-status') };
-    if (modalEditId) { const i = data.people.findIndex(p=>p.id===modalEditId); data.people[i] = obj; }
-    else data.people.push(obj);
-    saveData(); closeModal(); renderPeople();
-  } else if (modalMode === 'coreprocess') {
-    const obj = { id: modalEditId || 'cp-'+Date.now(), code: g('f-code'), name: g('f-name'), purpose: g('f-purpose') };
-    if (modalEditId) { const i = data.coreProcesses.findIndex(c=>c.id===modalEditId); data.coreProcesses[i] = obj; }
-    else data.coreProcesses.push(obj);
-    saveData(); closeModal(); renderCoreProcesses();
-  } else if (modalMode === 'pc') {
-    const obj = { id: modalEditId || 'pc-'+Date.now(), activity: g('f-activity'), type: g('f-type'), category: g('f-category'), coreProcess: g('f-coreProcess'), supportProcess: g('f-supportProcess'), ownerRole: g('f-ownerRole'), ownerName: g('f-ownerName'), sopLink: g('f-sopLink'), frequency: g('f-frequency'), notes: g('f-notes') };
-    if (modalEditId) { const i = data.processControls.findIndex(p=>p.id===modalEditId); data.processControls[i] = obj; }
-    else data.processControls.push(obj);
-    saveData(); closeModal(); renderPCs();
-  }
-}
-
-function modalDelete() {
-  if (!confirm('Delete this item?')) return;
-  deleteItem(modalEditId);
   closeModal();
+  renderAll();
+  scheduleSave();
 }
 
-function deleteItem(id) {
-  data.departments = data.departments.filter(d=>d.id!==id);
-  data.roles = data.roles.filter(r=>r.id!==id);
-  data.people = data.people.filter(p=>p.id!==id);
-  data.coreProcesses = data.coreProcesses.filter(c=>c.id!==id);
-  data.processControls = data.processControls.filter(p=>p.id!==id);
-  saveData();
-  renderDepts(); renderRoles(); renderPeople(); renderCoreProcesses(); renderPCs();
-}
-
-// ============================================================
-// EXPORT
-// ============================================================
-function exportAllCSV() {
-  const csvParts = [
-    toCSV('Process Controls', data.processControls, ['id','activity','type','category','coreProcess','supportProcess','ownerRole','ownerName','sopLink','frequency','notes'])
-  ];
-  const blob = new Blob([csvParts.join('\n\n')], {type:'text/csv'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'MES-Operating-Model-Export.csv';
-  a.click();
-}
-
-function toCSV(name, rows, cols) {
-  const lines = [`# ${name}`, cols.join(',')];
-  rows.forEach(r => lines.push(cols.map(c => `"${(r[c]||'').replace(/"/g,'""')}"`).join(',')));
-  return lines.join('\n');
-}
-
-// ============================================================
-// INIT
-// ============================================================
-function renderAll() {
-  renderOrgChart();
-}
-
-loadData();
-renderAll();
+function modalDel(){ if(!confirm('Delete this item?')) return; delItem(modalEditId); closeModal(); }
 </script>
 </body>
 </html>
