@@ -133,14 +133,13 @@ select.fsel{padding:7px 10px;border:1px solid var(--border);border-radius:6px;fo
 
 /* ── RACI ── */
 .raci-wrap{overflow:auto;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow)}
-.raci-tbl thead{overflow:visible}
 .raci-tbl{border-collapse:collapse;font-size:11px;background:#fff;white-space:nowrap}
 .raci-tbl th{background:var(--g800);color:#fff;padding:8px 10px;font-size:10px;letter-spacing:.3px;position:sticky;top:0;z-index:2}
 .raci-tbl th.act-col{text-align:left;position:sticky;left:0;z-index:3;min-width:220px;max-width:270px;white-space:normal}
 .raci-tbl td{padding:5px 8px;border-bottom:1px solid #edf2e8;border-right:1px solid #edf2e8;text-align:center}
 .raci-tbl td.act-cell{text-align:left;background:#f8fdf5;position:sticky;left:0;z-index:1;padding:5px 10px;max-width:270px;white-space:normal;font-weight:500;font-size:12px}
 .raci-tbl tr:hover td{background:var(--g50)}.raci-tbl tr:hover td.act-cell{background:var(--g100)}
-.raci-head-role{writing-mode:vertical-rl;transform:rotate(180deg);height:130px;min-width:28px;font-size:10px;vertical-align:bottom;padding:4px 6px!important;cursor:default;overflow:visible;white-space:nowrap}
+.raci-head-role{writing-mode:vertical-rl;transform:rotate(180deg);height:130px;min-width:26px;font-size:10px;vertical-align:bottom;padding:4px 6px!important;cursor:default;white-space:nowrap}
 .rb{display:inline-block;width:22px;height:22px;border-radius:4px;font-size:11px;font-weight:800;line-height:22px;cursor:pointer;user-select:none;transition:.1s}
 .rb-R{background:#2e7020;color:#fff}.rb-A{background:var(--amber);color:#fff}
 .rb-C{background:var(--blue);color:#fff}.rb-I{background:#777;color:#fff}
@@ -174,6 +173,14 @@ textarea.fi{min-height:65px;resize:vertical}
 .sop-add{font-size:11px;color:#bbb;cursor:pointer;font-style:italic}
 .sop-add:hover{color:var(--g600)}
 
+/* ── SECURITY ── */
+.edit-only{display:none}
+body.edit-mode .edit-only{display:inline-flex}
+body.edit-mode .edit-only-block{display:block}
+.edit-only-block{display:none}
+.mode-badge{font-size:11px;padding:3px 10px;border-radius:12px;font-weight:600}
+.mode-view{background:#e8f5e2;color:#245818}
+.mode-edit{background:#fff3d6;color:#8a6200}
 /* ── SCROLLBAR ── */
 ::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 
@@ -188,8 +195,7 @@ textarea.fi{min-height:65px;resize:vertical}
   .tree{overflow:visible}
   .org-node{break-inside:avoid}
   body{background:#fff}
-  @page{size:A3 landscape;margin:8mm}
-  #org-tree svg{width:100%!important;height:auto!important;max-height:none!important}
+  @page{size:A3 landscape;margin:10mm}
 }
 </style>
 </head>
@@ -207,6 +213,7 @@ textarea.fi{min-height:65px;resize:vertical}
   </div>
   <div class="hdr-right">
     <div class="sync-status"><span class="sync-dot" id="sync-dot"></span><span id="sync-text">Ready</span></div>
+    <span class="mode-badge mode-view" id="mode-badge">👁 View Only</span>
     <button class="btn btn-ghost btn-sm no-print" onclick="manualSync()">↻ Sync</button>
     <button class="btn btn-ghost btn-sm no-print" onclick="printOrgChart()">🖨 Print Org Chart</button>
     
@@ -257,7 +264,7 @@ textarea.fi{min-height:65px;resize:vertical}
 <!-- DEPARTMENTS -->
 <div id="view-departments" class="view">
   <div class="ph"><div><div class="ph-title">Departments</div><div class="ph-sub">Business units and reporting structure</div></div>
-  <button class="btn btn-primary" onclick="openModal('dept')">+ Add Department</button></div>
+  <button class="btn btn-primary edit-only" onclick="openModal('dept')">+ Add Department</button></div>
   <div id="dept-stats" class="stats"></div>
   <div class="tbl-wrap"><table><thead><tr><th>Department</th><th>Reports To Person</th><th>Roles</th><th>Headcount</th><th></th></tr></thead><tbody id="dept-tbody"></tbody></table></div>
 </div>
@@ -265,7 +272,7 @@ textarea.fi{min-height:65px;resize:vertical}
 <!-- ROLES -->
 <div id="view-roles" class="view">
   <div class="ph"><div><div class="ph-title">Roles</div><div class="ph-sub">All positions across the business (24 total)</div></div>
-  <button class="btn btn-primary" onclick="openModal('role')">+ Add Role</button></div>
+  <button class="btn btn-primary edit-only" onclick="openModal('role')">+ Add Role</button></div>
   <div class="fbar">
     <div class="search-wrap"><input id="role-search" oninput="renderRoles()" placeholder="Search roles…"></div>
     <select id="role-dept-filter" class="fsel" onchange="renderRoles()"><option value="">All Departments</option></select>
@@ -276,25 +283,25 @@ textarea.fi{min-height:65px;resize:vertical}
 <!-- PEOPLE -->
 <div id="view-people" class="view">
   <div class="ph"><div><div class="ph-title">People</div><div class="ph-sub">Employees and role assignments</div></div>
-  <button class="btn btn-primary" onclick="openModal('person')">+ Add Person</button></div>
+  <button class="btn btn-primary edit-only" onclick="openModal('person')">+ Add Person</button></div>
   <div class="fbar">
     <div class="search-wrap"><input id="ppl-search" oninput="renderPeople()" placeholder="Search people…"></div>
     <select id="ppl-dept-filter" class="fsel" onchange="renderPeople()"><option value="">All Departments</option></select>
   </div>
-  <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Primary Role</th><th>Department</th><th>Reports To</th><th>Level</th><th>Status</th><th></th></tr></thead><tbody id="ppl-tbody"></tbody></table></div>
+  <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Primary Role</th><th>Department</th><th>Reports To</th><th>Status</th><th></th></tr></thead><tbody id="ppl-tbody"></tbody></table></div>
 </div>
 
 <!-- CORE PROCESSES -->
 <div id="view-coreprocesses" class="view">
   <div class="ph"><div><div class="ph-title">Core Processes</div><div class="ph-sub">The 7 end-to-end business processes</div></div>
-  <button class="btn btn-primary" onclick="openModal('coreprocess')">+ Add Process</button></div>
+  <button class="btn btn-primary edit-only" onclick="openModal('coreprocess')">+ Add Process</button></div>
   <div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Process Name</th><th>Purpose</th><th>Controls</th><th></th></tr></thead><tbody id="cp-tbody"></tbody></table></div>
 </div>
 
 <!-- PROCESS CONTROLS -->
 <div id="view-processcontrols" class="view">
   <div class="ph"><div><div class="ph-title">Process Controls</div><div class="ph-sub" id="pc-count"></div></div>
-  <button class="btn btn-primary" onclick="openModal('pc')">+ Add Control</button></div>
+  <button class="btn btn-primary edit-only" onclick="openModal('pc')">+ Add Control</button></div>
   <div class="notice">📎 Click <strong>+ Add link</strong> on any row to paste a SharePoint URL. Links open directly in browser.</div>
   <div class="stabs">
     <div class="stab active" onclick="setPCTab('all',this)">All</div>
@@ -409,15 +416,15 @@ function showSetup() {
 const DEFAULT = {
   orgDate: 'May 2026',
   departments:[
-    {id:'d1',name:'Directors',          reportsTo:'',         reportsToPerson:''},
-    {id:'d2',name:'Quotes & Design',    reportsTo:'Directors',reportsToPerson:'Neil McKenzie'},
-    {id:'d3',name:'Commercial',         reportsTo:'Directors',reportsToPerson:'Neil McKenzie'},
-    {id:'d4',name:'Projects',           reportsTo:'Directors',reportsToPerson:'Mark Stevenson'},
-    {id:'d5',name:'Accounts',           reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'},
-    {id:'d6',name:'SHEQ',               reportsTo:'Directors',reportsToPerson:'Neil McKenzie'},
-    {id:'d7',name:'HR & People',        reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'},
-    {id:'d8',name:'Facilities Management',reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'},
-    {id:'d9',name:'Business Support',   reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'}
+    {id:'d1',name:'Directors',              reportsTo:'',         reportsToPerson:''},
+    {id:'d2',name:'Quotes & Design',         reportsTo:'Directors',reportsToPerson:'Neil McKenzie'},
+    {id:'d3',name:'Commercial',              reportsTo:'Directors',reportsToPerson:'Neil McKenzie'},
+    {id:'d4',name:'Projects',                reportsTo:'Directors',reportsToPerson:'Mark Stevenson'},
+    {id:'d5',name:'Accounts',                reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'},
+    {id:'d6',name:'SHEQ',                    reportsTo:'Directors',reportsToPerson:'Neil McKenzie'},
+    {id:'d7',name:'HR & People',             reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'},
+    {id:'d8',name:'Facilities Management',   reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'},
+    {id:'d9',name:'Business Support',        reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'}
   ],
   roles:[
     {id:'r1',name:'CEO',dept:'Directors',order:0},
@@ -645,1750 +652,120 @@ function renderOrgChart(){
 
   const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  // ── Build tree from data ──────────────────────────────────────
+  // ── Build tree from data ──────────────────────────────────────────
   const byLevel=[...data.people].sort((a,b)=>(a.level??50)-(b.level??50));
-  const root = byLevel.find(p=>!p.reportsTo) || byLevel[0];
-  if(!root){ document.getElementById('org-tree').innerHTML='<p style="padding:20px;color:#888">Add people to generate the org chart.</p>'; return; }
+  const root=byLevel.find(p=>!p.reportsTo)||byLevel[0];
+  if(!root){
+    document.getElementById('org-tree').innerHTML='<p style="padding:20px;color:#888">Add people to generate the org chart.</p>';
+    return;
+  }
 
-  // Dept people lookup
   const deptPpl={};
-  data.people.forEach(p=>{ if(p.dept){ if(!deptPpl[p.dept]) deptPpl[p.dept]=[]; deptPpl[p.dept].push(p); }});
+  data.people.forEach(p=>{if(p.dept){if(!deptPpl[p.dept])deptPpl[p.dept]=[];deptPpl[p.dept].push(p);}});
 
-  function buildNode(person, depth=0){
-    // Departments whose reportsToPerson === this person's name
-    const depts = data.departments
-      .filter(d=>d.reportsToPerson===person.name && d.name!=='Directors')
-      .map(d=>({
-        type:'dept', data:d, depth:depth+1,
-        people:(deptPpl[d.name]||[]).sort((a,b)=>(a.level??50)-(b.level??50)),
-        children:[], subW:0, x:0, y:0
-      }));
+  const visited=new Set();
+  function buildNode(person,depth){
+    if(visited.has(person.id)) return null;
+    visited.add(person.id);
+    // Depts reporting to this person
+    const depts=data.departments
+      .filter(d=>d.reportsToPerson===person.name&&d.name!=='Directors')
+      .map(d=>({type:'dept',data:d,depth:depth+1,
+                people:(deptPpl[d.name]||[]).sort((a,b)=>(a.level??50)-(b.level??50)),
+                children:[],subW:0,x:0,y:0}));
+    // People who directly report to this person
+    const reports=byLevel
+      .filter(p=>p.reportsTo===person.name&&p.id!==person.id)
+      .map(p=>buildNode(p,depth+1)).filter(Boolean);
+    return {type:'person',data:person,depth,children:[...depts,...reports],subW:0,x:0,y:0};
+  }
+  const tree=buildNode(root,0);
+  if(!tree){document.getElementById('org-tree').innerHTML='';return;}
 
-    // People who directly report to this person (not already captured via dept)
-    const deptNames=new Set(depts.map(d=>d.data.name));
-    const reports = byLevel
-      .filter(p=>p.reportsTo===person.name && p.id!==person.id)
-      .map(p=>buildNode(p, depth+1));
-
-    return {type:'person', data:person, depth, children:[...depts,...reports], subW:0, x:0, y:0};
+  // ── Layout constants ──────────────────────────────────────────────
+  const NW=165, HGAP=14, VGAP=68;
+  function nh(n){
+    if(n.type==='person') return 66;
+    const r=Math.min((n.people||[]).length,6);
+    return Math.max(72,30+r*20+8);
   }
 
-  const tree = buildNode(root);
-
-  // ── Layout: compute subtree widths ────────────────────────────
-  const NW=165, H_GAP=14;
-
-  function nodeH(n){
-    if(n.type==='person') return 65;
-    const rows=Math.min(n.people.length,6);
-    return Math.max(72, 28+rows*20+8);
+  // Pass 1: subtree widths (bottom-up)
+  function calcW(n){
+    if(!n.children.length){n.subW=NW;return;}
+    n.children.forEach(calcW);
+    const tot=n.children.reduce((s,c)=>s+c.subW,0)+HGAP*(n.children.length-1);
+    n.subW=Math.max(NW,tot);
   }
 
-  function computeW(n){
-    if(!n.children.length){ n.subW=NW; return; }
-    n.children.forEach(computeW);
-    const total=n.children.reduce((s,c)=>s+c.subW,0)+H_GAP*(n.children.length-1);
-    n.subW=Math.max(NW,total);
-  }
-
-  // ── Layout: assign positions ──────────────────────────────────
-  const V_GAP=70;
-  function assignPos(n, x, y){
+  // Pass 2: assign positions (top-down)
+  function place(n,x,y){
     n.y=y;
-    if(!n.children.length){
-      n.x=x+n.subW/2; return;
-    }
+    if(!n.children.length){n.x=x+n.subW/2;return;}
     let cx=x;
-    n.children.forEach(c=>{
-      assignPos(c, cx, y+nodeH(n)+V_GAP);
-      cx+=c.subW+H_GAP;
-    });
+    n.children.forEach(c=>{place(c,cx,y+nh(n)+VGAP);cx+=c.subW+HGAP;});
     n.x=Math.round((n.children[0].x+n.children[n.children.length-1].x)/2);
   }
 
-  computeW(tree);
-  assignPos(tree, 10, 15);
+  calcW(tree); place(tree,10,15);
 
-  // ── Compute SVG bounds ────────────────────────────────────────
-  let maxX=0, maxY=0;
+  // SVG bounds
+  let maxX=0,maxY=0;
   function bounds(n){
-    maxX=Math.max(maxX, n.x+NW/2+10);
-    maxY=Math.max(maxY, n.y+nodeH(n)+10);
+    maxX=Math.max(maxX,n.x+NW/2+10);
+    maxY=Math.max(maxY,n.y+nh(n)+10);
     n.children.forEach(bounds);
   }
   bounds(tree);
+  const W=Math.ceil(maxX), H=Math.ceil(maxY);
 
-  // ── SVG helpers ───────────────────────────────────────────────
-  const ln=(x1,y1,x2,y2,col='#5aad44',sw=1.5)=>
-    `<line x1="${Math.round(x1)}" y1="${Math.round(y1)}" x2="${Math.round(x2)}" y2="${Math.round(y2)}" stroke="${col}" stroke-width="${sw}" stroke-linecap="round"/>`;
+  // ── SVG helpers ───────────────────────────────────────────────────
+  const ln=(x1,y1,x2,y2)=>`<line x1="${Math.round(x1)}" y1="${Math.round(y1)}" x2="${Math.round(x2)}" y2="${Math.round(y2)}" stroke="#5aad44" stroke-width="1.5" stroke-linecap="round"/>`;
 
-  function personBox(n){
-    const {x,y,data:p,depth}=n, h=nodeH(n);
-    const bx=x-NW/2;
-    const isRoot=depth===0;
-    const bgFill=isRoot?'#1a3d10':'#fff';
-    const borderCol=isRoot?'#f0a500':'#2e7020';
-    const hdrFill=isRoot?'#f0a500':'#2e7020';
-    const nameFill=isRoot?'#1a3d10':'#fff';
-    const roleFill=isRoot?'#9bbf8a':'#5a6a52';
-    return `<rect x="${bx}" y="${y}" width="${NW}" height="${h}" rx="8" fill="${bgFill}" stroke="${borderCol}" stroke-width="${isRoot?2.5:2}"/>
-<rect x="${bx}" y="${y}" width="${NW}" height="26" rx="8" fill="${hdrFill}"/>
-<rect x="${bx}" y="${y+18}" width="${NW}" height="8" rx="0" fill="${hdrFill}"/>
-<text x="${x}" y="${y+14}" font-size="11" font-weight="700" fill="${nameFill}" text-anchor="middle" dominant-baseline="middle">${esc(p.name)}</text>
-<text x="${x}" y="${y+40}" font-size="9" fill="${roleFill}" text-anchor="middle" dominant-baseline="middle">${esc(p.role||'')}</text>`;
+  function drawPerson(n){
+    const bx=n.x-NW/2, h=nh(n), isRoot=n.depth===0;
+    const bg=isRoot?'#1a3d10':'#fff';
+    const bc=isRoot?'#f0a500':'#2e7020';
+    const hf=isRoot?'#f0a500':'#2e7020';
+    const nf=isRoot?'#1a3d10':'#fff';
+    const rf=isRoot?'#9bbf8a':'#5a6a52';
+    return `<rect x="${bx}" y="${n.y}" width="${NW}" height="${h}" rx="8" fill="${bg}" stroke="${bc}" stroke-width="${isRoot?2.5:2}"/>
+<rect x="${bx}" y="${n.y}" width="${NW}" height="26" rx="8" fill="${hf}"/>
+<rect x="${bx}" y="${n.y+18}" width="${NW}" height="8" fill="${hf}"/>
+<text x="${n.x}" y="${n.y+14}" font-size="11" font-weight="700" fill="${nf}" text-anchor="middle" dominant-baseline="middle">${esc(n.data.name)}</text>
+<text x="${n.x}" y="${n.y+42}" font-size="9" fill="${rf}" text-anchor="middle" dominant-baseline="middle">${esc(n.data.role||'')}</text>`;
   }
 
-  function deptBox(n){
-    const {x,y,data:d,people}=n, h=nodeH(n);
-    const bx=x-NW/2;
-    let s=`<rect x="${bx}" y="${y}" width="${NW}" height="${h}" rx="8" fill="#fff" stroke="#2e7020" stroke-width="1.5"/>
-<rect x="${bx}" y="${y}" width="${NW}" height="24" rx="8" fill="#245818"/>
-<rect x="${bx}" y="${y+16}" width="${NW}" height="8" rx="0" fill="#245818"/>
-<text x="${x}" y="${y+13}" font-size="10" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="middle">${esc(d.name)}</text>`;
-    people.slice(0,6).forEach((p,i)=>{
-      const py=y+30+i*20;
+  function drawDept(n){
+    const bx=n.x-NW/2, h=nh(n);
+    let s=`<rect x="${bx}" y="${n.y}" width="${NW}" height="${h}" rx="8" fill="#fff" stroke="#2e7020" stroke-width="1.5"/>
+<rect x="${bx}" y="${n.y}" width="${NW}" height="24" rx="8" fill="#245818"/>
+<rect x="${bx}" y="${n.y+16}" width="${NW}" height="8" fill="#245818"/>
+<text x="${n.x}" y="${n.y+13}" font-size="10" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="middle">${esc(n.data.name)}</text>`;
+    (n.people||[]).slice(0,6).forEach((p,i)=>{
+      const py=n.y+30+i*20;
       const star=p.isManager?'★ ':'';
-      s+=`<text x="${x}" y="${py}" font-size="9" font-weight="${p.isManager?600:400}" fill="#1a3d10" text-anchor="middle" dominant-baseline="middle">${esc(star+p.name)}</text>`;
-      if(p.role) s+=`<text x="${x}" y="${py+11}" font-size="8" fill="#7a9a6a" text-anchor="middle" dominant-baseline="middle">${esc(p.role)}</text>`;
+      s+=`<text x="${n.x}" y="${py}" font-size="9" font-weight="${p.isManager?600:400}" fill="#1a3d10" text-anchor="middle" dominant-baseline="middle">${esc(star+p.name)}</text>`;
     });
-    if(people.length>6) s+=`<text x="${x}" y="${y+h-8}" font-size="8" fill="#9bbf8a" text-anchor="middle" dominant-baseline="middle">+${people.length-6} more</text>`;
+    if((n.people||[]).length>6) s+=`<text x="${n.x}" y="${n.y+h-8}" font-size="8" fill="#9bbf8a" text-anchor="middle">+${n.people.length-6} more</text>`;
     return s;
   }
 
-  // ── Render tree recursively ───────────────────────────────────
+  // ── Render: connectors first, boxes on top ────────────────────────
   let connSVG='', boxSVG='';
-
   function render(n){
     if(n.children.length){
-      const nh=nodeH(n);
-      const barY=n.y+nh+Math.round(V_GAP/2);
-      connSVG+=ln(n.x, n.y+nh, n.x, barY);
-      if(n.children.length>1){
-        connSVG+=ln(n.children[0].x, barY, n.children[n.children.length-1].x, barY);
-      }
-      n.children.forEach(c=>{
-        connSVG+=ln(c.x, barY, c.x, c.y);
-        render(c);
-      });
+      const barY=n.y+nh(n)+Math.round(VGAP/2);
+      connSVG+=ln(n.x,n.y+nh(n),n.x,barY);
+      if(n.children.length>1) connSVG+=ln(n.children[0].x,barY,n.children[n.children.length-1].x,barY);
+      n.children.forEach(c=>{connSVG+=ln(c.x,barY,c.x,c.y);render(c);});
     }
-    boxSVG+= n.type==='person' ? personBox(n) : deptBox(n);
+    boxSVG+=n.type==='person'?drawPerson(n):drawDept(n);
   }
-
   render(tree);
 
-  const svg=`<svg viewBox="0 0 ${Math.ceil(maxX)} ${Math.ceil(maxY)}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:'Segoe UI',Arial,sans-serif;display:block">${connSVG}${boxSVG}</svg>`;
-  document.getElementById('org-tree').innerHTML=svg;
-}set="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MES Power Engineering — Operating Model</title>
-<style>
-:root {
-  --g900:#0d2409; --g800:#1a3d10; --g700:#245818; --g600:#2e7020;
-  --g500:#3a8828; --g400:#5aad44; --g300:#8ecb72; --g100:#e8f5e2; --g50:#f4faf1;
-  --amber:#f0a500; --red:#d93025; --blue:#1a5fa8; --blue-lt:#e3f0ff;
-  --text:#1a1a1a; --text-lt:#5a6a52; --border:#cddbc5; --white:#fff;
-  --shadow:0 2px 10px rgba(0,0,0,.12); --radius:10px;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--g50);color:var(--text);min-height:100vh}
-
-/* ── HEADER ── */
-.hdr{background:var(--g800);color:#fff;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-shadow:0 2px 8px rgba(0,0,0,.35);position:sticky;top:0;z-index:50}
-.hdr-left{display:flex;align-items:center;gap:12px}
-.hdr-logo{width:36px;height:36px;border-radius:50%;overflow:hidden;background:white;display:flex;align-items:center;justify-content:center}
-.hdr-logo img{width:32px;height:32px;object-fit:contain}
-.hdr-title{font-size:15px;font-weight:700;letter-spacing:.2px}
-.hdr-sub{font-size:11px;color:var(--g300);margin-top:1px}
-.hdr-right{display:flex;gap:8px;align-items:center}
-.sync-status{font-size:11px;color:var(--g300);display:flex;align-items:center;gap:5px}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--g400)}
-.sync-dot.saving{background:var(--amber);animation:pulse .8s infinite}
-.sync-dot.error{background:var(--red)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-
-/* ── LAYOUT ── */
-.layout{display:flex;height:calc(100vh - 54px)}
-.sidebar{width:190px;background:var(--g900);flex-shrink:0;overflow-y:auto;padding:10px 0}
-.nav-section{font-size:10px;font-weight:700;color:var(--g400);text-transform:uppercase;letter-spacing:1px;padding:12px 16px 4px}
-.nav-item{display:flex;align-items:center;gap:9px;padding:9px 16px;cursor:pointer;color:#9bbf8a;font-size:13px;font-weight:500;border-left:3px solid transparent;transition:.15s;white-space:nowrap}
-.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
-.nav-item.active{background:var(--g800);color:#fff;border-left-color:var(--amber)}
-.nav-icon{font-size:15px;width:17px;text-align:center}
-.main{flex:1;overflow-y:auto;padding:24px}
-.view{display:none}.view.active{display:block}
-
-/* ── PAGE HEADER ── */
-.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
-.ph-title{font-size:19px;font-weight:800;color:var(--g800)}
-.ph-sub{font-size:12px;color:var(--text-lt);margin-top:3px}
-.ph-actions{display:flex;gap:8px;flex-wrap:wrap}
-
-/* ── BUTTONS ── */
-.btn{padding:7px 16px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:.15s;display:inline-flex;align-items:center;gap:5px}
-.btn-primary{background:var(--g600);color:#fff}.btn-primary:hover{background:var(--g700)}
-.btn-outline{background:#fff;color:var(--g700);border:1.5px solid var(--g600)}.btn-outline:hover{background:var(--g50)}
-.btn-danger{background:var(--red);color:#fff}
-.btn-ghost{background:transparent;color:var(--g700);border:1px solid var(--border)}.btn-ghost:hover{background:var(--g50)}
-.btn-amber{background:var(--amber);color:#fff}
-.btn-sm{padding:4px 10px;font-size:12px;border-radius:5px}
-.btn-icon{padding:4px 8px;font-size:13px;border-radius:5px}
-
-/* ── TABLES ── */
-.tbl-wrap{background:#fff;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow)}
-table{width:100%;border-collapse:collapse;font-size:13px}
-thead tr{background:var(--g800);color:#fff}
-th{padding:10px 14px;text-align:left;font-weight:600;font-size:11px;letter-spacing:.5px;white-space:nowrap}
-td{padding:8px 14px;border-bottom:1px solid #edf2e8;vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--g50)}
-
-/* ── TAGS ── */
-.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;line-height:1.4}
-.tg{background:var(--g100);color:var(--g800)}
-.ta{background:#fff3d6;color:#7a5000}
-.tb{background:var(--blue-lt);color:var(--blue)}
-.tr{background:#fdecea;color:#c62828}
-.tgr{background:#f0f0f0;color:#555}
-
-/* ── FILTER BAR ── */
-.fbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
-.search-wrap{position:relative;flex:1;min-width:180px;max-width:300px}
-.search-wrap input{width:100%;padding:7px 10px 7px 30px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff}
-.search-wrap::before{content:'🔍';position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none}
-select.fsel{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff}
-
-/* ── SUB TABS ── */
-.stabs{display:flex;gap:2px;margin-bottom:14px;background:#fff;border-radius:8px;padding:4px;border:1px solid var(--border);width:fit-content}
-.stab{padding:5px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-lt);transition:.15s}
-.stab.active{background:var(--g700);color:#fff}
-.stab:hover:not(.active){background:var(--g50)}
-
-/* ── STATS ── */
-.stats{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap}
-.stat{background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px 18px;min-width:110px}
-.stat-n{font-size:26px;font-weight:800;color:var(--g700)}
-.stat-l{font-size:10px;color:var(--text-lt);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
-
-/* ── ORG CHART ── */
-#org-print-area{padding:20px}
-.org-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--g700)}
-.org-header-left{display:flex;align-items:center;gap:14px}
-.org-header-logo{width:52px;height:52px;border-radius:50%;overflow:hidden;background:white;border:2px solid var(--g600)}
-.org-header-logo img{width:48px;height:48px;object-fit:contain}
-.org-header-title{font-size:22px;font-weight:800;color:var(--g800)}
-.org-header-sub{font-size:12px;color:var(--text-lt);margin-top:2px}
-.org-date{font-size:13px;font-weight:600;color:var(--g700);background:var(--g100);padding:6px 14px;border-radius:20px}
-
-/* CSS Tree */
-.tree{overflow-x:auto;padding:10px 20px 30px}
-.tree ul{display:flex;flex-direction:row;list-style:none;padding-top:28px;position:relative;transition:.5s}
-.tree ul::before{content:'';position:absolute;top:0;left:50%;border-left:2px solid var(--g400);height:28px;width:0}
-.tree li{display:flex;flex-direction:column;align-items:center;position:relative;padding:0 8px}
-.tree li::before,.tree li::after{content:'';position:absolute;top:0;right:50%;width:50%;height:28px;border-top:2px solid var(--g400)}
-.tree li::after{right:auto;left:50%;border-left:2px solid var(--g400)}
-.tree li:only-child::before,.tree li:only-child::after{display:none}
-.tree li:first-child::before,.tree li:last-child::after{border:0 none}
-.tree li:first-child::after{border-radius:6px 0 0 0}
-.tree li:last-child::before{border-radius:0 6px 0 0}
-.tree li:only-child{padding-top:0}
-
-/* Node cards */
-.org-node{border-radius:10px;min-width:140px;max-width:200px;text-align:center;box-shadow:var(--shadow);position:relative;cursor:default}
-.org-node-board{background:var(--g800);color:#fff;border:2px solid var(--amber);padding:12px 16px}
-.org-node-director{background:var(--g700);color:#fff;border:2px solid var(--g500);padding:10px 14px}
-.org-node-dept{background:#fff;border:2px solid var(--g500);padding:10px 14px}
-.org-node-person{background:#fff;border:2px solid var(--border);padding:8px 12px}
-.org-node-title{font-size:12px;font-weight:700;line-height:1.3}
-.org-node-role{font-size:10px;opacity:.8;margin-top:2px}
-.org-node-people{margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.2);font-size:10px;line-height:1.5;text-align:left}
-.org-node-dept .org-node-people{border-top-color:var(--border);color:var(--text-lt)}
-.org-node-dept .org-node-title{color:var(--g800)}
-.org-node-dept .org-node-role{color:var(--text-lt)}
-.org-node-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;justify-content:center}
-.org-badge{font-size:9px;padding:1px 6px;border-radius:8px;background:rgba(255,255,255,.2);color:#fff;white-space:nowrap}
-.org-node-dept .org-badge{background:var(--g100);color:var(--g800)}
-
-/* ── RACI ── */
-.raci-wrap{overflow:auto;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow)}
-.raci-tbl thead{overflow:visible}
-.raci-tbl{border-collapse:collapse;font-size:11px;background:#fff;white-space:nowrap}
-.raci-tbl th{background:var(--g800);color:#fff;padding:8px 10px;font-size:10px;letter-spacing:.3px;position:sticky;top:0;z-index:2}
-.raci-tbl th.act-col{text-align:left;position:sticky;left:0;z-index:3;min-width:220px;max-width:270px;white-space:normal}
-.raci-tbl td{padding:5px 8px;border-bottom:1px solid #edf2e8;border-right:1px solid #edf2e8;text-align:center}
-.raci-tbl td.act-cell{text-align:left;background:#f8fdf5;position:sticky;left:0;z-index:1;padding:5px 10px;max-width:270px;white-space:normal;font-weight:500;font-size:12px}
-.raci-tbl tr:hover td{background:var(--g50)}.raci-tbl tr:hover td.act-cell{background:var(--g100)}
-.raci-head-role{writing-mode:vertical-rl;transform:rotate(180deg);height:130px;min-width:28px;font-size:10px;vertical-align:bottom;padding:4px 6px!important;cursor:default;overflow:visible;white-space:nowrap}
-.rb{display:inline-block;width:22px;height:22px;border-radius:4px;font-size:11px;font-weight:800;line-height:22px;cursor:pointer;user-select:none;transition:.1s}
-.rb-R{background:#2e7020;color:#fff}.rb-A{background:var(--amber);color:#fff}
-.rb-C{background:var(--blue);color:#fff}.rb-I{background:#777;color:#fff}
-.rb-empty{background:#eee;color:#bbb;font-size:9px}
-.raci-legend{display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap}
-.rl{display:flex;align-items:center;gap:5px;font-size:12px}
-
-/* ── MODAL ── */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center}
-.modal-bg.open{display:flex}
-.modal{background:#fff;border-radius:12px;width:540px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.modal-hdr{background:var(--g800);color:#fff;padding:15px 20px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between}
-.modal-hdr h3{font-size:15px;font-weight:700}
-.modal-x{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1}
-.modal-body{padding:20px}
-.modal-ftr{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
-.fr{margin-bottom:14px}
-.fl{display:block;font-size:11px;font-weight:700;color:var(--text-lt);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
-.fi{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px}
-.fi:focus{outline:none;border-color:var(--g500);box-shadow:0 0 0 3px rgba(58,136,40,.15)}
-textarea.fi{min-height:65px;resize:vertical}
-
-
-
-/* ── NOTICE ── */
-.notice{background:#fff3d6;border:1px solid #f0c060;border-radius:8px;padding:9px 14px;font-size:12px;color:#7a5000;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
-
-/* ── LINK ── */
-.sop-link{color:var(--g700);text-decoration:underline;font-size:12px;cursor:pointer}
-.sop-link:hover{color:var(--g500)}
-.sop-add{font-size:11px;color:#bbb;cursor:pointer;font-style:italic}
-.sop-add:hover{color:var(--g600)}
-
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-
-/* ── PRINT ── */
-@media print{
-  .sidebar,.hdr,.ph-actions,.fbar,.stabs,.modal-bg,.setup-screen,.no-print{display:none!important}
-  .layout{display:block;height:auto}
-  .main{padding:0;overflow:visible}
-  .view{display:none!important}
-  #view-orgchart{display:block!important}
-  #org-print-area{padding:10px}
-  .tree{overflow:visible}
-  .org-node{break-inside:avoid}
-  body{background:#fff}
-  @page{size:A3 landscape;margin:8mm}
-  #org-tree svg{width:100%!important;height:auto!important;max-height:none!important}
-}
-</style>
-</head>
-<body>
-
-
-<!-- HEADER -->
-<div class="hdr">
-  <div class="hdr-left">
-    <div class="hdr-logo"><img src="data:image/png;base64,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" alt="MES Logo"></div>
-    <div>
-      <div class="hdr-title">MES Power Engineering</div>
-      <div class="hdr-sub">Operating Model</div>
-    </div>
-  </div>
-  <div class="hdr-right">
-    <div class="sync-status"><span class="sync-dot" id="sync-dot"></span><span id="sync-text">Ready</span></div>
-    <button class="btn btn-ghost btn-sm no-print" onclick="manualSync()">↻ Sync</button>
-    <button class="btn btn-ghost btn-sm no-print" onclick="printOrgChart()">🖨 Print Org Chart</button>
-    
-  </div>
-</div>
-
-<div class="layout">
-<div class="sidebar">
-  <div class="nav-section">Structure</div>
-  <div class="nav-item active" id="nav-orgchart" onclick="showView('orgchart',this)"><span class="nav-icon">🏢</span> Org Chart</div>
-  <div class="nav-item" id="nav-departments" onclick="showView('departments',this)"><span class="nav-icon">📁</span> Departments</div>
-  <div class="nav-item" id="nav-roles" onclick="showView('roles',this)"><span class="nav-icon">🎖</span> Roles</div>
-  <div class="nav-item" id="nav-people" onclick="showView('people',this)"><span class="nav-icon">👥</span> People</div>
-  <div class="nav-section">Processes</div>
-  <div class="nav-item" id="nav-coreprocesses" onclick="showView('coreprocesses',this)"><span class="nav-icon">🔄</span> Core Processes</div>
-  <div class="nav-item" id="nav-processcontrols" onclick="showView('processcontrols',this)"><span class="nav-icon">⚙️</span> Process Controls</div>
-  <div class="nav-section">Analysis</div>
-  <div class="nav-item" id="nav-raci" onclick="showView('raci',this)"><span class="nav-icon">📊</span> RACI Matrix</div>
-</div>
-
-<div class="main">
-
-<!-- ORG CHART VIEW -->
-<div id="view-orgchart" class="view active">
-  <div class="ph no-print">
-    <div><div class="ph-title">Organogram</div><div class="ph-sub">Reporting structure — edit People & Departments to update</div></div>
-    <div class="ph-actions">
-      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('org-date-input').showPicker?.() || document.getElementById('org-date-input').focus()">📅 Change Date</button>
-      <input type="month" id="org-date-input" style="display:none" onchange="updateOrgDate(this.value)">
-      <button class="btn btn-amber btn-sm" onclick="printOrgChart()">🖨 Print / Export PDF</button>
-    </div>
-  </div>
-  <div id="org-print-area">
-    <div class="org-header">
-      <div class="org-header-left">
-        <div class="org-header-logo"><img src="data:image/png;base64,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" alt="MES"></div>
-        <div>
-          <div class="org-header-title">MES Power Engineering</div>
-          <div class="org-header-sub">Organisation Chart — Operating Model</div>
-        </div>
-      </div>
-      <div class="org-date" id="org-date-display">May 2026</div>
-    </div>
-    <div class="tree" id="org-tree"></div>
-  </div>
-</div>
-
-<!-- DEPARTMENTS -->
-<div id="view-departments" class="view">
-  <div class="ph"><div><div class="ph-title">Departments</div><div class="ph-sub">Business units and reporting structure</div></div>
-  <button class="btn btn-primary" onclick="openModal('dept')">+ Add Department</button></div>
-  <div id="dept-stats" class="stats"></div>
-  <div class="tbl-wrap"><table><thead><tr><th>Department</th><th>Reports To Person</th><th>Roles</th><th>Headcount</th><th></th></tr></thead><tbody id="dept-tbody"></tbody></table></div>
-</div>
-
-<!-- ROLES -->
-<div id="view-roles" class="view">
-  <div class="ph"><div><div class="ph-title">Roles</div><div class="ph-sub">All positions across the business (24 total)</div></div>
-  <button class="btn btn-primary" onclick="openModal('role')">+ Add Role</button></div>
-  <div class="fbar">
-    <div class="search-wrap"><input id="role-search" oninput="renderRoles()" placeholder="Search roles…"></div>
-    <select id="role-dept-filter" class="fsel" onchange="renderRoles()"><option value="">All Departments</option></select>
-  </div>
-  <div class="tbl-wrap"><table><thead><tr><th>Role</th><th>Department</th><th>Level</th><th>Current Holder(s)</th><th></th></tr></thead><tbody id="roles-tbody"></tbody></table></div>
-</div>
-
-<!-- PEOPLE -->
-<div id="view-people" class="view">
-  <div class="ph"><div><div class="ph-title">People</div><div class="ph-sub">Employees and role assignments</div></div>
-  <button class="btn btn-primary" onclick="openModal('person')">+ Add Person</button></div>
-  <div class="fbar">
-    <div class="search-wrap"><input id="ppl-search" oninput="renderPeople()" placeholder="Search people…"></div>
-    <select id="ppl-dept-filter" class="fsel" onchange="renderPeople()"><option value="">All Departments</option></select>
-  </div>
-  <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Primary Role</th><th>Department</th><th>Reports To</th><th>Level</th><th>Status</th><th></th></tr></thead><tbody id="ppl-tbody"></tbody></table></div>
-</div>
-
-<!-- CORE PROCESSES -->
-<div id="view-coreprocesses" class="view">
-  <div class="ph"><div><div class="ph-title">Core Processes</div><div class="ph-sub">The 7 end-to-end business processes</div></div>
-  <button class="btn btn-primary" onclick="openModal('coreprocess')">+ Add Process</button></div>
-  <div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Process Name</th><th>Purpose</th><th>Controls</th><th></th></tr></thead><tbody id="cp-tbody"></tbody></table></div>
-</div>
-
-<!-- PROCESS CONTROLS -->
-<div id="view-processcontrols" class="view">
-  <div class="ph"><div><div class="ph-title">Process Controls</div><div class="ph-sub" id="pc-count"></div></div>
-  <button class="btn btn-primary" onclick="openModal('pc')">+ Add Control</button></div>
-  <div class="notice">📎 Click <strong>+ Add link</strong> on any row to paste a SharePoint URL. Links open directly in browser.</div>
-  <div class="stabs">
-    <div class="stab active" onclick="setPCTab('all',this)">All</div>
-    <div class="stab" onclick="setPCTab('procedure',this)">📄 Procedures / SOPs</div>
-    <div class="stab" onclick="setPCTab('expectation',this)">🎯 Role Expectations</div>
-    <div class="stab" onclick="setPCTab('control',this)">⚙️ Process Controls</div>
-  </div>
-  <div class="fbar">
-    <div class="search-wrap"><input id="pc-search" oninput="renderPCs()" placeholder="Search activities…"></div>
-    <select id="pc-role-f" class="fsel" onchange="renderPCs()"><option value="">All Roles</option></select>
-    <select id="pc-cp-f" class="fsel" onchange="renderPCs()"><option value="">All Core Processes</option></select>
-    <select id="pc-cat-f" class="fsel" onchange="renderPCs()"><option value="">All Categories</option></select>
-  </div>
-  <div class="tbl-wrap"><table><thead><tr><th>Activity</th><th>Type</th><th>Category</th><th>Core Process</th><th>Owner Role</th><th>Owner</th><th>SharePoint Link</th><th>Freq.</th><th></th></tr></thead><tbody id="pc-tbody"></tbody></table></div>
-</div>
-
-<!-- RACI -->
-<div id="view-raci" class="view">
-  <div class="ph"><div><div class="ph-title">RACI Matrix</div><div class="ph-sub">Click any cell to cycle R → A → C → I → empty</div></div>
-  <select id="raci-cp-f" class="fsel" onchange="renderRaci()"><option value="">All Core Processes</option></select></div>
-  <div class="raci-legend">
-    <div class="rl"><span class="rb rb-R">R</span> Responsible</div>
-    <div class="rl"><span class="rb rb-A">A</span> Accountable</div>
-    <div class="rl"><span class="rb rb-C">C</span> Consulted</div>
-    <div class="rl"><span class="rb rb-I">I</span> Informed</div>
-  </div>
-  <div class="raci-wrap"><div id="raci-container"></div></div>
-</div>
-
-</div><!-- /main -->
-</div><!-- /layout -->
-
-<!-- MODAL -->
-<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <div class="modal-hdr"><h3 id="modal-title"></h3><button class="modal-x" onclick="closeModal()">✕</button></div>
-    <div class="modal-body" id="modal-body"></div>
-    <div class="modal-ftr">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-danger" id="modal-del" style="display:none" onclick="modalDel()">Delete</button>
-      <button class="btn btn-primary" onclick="modalSave()">Save</button>
-    </div>
-  </div>
-</div>
-
-<script>
-// ═══════════════════════════════════════════════
-// CLOUDFLARE WORKER API
-// ═══════════════════════════════════════════════
-// 👇 Change these two lines after deploying your Worker
-const WORKER_URL = 'https://mes-operating-model.mes-bot.workers.dev';
-const WRITE_KEY  = 'MES-internal-2026';
-
-let saveTimer = null;
-
-function setSyncStatus(state, text) {
-  const dot = document.getElementById('sync-dot');
-  const txt = document.getElementById('sync-text');
-  dot.className = 'sync-dot' + (state === 'saving' ? ' saving' : state === 'error' ? ' error' : '');
-  txt.textContent = text;
-}
-
-async function loadFromWorker() {
-  setSyncStatus('saving', 'Loading…');
-  try {
-    const res = await fetch(WORKER_URL, { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const d = await res.json();
-    setSyncStatus('ok', 'Live');
-    return d && d.departments ? d : null;
-  } catch (e) {
-    setSyncStatus('error', 'Offline — using local');
-    console.warn('Worker load failed:', e);
-    return null;
-  }
-}
-
-async function saveToWorker() {
-  setSyncStatus('saving', 'Saving…');
-  try {
-    const res = await fetch(WORKER_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Write-Key': WRITE_KEY },
-      body: JSON.stringify(data)
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    setSyncStatus('ok', 'Saved ✓');
-  } catch (e) {
-    setSyncStatus('error', 'Save failed');
-    console.warn('Worker save failed:', e);
-  }
-}
-
-function scheduleSave() {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => saveToWorker(), 1200);
-}
-
-async function manualSync() {
-  const d = await loadFromWorker();
-  if (d) { data = d; renderAll(); }
-}
-
-// Stub — not used with Worker approach
-function showSetup() {
-  alert('Edit WORKER_URL and WRITE_KEY at the top of the HTML script to change the data endpoint.');
-}
-
-// ═══════════════════════════════════════════════
-// DEFAULT DATA
-// ═══════════════════════════════════════════════
-const DEFAULT = {
-  orgDate: 'May 2026',
-  departments:[
-    {id:'d1',name:'Directors',          reportsTo:'',         reportsToPerson:''},
-    {id:'d2',name:'Quotes & Design',    reportsTo:'Directors',reportsToPerson:'Neil McKenzie'},
-    {id:'d3',name:'Commercial',         reportsTo:'Directors',reportsToPerson:'Neil McKenzie'},
-    {id:'d4',name:'Projects',           reportsTo:'Directors',reportsToPerson:'Mark Stevenson'},
-    {id:'d5',name:'Accounts',           reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'},
-    {id:'d6',name:'SHEQ',               reportsTo:'Directors',reportsToPerson:'Neil McKenzie'},
-    {id:'d7',name:'HR & People',        reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'},
-    {id:'d8',name:'Facilities Management',reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'},
-    {id:'d9',name:'Business Support',   reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'}
-  ],
-  roles:[
-    {id:'r1',name:'CEO',dept:'Directors',order:0},
-    {id:'r2',name:'Finance Director',dept:'Directors',order:10},
-    {id:'r3',name:'Managing Director',dept:'Directors',order:20},
-    {id:'r4',name:'Business Support Manager',dept:'Business Support',order:30},
-    {id:'r5',name:'SHEQ Manager',dept:'SHEQ',order:30},
-    {id:'r6',name:'People & Culture (HR)',dept:'HR & People',order:30},
-    {id:'r7',name:'General Manager',dept:'Projects',order:30},
-    {id:'r8',name:'Design Manager',dept:'Quotes & Design',order:30},
-    {id:'r9',name:'Commercial Manager',dept:'Commercial',order:30},
-    {id:'r10',name:'Management Accountant',dept:'Accounts',order:40},
-    {id:'r11',name:'Project Engineer',dept:'Projects',order:49},
-    {id:'r12',name:'Assessing Officer',dept:'Projects',order:49},
-    {id:'r13',name:'Electrical Engineer',dept:'Projects',order:50},
-    {id:'r14',name:'Project Manager',dept:'Projects',order:50},
-    {id:'r15',name:'FM Manager',dept:'Facilities Management',order:50},
-    {id:'r16',name:'Site Manager',dept:'Projects',order:50},
-    {id:'r17',name:'Estimator',dept:'Quotes & Design',order:50},
-    {id:'r18',name:'Chargehand',dept:'Projects',order:60},
-    {id:'r19',name:'Project Co-Ordinator',dept:'Projects',order:70},
-    {id:'r20',name:'Craftsman',dept:'Projects',order:70},
-    {id:'r21',name:'Admin Support',dept:'Business Support',order:70},
-    {id:'r22',name:'Craft Assistant',dept:'Projects',order:80},
-    {id:'r23',name:'Trainee Electrical',dept:'Projects',order:80},
-    {id:'r24',name:'Accounting (External)',dept:'Accounts',order:100}
-  ],
-  people:[
-    {id:'p1', name:'Neil McKenzie',    role:'Managing Director', dept:'Directors',           reportsTo:'',               status:'Active'},
-    {id:'p2', name:'Amanda McKenzie',  role:'Finance Director',  dept:'Directors',           reportsTo:'Neil McKenzie',  status:'Active'},
-    {id:'p3', name:'Andrea Moir',      role:'SHEQ Manager',      dept:'SHEQ',                reportsTo:'Neil McKenzie',  status:'Active'},
-    {id:'p4', name:'Ewan Bennett',     role:'Commercial Manager', dept:'Commercial',         reportsTo:'Neil McKenzie',  status:'Active'},
-    {id:'p5', name:'Luca Ivory-Hunter',role:'Commercial Manager', dept:'Commercial',         reportsTo:'Neil McKenzie',  status:'Active'},
-    {id:'p6', name:'Jamie Taylor',     role:'Design Manager',    dept:'Quotes & Design',     reportsTo:'Neil McKenzie',  status:'Active'},
-    {id:'p7', name:'Mark Stevenson',   role:'General Manager',   dept:'Projects',            reportsTo:'Neil McKenzie',  status:'Active'},
-    {id:'p8', name:'Chris Todd',       role:'Project Engineer',  dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p9', name:'Ethan McKenzie',   role:'Project Engineer',  dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p10',name:'Luke Mutch',       role:'Project Co-Ordinator',dept:'Projects',          reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p11',name:'Liam Duthie',      role:'Project Co-Ordinator',dept:'Projects',          reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p12',name:'Dion Moutrey',     role:'Site Manager',      dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p13',name:'Alan Bowie',       role:'Craftsman',         dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p14',name:'Oakley Allan-Cooper',role:'Craft Assistant', dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p15',name:'Josh Anderson',    role:'Trainee Electrical', dept:'Projects',           reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p16',name:'Alan Shepherd',    role:'Trainee Electrical', dept:'Projects',           reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p17',name:'Neil Ritchie',     role:'Chargehand',        dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p18',name:'Josh Anderson',    role:'Admin Support',     dept:'Business Support',    reportsTo:'Amanda McKenzie',status:'Active'},
-    {id:'p19',name:'Luca Ivory-Hunter',role:'Estimator',         dept:'Quotes & Design',     reportsTo:'Jamie Taylor',   status:'Active'}
-  ],
-  coreProcesses:[
-    {id:'cp1',code:'CP-0001',name:'Bid / Estimate to Contract', purpose:'To secure commercially viable contracts'},
-    {id:'cp2',code:'CP-0002',name:'Design',                      purpose:'Design management and approval process'},
-    {id:'cp3',code:'CP-0003',name:'Pre-Construction Planning',   purpose:'Planning and mobilisation of projects'},
-    {id:'cp4',code:'CP-0004',name:'Project Delivery',            purpose:'Execution and delivery of projects on site'},
-    {id:'cp5',code:'CP-0005',name:'Commissioning & Handover',    purpose:'Commissioning, testing and client handover'},
-    {id:'cp6',code:'CP-0006',name:'Commercial Close-Out',        purpose:'Financial close-out and final accounts'},
-    {id:'cp7',code:'CP-0007',name:'Governance & Compliance',     purpose:'Business governance and compliance management'}
-  ],
-  processControls:[
-    {id:'pc001',activity:'COSHH & data sheets',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Annually',notes:''},
-    {id:'pc002',activity:'DSE',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Annually',notes:''},
-    {id:'pc003',activity:'Reporting & analysis',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc004',activity:'HAVs',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc005',activity:'Site audits',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc006',activity:'Implementation & compliance with company practices',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc007',activity:'DVLA checks',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc008',activity:'First aid',type:'procedure',category:'Safety',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc009',activity:'PPE',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc010',activity:'SHEQ objectives & initiatives',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc011',activity:'NCRs',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc012',activity:'Tool box talks',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc013',activity:'Manage company BMS system',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc014',activity:'Environmental aspects & impacts',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc015',activity:'Vehicle weekly checks',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Weekly',notes:''},
-    {id:'pc016',activity:'Fire safety',type:'procedure',category:'Safety',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc017',activity:'Annual audit programme',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Annually',notes:''},
-    {id:'pc018',activity:'ISO 9001, 14001 & 45001 management',type:'procedure',category:'Systems',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc019',activity:'SHEQ legislation, standards & safe working practices',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc020',activity:'Manage SEAR + QAR databases',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc021',activity:'Subcontractor co-ordination (certification, admin etc.)',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc022',activity:'SHEQ awareness & compliance',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc023',activity:'Accidents, incidents & near misses',type:'procedure',category:'Safety',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc024',activity:'SHEQ KPI',type:'procedure',category:'Quality',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc025',activity:'Company objectives & metrics',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
-    {id:'pc026',activity:'Risks & opportunities',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
-    {id:'pc027',activity:'Company Insurances',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'Annually',notes:''},
-    {id:'pc028',activity:'Social media',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
-    {id:'pc029',activity:'Website & SEO',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
-    {id:'pc030',activity:'Sales & Business Development',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc031',activity:'CRM (Customer Relations Management)',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc032',activity:'Target markets & research',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc033',activity:'Competitor analysis',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc034',activity:'Enquiry received, info collated & lead added to ERP',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc035',activity:'Quotation started',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc036',activity:'Design requirements review',type:'procedure',category:'',coreProcess:'CP-0002 | Design',supportProcess:'',ownerRole:'Design Manager',ownerName:'Jamie Taylor',sopLink:'',frequency:'',notes:''},
-    {id:'pc037',activity:'High level project plan created (if required)',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc038',activity:'Prepare final quotation summary & submit to customer',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Estimator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc039',activity:'Project folder created (& docs copied over)',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc040',activity:'Design pack created & approved',type:'procedure',category:'',coreProcess:'CP-0002 | Design',supportProcess:'',ownerRole:'Design Manager',ownerName:'Jamie Taylor',sopLink:'',frequency:'',notes:''},
-    {id:'pc041',activity:'Project handover & convert quote to job in ERP',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc042',activity:'Credit control',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc043',activity:'Quote accepted, payment plan agreed & initial stage invoiced',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc044',activity:'Project Purchasing',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc045',activity:'Track changes / variations throughout',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc046',activity:'Monthly applications and progress claims',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc047',activity:'Stage Invoicing',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc048',activity:'Asset claims - Connections',type:'procedure',category:'',coreProcess:'CP-0005 | Commissioning & Handover',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc049',activity:'Prepare weekly invoicing for manager sign-off',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Weekly',notes:''},
-    {id:'pc050',activity:'Final Invoice',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc051',activity:'Design & drawings review and approval throughout',type:'procedure',category:'',coreProcess:'CP-0002 | Design',supportProcess:'',ownerRole:'Design Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc052',activity:'Site team checks (NERs, qualifications, training etc)',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'General Manager',ownerName:'Mark Stevenson',sopLink:'',frequency:'',notes:''},
-    {id:'pc053',activity:'Paperwork check (Issue)',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc054',activity:"Create PO's for project",type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc055',activity:'Goods receipting - GRN (Site)',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Site Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc056',activity:'Technical Audits (as per schedule)',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc057',activity:'Complete daily diary sheets',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Site Manager',ownerName:'',sopLink:'',frequency:'Daily',notes:''},
-    {id:'pc058',activity:'Site paperwork checked and signed off (Returns)',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc059',activity:'Project Close out - EPR',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc060',activity:'Project closeout meeting (with customer)',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc061',activity:'Customer feedback',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc062',activity:'Project Review / lessons learned held with team',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'General Manager',ownerName:'Mark Stevenson',sopLink:'',frequency:'',notes:''},
-    {id:'pc063',activity:'Site SHEQ Audits - as per SHEQ Audit Programme',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc064',activity:'Financial forecasting',type:'procedure',category:'',coreProcess:'CP-0007 | Governance & Compliance',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc065',activity:'Cashflow',type:'procedure',category:'',coreProcess:'CP-0007 | Governance & Compliance',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc066',activity:'PAT testing',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'Annually',notes:''},
-    {id:'pc067',activity:'Harness inspections',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc068',activity:'Calibrations',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc069',activity:'Goods receipting - GRN (Stores)',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc070',activity:'MES Asset management',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc071',activity:'Position agreed',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc072',activity:'Job Advertisement',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc073',activity:'Interview',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc074',activity:'Interview follow up responses sent',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc075',activity:'Offer made (include new start information requirements)',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc076',activity:'IT logins setup',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc077',activity:'Induction',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc078',activity:'Training & development plans & CPD',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc079',activity:'Performance management',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc080',activity:'Appraisals',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'Annually',notes:''},
-    {id:'pc081',activity:'Absence management',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc082',activity:'Disciplinaries & Grievances',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc083',activity:'Offboarding',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc101',activity:'Build client relationships',type:'expectation',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
-    {id:'pc102',activity:'EPR Management',type:'expectation',category:'',coreProcess:'',supportProcess:'SNCP-0005 | Business Support & Systems',ownerRole:'',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc103',activity:'Schedule price planning - 100% efficiency on programme',type:'expectation',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc104',activity:'Day to day works (Ongoing)',type:'expectation',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Site Manager',ownerName:'',sopLink:'',frequency:'Daily',notes:''},
-    {id:'pc105',activity:'Weekly project review (timesheets / programme / project plans)',type:'expectation',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'Weekly',notes:''},
-    {id:'pc106',activity:'Review daily diary sheets and resolve queries',type:'expectation',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'Daily',notes:''},
-    {id:'pc107',activity:'Collate & summarise weekly timesheet returns',type:'expectation',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'Weekly',notes:''},
-    {id:'pc108',activity:'Document control on project files',type:'expectation',category:'',coreProcess:'CP-0005 | Commissioning & Handover',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc109',activity:'Sales ledger',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc110',activity:'Purchase ledger',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc111',activity:'Payroll',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc112',activity:'VAT returns',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Quarterly',notes:''},
-    {id:'pc113',activity:'Management accounts',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc114',activity:'Stores & Yard Management',type:'expectation',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc115',activity:'Transport & Plant Management (Servicing; MOTs; Repairs)',type:'expectation',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc116',activity:'Equipment inspections, certification and repair',type:'expectation',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc201',activity:'RAMS created & approved',type:'control',category:'SHEQ',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc202',activity:"MSRA's Systems",type:'control',category:'SHEQ',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc203',activity:'Site induction / client induction',type:'control',category:'SHEQ',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'Site Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc204',activity:'Quality Plans - ITP (Inspection & Test Plan)',type:'control',category:'Quality',coreProcess:'CP-0004 | Project Delivery',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''}
-  ],
-  raci:{}
-};
-
-let data = JSON.parse(JSON.stringify(DEFAULT));
-let modalMode = null;
-let modalEditId = null;
-let pcTabFilter = 'all';
-let orgDateStr = 'May 2026';
-
-// ═══════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', () => {
-  // Load from Cloudflare Worker on startup — no setup needed for staff
-  loadFromWorker().then(d => {
-    if (d) data = d;
-    renderAll();
-  });
-});
-
-function renderAll(){
-  renderOrgChart();
-  renderDepts();
-  renderRoles();
-  renderPeople();
-  renderCPs();
-  renderPCs();
-  renderRaci();
-  populateFilters();
-}
-
-// ═══════════════════════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════════════════════
-function showView(name, el){
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('view-'+name).classList.add('active');
-  if(el) el.classList.add('active');
-}
-
-// ═══════════════════════════════════════════════
-// ORG CHART
-// ═══════════════════════════════════════════════
-function updateOrgDate(val){
-  if(!val) return;
-  const [yr, mo] = val.split('-');
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  orgDateStr = months[parseInt(mo)-1] + ' ' + yr;
-  data.orgDate = orgDateStr;
-  document.getElementById('org-date-display').textContent = orgDateStr;
-  scheduleSave();
-}
-
-function printOrgChart(){
-  showView('orgchart', document.getElementById('nav-orgchart'));
-  setTimeout(()=>window.print(), 200);
-}
-
-function renderOrgChart(){
-  if(data.orgDate) orgDateStr=data.orgDate;
-  document.getElementById('org-date-display').textContent=orgDateStr;
-
-  // ── Data ──────────────────────────────────────────────────────
-  const dp={};
-  data.people.forEach(p=>{ if(p.dept){if(!dp[p.dept])dp[p.dept]=[];dp[p.dept].push(p);} });
-
-  const allSorted=[...data.people].sort((a,b)=>(a.level??50)-(b.level??50));
-
-  // Top person = no reportsTo, lowest level — fallback to first person
-  const neil = allSorted.find(p=>!p.reportsTo)
-    || data.people.find(p=>p.name==='Neil McKenzie')
-    || {name:'Managing Director',role:'Managing Director'};
-
-  // Amanda = person who reports to neil and manages support depts
-  const supportDepts=['Accounts','Business Support','HR & People','Facilities Management'];
-  const amanda = data.people.find(p=>p.reportsTo===neil.name && supportDepts.includes(p.dept))
-    || data.people.find(p=>p.reportsTo===neil.name && data.people.some(r=>r.reportsTo===p.name && supportDepts.includes(r.dept)))
-    || data.people.find(p=>p.name==='Amanda McKenzie')
-    || {name:'Director',role:'Director'};
-
-  // Mark = GM of Projects — report to neil, in Projects dept, or lowest level in Projects
-  const mark = data.people.find(p=>p.reportsTo===neil.name && p.dept==='Projects')
-    || data.people.find(p=>p.name==='Mark Stevenson')
-    || [...(dp['Projects']||[])].sort((a,b)=>(a.level??50)-(b.level??50))[0]
-    || {name:'General Manager',role:'General Manager'};
-
-  const projTeam = (dp['Projects']||[]).filter(p=>p.name!==mark.name)
-                                        .sort((a,b)=>(a.level??50)-(b.level??50));
-  const qdPpl  = dp['Quotes & Design']||[];
-  const cmPpl  = dp['Commercial']||[];
-  const sqPpl  = dp['SHEQ']||[];
-
-  const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const mid=(x,w)=>Math.round(x+w/2);
-
-  // ── Layout ────────────────────────────────────────────────────
-  // SVG: 1020 × 430
-  // Level 0: Neil
-  // Level 1: Q&D, Commercial, SHEQ, Amanda (tall, contains her depts), Mark
-  // Level 2: Projects (under Mark only)
-
-  const W=1020, H=430;
-
-  const L1Y=120, BAR1Y=107;
-
-  const QD ={x:20, y:L1Y, w:155, h:100};
-  const CM ={x:185,y:L1Y, w:155, h:100};
-  const SQ ={x:350,y:L1Y, w:135, h:80};
-  const AM ={x:495,y:L1Y, w:175, h:158}; // taller — contains dept list
-  const MK ={x:750,y:L1Y, w:175, h:62};  // Mark — person box
-
-  // Projects sits below Mark
-  const MKBAR_Y = MK.y+MK.h+40;   // 222
-  const PR      = {x:725, y:MKBAR_Y+12, w:225, h:185};
-
-  // Neil centered over all level-1 nodes
-  const bar1L=mid(QD.x,QD.w), bar1R=mid(MK.x,MK.w);
-  const neilCX=Math.round((bar1L+bar1R)/2);
-  const NEIL={x:neilCX-100, y:15, w:200, h:62};
-
-  // ── SVG helpers ───────────────────────────────────────────────
-  const rect=(x,y,w,h,fill,stroke,sw,r=8)=>
-    `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
-  const tx=(x,y,t,sz,fw,fill,anchor='middle')=>
-    `<text x="${x}" y="${y}" font-size="${sz}" font-weight="${fw}" fill="${fill}" text-anchor="${anchor}" dominant-baseline="middle">${esc(t)}</text>`;
-  const ln=(x1,y1,x2,y2)=>
-    `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#5aad44" stroke-width="1.5"/>`;
-  const divL=(x,y,w)=>
-    `<line x1="${x+8}" y1="${y}" x2="${x+w-8}" y2="${y}" stroke="#cddbc5" stroke-width="1"/>`;
-
-  // ── Box renderers ─────────────────────────────────────────────
-
-  // Generic department box with people list
-  function deptBox(n, label, people=[]){
-    const cx=mid(n.x,n.w);
-    let s=rect(n.x,n.y,n.w,n.h,'#fff','#2e7020',1.5);
-    s+=rect(n.x,n.y,n.w,24,'#245818','',0);
-    s+=rect(n.x,n.y+16,n.w,8,'#245818','',0,0);
-    s+=tx(cx,n.y+13,label,10,700,'#fff');
-    let py=n.y+34;
-    people.slice(0,5).forEach(p=>{
-      s+=tx(cx,py,p.name,9,600,'#1a3d10'); py+=12;
-      if(p.role){ s+=tx(cx,py,p.role,8,400,'#7a9a6a'); py+=13; } else py+=2;
-    });
-    return s;
-  }
-
-  // Board/person box (Neil style)
-  function boardBox(n, name, role){
-    const cx=mid(n.x,n.w);
-    let s=rect(n.x,n.y,n.w,n.h,'#1a3d10','#f0a500',2.5);
-    s+=rect(n.x,n.y,n.w,26,'#f0a500','',0);
-    s+=rect(n.x,n.y+18,n.w,8,'#f0a500','',0,0);
-    s+=tx(cx,n.y+14,name,11,700,'#1a3d10');
-    s+=tx(cx,n.y+42,role,9,400,'#9bbf8a');
-    return s;
-  }
-
-  // Director box (Amanda / Mark style — white with green border)
-  function directorBox(n, name, role){
-    const cx=mid(n.x,n.w);
-    let s=rect(n.x,n.y,n.w,n.h,'#fff','#2e7020',2);
-    s+=rect(n.x,n.y,n.w,26,'#2e7020','',0);
-    s+=rect(n.x,n.y+18,n.w,8,'#2e7020','',0,0);
-    s+=tx(cx,n.y+14,name,11,700,'#fff');
-    s+=tx(cx,n.y+40,role,9,400,'#5a6a52');
-    return s;
-  }
-
-  // Amanda box — director box PLUS dept list inside
-  function amandaBox(n, name, role, deptNames){
-    const cx=mid(n.x,n.w);
-    let s=directorBox(n, name, role);
-    s+=divL(n.x,n.y+56,n.w);
-    s+=tx(cx,n.y+67,'Departments',8,700,'#2e7020');
-    deptNames.forEach((d,i)=>{
-      s+=`<text x="${n.x+14}" y="${n.y+82+i*18}" font-size="9" fill="#245818" font-weight="400" dominant-baseline="middle">▸ ${esc(d)}</text>`;
-    });
-    return s;
-  }
-
-  // Projects box under Mark — team in 2 cols
-  function projectsBox(n, team){
-    const cx=mid(n.x,n.w);
-    let s=rect(n.x,n.y,n.w,n.h,'#f4faf1','#245818',1.5);
-    s+=rect(n.x,n.y,n.w,24,'#245818','',0);
-    s+=rect(n.x,n.y+16,n.w,8,'#245818','',0,0);
-    s+=tx(cx,n.y+13,'Projects Team',10,700,'#fff');
-    const c1=n.x+n.w*0.26, c2=n.x+n.w*0.74;
-    let ty=n.y+38; let col=0;
-    team.slice(0,16).forEach(p=>{
-      s+=`<text x="${col===0?c1:c2}" y="${ty}" font-size="9" fill="#245818" text-anchor="middle" dominant-baseline="middle">${esc(p.name)}</text>`;
-      col++; if(col===2){col=0; ty+=14;}
-    });
-    if(team.length>16) s+=tx(cx,ty+8,`+${team.length-16} more`,8,400,'#7a9a6a');
-    return s;
-  }
-
-  // ── Build SVG ─────────────────────────────────────────────────
-  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" `+
-    `style="width:100%;height:auto;font-family:'Segoe UI',Arial,sans-serif;display:block">`;
-
-  // Connectors
-  // Neil → bar1
-  s+=ln(neilCX, NEIL.y+NEIL.h, neilCX, BAR1Y);
-  // Bar1 (spanning all level-1 nodes)
-  s+=ln(bar1L, BAR1Y, bar1R, BAR1Y);
-  // Bar1 → each level-1 top
-  [QD,CM,SQ,AM,MK].forEach(n=>s+=ln(mid(n.x,n.w),BAR1Y,mid(n.x,n.w),n.y));
-  // Mark → Projects
-  s+=ln(mid(MK.x,MK.w), MK.y+MK.h, mid(MK.x,MK.w), MKBAR_Y);
-  s+=ln(mid(MK.x,MK.w), MKBAR_Y,    mid(PR.x,PR.w),  MKBAR_Y);
-  s+=ln(mid(PR.x,PR.w),  MKBAR_Y,    mid(PR.x,PR.w),  PR.y);
-
-  // Boxes (draw boxes on top of connectors)
-  s+=boardBox(NEIL, neil.name, neil.role||'Managing Director / CEO');
-  s+=deptBox(QD, 'Quotes & Design', qdPpl);
-  s+=deptBox(CM, 'Commercial', cmPpl);
-  s+=deptBox(SQ, 'SHEQ', sqPpl);
-  s+=amandaBox(AM, amanda.name, amanda.role||'Finance Director', supportDepts);
-  s+=directorBox(MK, mark.name, mark.role||'General Manager');
-  s+=projectsBox(PR, projTeam);
-
-  s+='</svg>';
-  document.getElementById('org-tree').innerHTML=s;
-}set="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MES Power Engineering — Operating Model</title>
-<style>
-:root {
-  --g900:#0d2409; --g800:#1a3d10; --g700:#245818; --g600:#2e7020;
-  --g500:#3a8828; --g400:#5aad44; --g300:#8ecb72; --g100:#e8f5e2; --g50:#f4faf1;
-  --amber:#f0a500; --red:#d93025; --blue:#1a5fa8; --blue-lt:#e3f0ff;
-  --text:#1a1a1a; --text-lt:#5a6a52; --border:#cddbc5; --white:#fff;
-  --shadow:0 2px 10px rgba(0,0,0,.12); --radius:10px;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--g50);color:var(--text);min-height:100vh}
-
-/* ── HEADER ── */
-.hdr{background:var(--g800);color:#fff;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-shadow:0 2px 8px rgba(0,0,0,.35);position:sticky;top:0;z-index:50}
-.hdr-left{display:flex;align-items:center;gap:12px}
-.hdr-logo{width:36px;height:36px;border-radius:50%;overflow:hidden;background:white;display:flex;align-items:center;justify-content:center}
-.hdr-logo img{width:32px;height:32px;object-fit:contain}
-.hdr-title{font-size:15px;font-weight:700;letter-spacing:.2px}
-.hdr-sub{font-size:11px;color:var(--g300);margin-top:1px}
-.hdr-right{display:flex;gap:8px;align-items:center}
-.sync-status{font-size:11px;color:var(--g300);display:flex;align-items:center;gap:5px}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--g400)}
-.sync-dot.saving{background:var(--amber);animation:pulse .8s infinite}
-.sync-dot.error{background:var(--red)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-
-/* ── LAYOUT ── */
-.layout{display:flex;height:calc(100vh - 54px)}
-.sidebar{width:190px;background:var(--g900);flex-shrink:0;overflow-y:auto;padding:10px 0}
-.nav-section{font-size:10px;font-weight:700;color:var(--g400);text-transform:uppercase;letter-spacing:1px;padding:12px 16px 4px}
-.nav-item{display:flex;align-items:center;gap:9px;padding:9px 16px;cursor:pointer;color:#9bbf8a;font-size:13px;font-weight:500;border-left:3px solid transparent;transition:.15s;white-space:nowrap}
-.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
-.nav-item.active{background:var(--g800);color:#fff;border-left-color:var(--amber)}
-.nav-icon{font-size:15px;width:17px;text-align:center}
-.main{flex:1;overflow-y:auto;padding:24px}
-.view{display:none}.view.active{display:block}
-
-/* ── PAGE HEADER ── */
-.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
-.ph-title{font-size:19px;font-weight:800;color:var(--g800)}
-.ph-sub{font-size:12px;color:var(--text-lt);margin-top:3px}
-.ph-actions{display:flex;gap:8px;flex-wrap:wrap}
-
-/* ── BUTTONS ── */
-.btn{padding:7px 16px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:.15s;display:inline-flex;align-items:center;gap:5px}
-.btn-primary{background:var(--g600);color:#fff}.btn-primary:hover{background:var(--g700)}
-.btn-outline{background:#fff;color:var(--g700);border:1.5px solid var(--g600)}.btn-outline:hover{background:var(--g50)}
-.btn-danger{background:var(--red);color:#fff}
-.btn-ghost{background:transparent;color:var(--g700);border:1px solid var(--border)}.btn-ghost:hover{background:var(--g50)}
-.btn-amber{background:var(--amber);color:#fff}
-.btn-sm{padding:4px 10px;font-size:12px;border-radius:5px}
-.btn-icon{padding:4px 8px;font-size:13px;border-radius:5px}
-
-/* ── TABLES ── */
-.tbl-wrap{background:#fff;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow)}
-table{width:100%;border-collapse:collapse;font-size:13px}
-thead tr{background:var(--g800);color:#fff}
-th{padding:10px 14px;text-align:left;font-weight:600;font-size:11px;letter-spacing:.5px;white-space:nowrap}
-td{padding:8px 14px;border-bottom:1px solid #edf2e8;vertical-align:middle}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:var(--g50)}
-
-/* ── TAGS ── */
-.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;line-height:1.4}
-.tg{background:var(--g100);color:var(--g800)}
-.ta{background:#fff3d6;color:#7a5000}
-.tb{background:var(--blue-lt);color:var(--blue)}
-.tr{background:#fdecea;color:#c62828}
-.tgr{background:#f0f0f0;color:#555}
-
-/* ── FILTER BAR ── */
-.fbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
-.search-wrap{position:relative;flex:1;min-width:180px;max-width:300px}
-.search-wrap input{width:100%;padding:7px 10px 7px 30px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff}
-.search-wrap::before{content:'🔍';position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none}
-select.fsel{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff}
-
-/* ── SUB TABS ── */
-.stabs{display:flex;gap:2px;margin-bottom:14px;background:#fff;border-radius:8px;padding:4px;border:1px solid var(--border);width:fit-content}
-.stab{padding:5px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-lt);transition:.15s}
-.stab.active{background:var(--g700);color:#fff}
-.stab:hover:not(.active){background:var(--g50)}
-
-/* ── STATS ── */
-.stats{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap}
-.stat{background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px 18px;min-width:110px}
-.stat-n{font-size:26px;font-weight:800;color:var(--g700)}
-.stat-l{font-size:10px;color:var(--text-lt);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
-
-/* ── ORG CHART ── */
-#org-print-area{padding:20px}
-.org-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--g700)}
-.org-header-left{display:flex;align-items:center;gap:14px}
-.org-header-logo{width:52px;height:52px;border-radius:50%;overflow:hidden;background:white;border:2px solid var(--g600)}
-.org-header-logo img{width:48px;height:48px;object-fit:contain}
-.org-header-title{font-size:22px;font-weight:800;color:var(--g800)}
-.org-header-sub{font-size:12px;color:var(--text-lt);margin-top:2px}
-.org-date{font-size:13px;font-weight:600;color:var(--g700);background:var(--g100);padding:6px 14px;border-radius:20px}
-
-/* CSS Tree */
-.tree{overflow-x:auto;padding:10px 20px 30px}
-.tree ul{display:flex;flex-direction:row;list-style:none;padding-top:28px;position:relative;transition:.5s}
-.tree ul::before{content:'';position:absolute;top:0;left:50%;border-left:2px solid var(--g400);height:28px;width:0}
-.tree li{display:flex;flex-direction:column;align-items:center;position:relative;padding:0 8px}
-.tree li::before,.tree li::after{content:'';position:absolute;top:0;right:50%;width:50%;height:28px;border-top:2px solid var(--g400)}
-.tree li::after{right:auto;left:50%;border-left:2px solid var(--g400)}
-.tree li:only-child::before,.tree li:only-child::after{display:none}
-.tree li:first-child::before,.tree li:last-child::after{border:0 none}
-.tree li:first-child::after{border-radius:6px 0 0 0}
-.tree li:last-child::before{border-radius:0 6px 0 0}
-.tree li:only-child{padding-top:0}
-
-/* Node cards */
-.org-node{border-radius:10px;min-width:140px;max-width:200px;text-align:center;box-shadow:var(--shadow);position:relative;cursor:default}
-.org-node-board{background:var(--g800);color:#fff;border:2px solid var(--amber);padding:12px 16px}
-.org-node-director{background:var(--g700);color:#fff;border:2px solid var(--g500);padding:10px 14px}
-.org-node-dept{background:#fff;border:2px solid var(--g500);padding:10px 14px}
-.org-node-person{background:#fff;border:2px solid var(--border);padding:8px 12px}
-.org-node-title{font-size:12px;font-weight:700;line-height:1.3}
-.org-node-role{font-size:10px;opacity:.8;margin-top:2px}
-.org-node-people{margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.2);font-size:10px;line-height:1.5;text-align:left}
-.org-node-dept .org-node-people{border-top-color:var(--border);color:var(--text-lt)}
-.org-node-dept .org-node-title{color:var(--g800)}
-.org-node-dept .org-node-role{color:var(--text-lt)}
-.org-node-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;justify-content:center}
-.org-badge{font-size:9px;padding:1px 6px;border-radius:8px;background:rgba(255,255,255,.2);color:#fff;white-space:nowrap}
-.org-node-dept .org-badge{background:var(--g100);color:var(--g800)}
-
-/* ── RACI ── */
-.raci-wrap{overflow:auto;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow)}
-.raci-tbl thead{overflow:visible}
-.raci-tbl{border-collapse:collapse;font-size:11px;background:#fff;white-space:nowrap}
-.raci-tbl th{background:var(--g800);color:#fff;padding:8px 10px;font-size:10px;letter-spacing:.3px;position:sticky;top:0;z-index:2}
-.raci-tbl th.act-col{text-align:left;position:sticky;left:0;z-index:3;min-width:220px;max-width:270px;white-space:normal}
-.raci-tbl td{padding:5px 8px;border-bottom:1px solid #edf2e8;border-right:1px solid #edf2e8;text-align:center}
-.raci-tbl td.act-cell{text-align:left;background:#f8fdf5;position:sticky;left:0;z-index:1;padding:5px 10px;max-width:270px;white-space:normal;font-weight:500;font-size:12px}
-.raci-tbl tr:hover td{background:var(--g50)}.raci-tbl tr:hover td.act-cell{background:var(--g100)}
-.raci-head-role{writing-mode:vertical-rl;transform:rotate(180deg);height:130px;min-width:28px;font-size:10px;vertical-align:bottom;padding:4px 6px!important;cursor:default;overflow:visible;white-space:nowrap}
-.rb{display:inline-block;width:22px;height:22px;border-radius:4px;font-size:11px;font-weight:800;line-height:22px;cursor:pointer;user-select:none;transition:.1s}
-.rb-R{background:#2e7020;color:#fff}.rb-A{background:var(--amber);color:#fff}
-.rb-C{background:var(--blue);color:#fff}.rb-I{background:#777;color:#fff}
-.rb-empty{background:#eee;color:#bbb;font-size:9px}
-.raci-legend{display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap}
-.rl{display:flex;align-items:center;gap:5px;font-size:12px}
-
-/* ── MODAL ── */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center}
-.modal-bg.open{display:flex}
-.modal{background:#fff;border-radius:12px;width:540px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.modal-hdr{background:var(--g800);color:#fff;padding:15px 20px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between}
-.modal-hdr h3{font-size:15px;font-weight:700}
-.modal-x{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1}
-.modal-body{padding:20px}
-.modal-ftr{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
-.fr{margin-bottom:14px}
-.fl{display:block;font-size:11px;font-weight:700;color:var(--text-lt);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
-.fi{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px}
-.fi:focus{outline:none;border-color:var(--g500);box-shadow:0 0 0 3px rgba(58,136,40,.15)}
-textarea.fi{min-height:65px;resize:vertical}
-
-
-
-/* ── NOTICE ── */
-.notice{background:#fff3d6;border:1px solid #f0c060;border-radius:8px;padding:9px 14px;font-size:12px;color:#7a5000;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
-
-/* ── LINK ── */
-.sop-link{color:var(--g700);text-decoration:underline;font-size:12px;cursor:pointer}
-.sop-link:hover{color:var(--g500)}
-.sop-add{font-size:11px;color:#bbb;cursor:pointer;font-style:italic}
-.sop-add:hover{color:var(--g600)}
-
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-
-/* ── PRINT ── */
-@media print{
-  .sidebar,.hdr,.ph-actions,.fbar,.stabs,.modal-bg,.setup-screen,.no-print{display:none!important}
-  .layout{display:block;height:auto}
-  .main{padding:0;overflow:visible}
-  .view{display:none!important}
-  #view-orgchart{display:block!important}
-  #org-print-area{padding:10px}
-  .tree{overflow:visible}
-  .org-node{break-inside:avoid}
-  body{background:#fff}
-  @page{size:A3 landscape;margin:8mm}
-  #org-tree svg{width:100%!important;height:auto!important;max-height:none!important}
-}
-</style>
-</head>
-<body>
-
-
-<!-- HEADER -->
-<div class="hdr">
-  <div class="hdr-left">
-    <div class="hdr-logo"><img src="data:image/png;base64,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" alt="MES Logo"></div>
-    <div>
-      <div class="hdr-title">MES Power Engineering</div>
-      <div class="hdr-sub">Operating Model</div>
-    </div>
-  </div>
-  <div class="hdr-right">
-    <div class="sync-status"><span class="sync-dot" id="sync-dot"></span><span id="sync-text">Ready</span></div>
-    <button class="btn btn-ghost btn-sm no-print" onclick="manualSync()">↻ Sync</button>
-    <button class="btn btn-ghost btn-sm no-print" onclick="printOrgChart()">🖨 Print Org Chart</button>
-    
-  </div>
-</div>
-
-<div class="layout">
-<div class="sidebar">
-  <div class="nav-section">Structure</div>
-  <div class="nav-item active" id="nav-orgchart" onclick="showView('orgchart',this)"><span class="nav-icon">🏢</span> Org Chart</div>
-  <div class="nav-item" id="nav-departments" onclick="showView('departments',this)"><span class="nav-icon">📁</span> Departments</div>
-  <div class="nav-item" id="nav-roles" onclick="showView('roles',this)"><span class="nav-icon">🎖</span> Roles</div>
-  <div class="nav-item" id="nav-people" onclick="showView('people',this)"><span class="nav-icon">👥</span> People</div>
-  <div class="nav-section">Processes</div>
-  <div class="nav-item" id="nav-coreprocesses" onclick="showView('coreprocesses',this)"><span class="nav-icon">🔄</span> Core Processes</div>
-  <div class="nav-item" id="nav-processcontrols" onclick="showView('processcontrols',this)"><span class="nav-icon">⚙️</span> Process Controls</div>
-  <div class="nav-section">Analysis</div>
-  <div class="nav-item" id="nav-raci" onclick="showView('raci',this)"><span class="nav-icon">📊</span> RACI Matrix</div>
-</div>
-
-<div class="main">
-
-<!-- ORG CHART VIEW -->
-<div id="view-orgchart" class="view active">
-  <div class="ph no-print">
-    <div><div class="ph-title">Organogram</div><div class="ph-sub">Reporting structure — edit People & Departments to update</div></div>
-    <div class="ph-actions">
-      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('org-date-input').showPicker?.() || document.getElementById('org-date-input').focus()">📅 Change Date</button>
-      <input type="month" id="org-date-input" style="display:none" onchange="updateOrgDate(this.value)">
-      <button class="btn btn-amber btn-sm" onclick="printOrgChart()">🖨 Print / Export PDF</button>
-    </div>
-  </div>
-  <div id="org-print-area">
-    <div class="org-header">
-      <div class="org-header-left">
-        <div class="org-header-logo"><img src="data:image/png;base64,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" alt="MES"></div>
-        <div>
-          <div class="org-header-title">MES Power Engineering</div>
-          <div class="org-header-sub">Organisation Chart — Operating Model</div>
-        </div>
-      </div>
-      <div class="org-date" id="org-date-display">May 2026</div>
-    </div>
-    <div class="tree" id="org-tree"></div>
-  </div>
-</div>
-
-<!-- DEPARTMENTS -->
-<div id="view-departments" class="view">
-  <div class="ph"><div><div class="ph-title">Departments</div><div class="ph-sub">Business units and reporting structure</div></div>
-  <button class="btn btn-primary" onclick="openModal('dept')">+ Add Department</button></div>
-  <div id="dept-stats" class="stats"></div>
-  <div class="tbl-wrap"><table><thead><tr><th>Department</th><th>Reports To Person</th><th>Roles</th><th>Headcount</th><th></th></tr></thead><tbody id="dept-tbody"></tbody></table></div>
-</div>
-
-<!-- ROLES -->
-<div id="view-roles" class="view">
-  <div class="ph"><div><div class="ph-title">Roles</div><div class="ph-sub">All positions across the business (24 total)</div></div>
-  <button class="btn btn-primary" onclick="openModal('role')">+ Add Role</button></div>
-  <div class="fbar">
-    <div class="search-wrap"><input id="role-search" oninput="renderRoles()" placeholder="Search roles…"></div>
-    <select id="role-dept-filter" class="fsel" onchange="renderRoles()"><option value="">All Departments</option></select>
-  </div>
-  <div class="tbl-wrap"><table><thead><tr><th>Role</th><th>Department</th><th>Level</th><th>Current Holder(s)</th><th></th></tr></thead><tbody id="roles-tbody"></tbody></table></div>
-</div>
-
-<!-- PEOPLE -->
-<div id="view-people" class="view">
-  <div class="ph"><div><div class="ph-title">People</div><div class="ph-sub">Employees and role assignments</div></div>
-  <button class="btn btn-primary" onclick="openModal('person')">+ Add Person</button></div>
-  <div class="fbar">
-    <div class="search-wrap"><input id="ppl-search" oninput="renderPeople()" placeholder="Search people…"></div>
-    <select id="ppl-dept-filter" class="fsel" onchange="renderPeople()"><option value="">All Departments</option></select>
-  </div>
-  <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Primary Role</th><th>Department</th><th>Reports To</th><th>Level</th><th>Status</th><th></th></tr></thead><tbody id="ppl-tbody"></tbody></table></div>
-</div>
-
-<!-- CORE PROCESSES -->
-<div id="view-coreprocesses" class="view">
-  <div class="ph"><div><div class="ph-title">Core Processes</div><div class="ph-sub">The 7 end-to-end business processes</div></div>
-  <button class="btn btn-primary" onclick="openModal('coreprocess')">+ Add Process</button></div>
-  <div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Process Name</th><th>Purpose</th><th>Controls</th><th></th></tr></thead><tbody id="cp-tbody"></tbody></table></div>
-</div>
-
-<!-- PROCESS CONTROLS -->
-<div id="view-processcontrols" class="view">
-  <div class="ph"><div><div class="ph-title">Process Controls</div><div class="ph-sub" id="pc-count"></div></div>
-  <button class="btn btn-primary" onclick="openModal('pc')">+ Add Control</button></div>
-  <div class="notice">📎 Click <strong>+ Add link</strong> on any row to paste a SharePoint URL. Links open directly in browser.</div>
-  <div class="stabs">
-    <div class="stab active" onclick="setPCTab('all',this)">All</div>
-    <div class="stab" onclick="setPCTab('procedure',this)">📄 Procedures / SOPs</div>
-    <div class="stab" onclick="setPCTab('expectation',this)">🎯 Role Expectations</div>
-    <div class="stab" onclick="setPCTab('control',this)">⚙️ Process Controls</div>
-  </div>
-  <div class="fbar">
-    <div class="search-wrap"><input id="pc-search" oninput="renderPCs()" placeholder="Search activities…"></div>
-    <select id="pc-role-f" class="fsel" onchange="renderPCs()"><option value="">All Roles</option></select>
-    <select id="pc-cp-f" class="fsel" onchange="renderPCs()"><option value="">All Core Processes</option></select>
-    <select id="pc-cat-f" class="fsel" onchange="renderPCs()"><option value="">All Categories</option></select>
-  </div>
-  <div class="tbl-wrap"><table><thead><tr><th>Activity</th><th>Type</th><th>Category</th><th>Core Process</th><th>Owner Role</th><th>Owner</th><th>SharePoint Link</th><th>Freq.</th><th></th></tr></thead><tbody id="pc-tbody"></tbody></table></div>
-</div>
-
-<!-- RACI -->
-<div id="view-raci" class="view">
-  <div class="ph"><div><div class="ph-title">RACI Matrix</div><div class="ph-sub">Click any cell to cycle R → A → C → I → empty</div></div>
-  <select id="raci-cp-f" class="fsel" onchange="renderRaci()"><option value="">All Core Processes</option></select></div>
-  <div class="raci-legend">
-    <div class="rl"><span class="rb rb-R">R</span> Responsible</div>
-    <div class="rl"><span class="rb rb-A">A</span> Accountable</div>
-    <div class="rl"><span class="rb rb-C">C</span> Consulted</div>
-    <div class="rl"><span class="rb rb-I">I</span> Informed</div>
-  </div>
-  <div class="raci-wrap"><div id="raci-container"></div></div>
-</div>
-
-</div><!-- /main -->
-</div><!-- /layout -->
-
-<!-- MODAL -->
-<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <div class="modal-hdr"><h3 id="modal-title"></h3><button class="modal-x" onclick="closeModal()">✕</button></div>
-    <div class="modal-body" id="modal-body"></div>
-    <div class="modal-ftr">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-danger" id="modal-del" style="display:none" onclick="modalDel()">Delete</button>
-      <button class="btn btn-primary" onclick="modalSave()">Save</button>
-    </div>
-  </div>
-</div>
-
-<script>
-// ═══════════════════════════════════════════════
-// CLOUDFLARE WORKER API
-// ═══════════════════════════════════════════════
-// 👇 Change these two lines after deploying your Worker
-const WORKER_URL = 'https://mes-operating-model.mes-bot.workers.dev';
-const WRITE_KEY  = 'MES-internal-2026';
-
-let saveTimer = null;
-
-function setSyncStatus(state, text) {
-  const dot = document.getElementById('sync-dot');
-  const txt = document.getElementById('sync-text');
-  dot.className = 'sync-dot' + (state === 'saving' ? ' saving' : state === 'error' ? ' error' : '');
-  txt.textContent = text;
-}
-
-async function loadFromWorker() {
-  setSyncStatus('saving', 'Loading…');
-  try {
-    const res = await fetch(WORKER_URL, { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const d = await res.json();
-    setSyncStatus('ok', 'Live');
-    return d && d.departments ? d : null;
-  } catch (e) {
-    setSyncStatus('error', 'Offline — using local');
-    console.warn('Worker load failed:', e);
-    return null;
-  }
-}
-
-async function saveToWorker() {
-  setSyncStatus('saving', 'Saving…');
-  try {
-    const res = await fetch(WORKER_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Write-Key': WRITE_KEY },
-      body: JSON.stringify(data)
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    setSyncStatus('ok', 'Saved ✓');
-  } catch (e) {
-    setSyncStatus('error', 'Save failed');
-    console.warn('Worker save failed:', e);
-  }
-}
-
-function scheduleSave() {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => saveToWorker(), 1200);
-}
-
-async function manualSync() {
-  const d = await loadFromWorker();
-  if (d) { data = d; renderAll(); }
-}
-
-// Stub — not used with Worker approach
-function showSetup() {
-  alert('Edit WORKER_URL and WRITE_KEY at the top of the HTML script to change the data endpoint.');
-}
-
-// ═══════════════════════════════════════════════
-// DEFAULT DATA
-// ═══════════════════════════════════════════════
-const DEFAULT = {
-  orgDate: 'May 2026',
-  departments:[
-    {id:'d1',name:'Directors',          reportsTo:'',         reportsToPerson:''},
-    {id:'d2',name:'Quotes & Design',    reportsTo:'Directors',reportsToPerson:'Neil McKenzie'},
-    {id:'d3',name:'Commercial',         reportsTo:'Directors',reportsToPerson:'Neil McKenzie'},
-    {id:'d4',name:'Projects',           reportsTo:'Directors',reportsToPerson:'Mark Stevenson'},
-    {id:'d5',name:'Accounts',           reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'},
-    {id:'d6',name:'SHEQ',               reportsTo:'Directors',reportsToPerson:'Neil McKenzie'},
-    {id:'d7',name:'HR & People',        reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'},
-    {id:'d8',name:'Facilities Management',reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'},
-    {id:'d9',name:'Business Support',   reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'}
-  ],
-  roles:[
-    {id:'r1',name:'CEO',dept:'Directors',order:0},
-    {id:'r2',name:'Finance Director',dept:'Directors',order:10},
-    {id:'r3',name:'Managing Director',dept:'Directors',order:20},
-    {id:'r4',name:'Business Support Manager',dept:'Business Support',order:30},
-    {id:'r5',name:'SHEQ Manager',dept:'SHEQ',order:30},
-    {id:'r6',name:'People & Culture (HR)',dept:'HR & People',order:30},
-    {id:'r7',name:'General Manager',dept:'Projects',order:30},
-    {id:'r8',name:'Design Manager',dept:'Quotes & Design',order:30},
-    {id:'r9',name:'Commercial Manager',dept:'Commercial',order:30},
-    {id:'r10',name:'Management Accountant',dept:'Accounts',order:40},
-    {id:'r11',name:'Project Engineer',dept:'Projects',order:49},
-    {id:'r12',name:'Assessing Officer',dept:'Projects',order:49},
-    {id:'r13',name:'Electrical Engineer',dept:'Projects',order:50},
-    {id:'r14',name:'Project Manager',dept:'Projects',order:50},
-    {id:'r15',name:'FM Manager',dept:'Facilities Management',order:50},
-    {id:'r16',name:'Site Manager',dept:'Projects',order:50},
-    {id:'r17',name:'Estimator',dept:'Quotes & Design',order:50},
-    {id:'r18',name:'Chargehand',dept:'Projects',order:60},
-    {id:'r19',name:'Project Co-Ordinator',dept:'Projects',order:70},
-    {id:'r20',name:'Craftsman',dept:'Projects',order:70},
-    {id:'r21',name:'Admin Support',dept:'Business Support',order:70},
-    {id:'r22',name:'Craft Assistant',dept:'Projects',order:80},
-    {id:'r23',name:'Trainee Electrical',dept:'Projects',order:80},
-    {id:'r24',name:'Accounting (External)',dept:'Accounts',order:100}
-  ],
-  people:[
-    {id:'p1', name:'Neil McKenzie',    role:'Managing Director', dept:'Directors',           reportsTo:'',               status:'Active'},
-    {id:'p2', name:'Amanda McKenzie',  role:'Finance Director',  dept:'Directors',           reportsTo:'Neil McKenzie',  status:'Active'},
-    {id:'p3', name:'Andrea Moir',      role:'SHEQ Manager',      dept:'SHEQ',                reportsTo:'Neil McKenzie',  status:'Active'},
-    {id:'p4', name:'Ewan Bennett',     role:'Commercial Manager', dept:'Commercial',         reportsTo:'Neil McKenzie',  status:'Active'},
-    {id:'p5', name:'Luca Ivory-Hunter',role:'Commercial Manager', dept:'Commercial',         reportsTo:'Neil McKenzie',  status:'Active'},
-    {id:'p6', name:'Jamie Taylor',     role:'Design Manager',    dept:'Quotes & Design',     reportsTo:'Neil McKenzie',  status:'Active'},
-    {id:'p7', name:'Mark Stevenson',   role:'General Manager',   dept:'Projects',            reportsTo:'Neil McKenzie',  status:'Active'},
-    {id:'p8', name:'Chris Todd',       role:'Project Engineer',  dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p9', name:'Ethan McKenzie',   role:'Project Engineer',  dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p10',name:'Luke Mutch',       role:'Project Co-Ordinator',dept:'Projects',          reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p11',name:'Liam Duthie',      role:'Project Co-Ordinator',dept:'Projects',          reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p12',name:'Dion Moutrey',     role:'Site Manager',      dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p13',name:'Alan Bowie',       role:'Craftsman',         dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p14',name:'Oakley Allan-Cooper',role:'Craft Assistant', dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p15',name:'Josh Anderson',    role:'Trainee Electrical', dept:'Projects',           reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p16',name:'Alan Shepherd',    role:'Trainee Electrical', dept:'Projects',           reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p17',name:'Neil Ritchie',     role:'Chargehand',        dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p18',name:'Josh Anderson',    role:'Admin Support',     dept:'Business Support',    reportsTo:'Amanda McKenzie',status:'Active'},
-    {id:'p19',name:'Luca Ivory-Hunter',role:'Estimator',         dept:'Quotes & Design',     reportsTo:'Jamie Taylor',   status:'Active'}
-  ],
-  coreProcesses:[
-    {id:'cp1',code:'CP-0001',name:'Bid / Estimate to Contract', purpose:'To secure commercially viable contracts'},
-    {id:'cp2',code:'CP-0002',name:'Design',                      purpose:'Design management and approval process'},
-    {id:'cp3',code:'CP-0003',name:'Pre-Construction Planning',   purpose:'Planning and mobilisation of projects'},
-    {id:'cp4',code:'CP-0004',name:'Project Delivery',            purpose:'Execution and delivery of projects on site'},
-    {id:'cp5',code:'CP-0005',name:'Commissioning & Handover',    purpose:'Commissioning, testing and client handover'},
-    {id:'cp6',code:'CP-0006',name:'Commercial Close-Out',        purpose:'Financial close-out and final accounts'},
-    {id:'cp7',code:'CP-0007',name:'Governance & Compliance',     purpose:'Business governance and compliance management'}
-  ],
-  processControls:[
-    {id:'pc001',activity:'COSHH & data sheets',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Annually',notes:''},
-    {id:'pc002',activity:'DSE',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Annually',notes:''},
-    {id:'pc003',activity:'Reporting & analysis',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc004',activity:'HAVs',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc005',activity:'Site audits',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc006',activity:'Implementation & compliance with company practices',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc007',activity:'DVLA checks',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc008',activity:'First aid',type:'procedure',category:'Safety',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc009',activity:'PPE',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc010',activity:'SHEQ objectives & initiatives',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc011',activity:'NCRs',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc012',activity:'Tool box talks',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc013',activity:'Manage company BMS system',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc014',activity:'Environmental aspects & impacts',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc015',activity:'Vehicle weekly checks',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Weekly',notes:''},
-    {id:'pc016',activity:'Fire safety',type:'procedure',category:'Safety',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc017',activity:'Annual audit programme',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Annually',notes:''},
-    {id:'pc018',activity:'ISO 9001, 14001 & 45001 management',type:'procedure',category:'Systems',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc019',activity:'SHEQ legislation, standards & safe working practices',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc020',activity:'Manage SEAR + QAR databases',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc021',activity:'Subcontractor co-ordination (certification, admin etc.)',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc022',activity:'SHEQ awareness & compliance',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc023',activity:'Accidents, incidents & near misses',type:'procedure',category:'Safety',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc024',activity:'SHEQ KPI',type:'procedure',category:'Quality',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc025',activity:'Company objectives & metrics',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
-    {id:'pc026',activity:'Risks & opportunities',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
-    {id:'pc027',activity:'Company Insurances',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'Annually',notes:''},
-    {id:'pc028',activity:'Social media',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
-    {id:'pc029',activity:'Website & SEO',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
-    {id:'pc030',activity:'Sales & Business Development',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc031',activity:'CRM (Customer Relations Management)',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc032',activity:'Target markets & research',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc033',activity:'Competitor analysis',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc034',activity:'Enquiry received, info collated & lead added to ERP',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc035',activity:'Quotation started',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc036',activity:'Design requirements review',type:'procedure',category:'',coreProcess:'CP-0002 | Design',supportProcess:'',ownerRole:'Design Manager',ownerName:'Jamie Taylor',sopLink:'',frequency:'',notes:''},
-    {id:'pc037',activity:'High level project plan created (if required)',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc038',activity:'Prepare final quotation summary & submit to customer',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Estimator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc039',activity:'Project folder created (& docs copied over)',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc040',activity:'Design pack created & approved',type:'procedure',category:'',coreProcess:'CP-0002 | Design',supportProcess:'',ownerRole:'Design Manager',ownerName:'Jamie Taylor',sopLink:'',frequency:'',notes:''},
-    {id:'pc041',activity:'Project handover & convert quote to job in ERP',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc042',activity:'Credit control',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc043',activity:'Quote accepted, payment plan agreed & initial stage invoiced',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc044',activity:'Project Purchasing',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc045',activity:'Track changes / variations throughout',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc046',activity:'Monthly applications and progress claims',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc047',activity:'Stage Invoicing',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc048',activity:'Asset claims - Connections',type:'procedure',category:'',coreProcess:'CP-0005 | Commissioning & Handover',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc049',activity:'Prepare weekly invoicing for manager sign-off',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Weekly',notes:''},
-    {id:'pc050',activity:'Final Invoice',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc051',activity:'Design & drawings review and approval throughout',type:'procedure',category:'',coreProcess:'CP-0002 | Design',supportProcess:'',ownerRole:'Design Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc052',activity:'Site team checks (NERs, qualifications, training etc)',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'General Manager',ownerName:'Mark Stevenson',sopLink:'',frequency:'',notes:''},
-    {id:'pc053',activity:'Paperwork check (Issue)',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc054',activity:"Create PO's for project",type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc055',activity:'Goods receipting - GRN (Site)',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Site Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc056',activity:'Technical Audits (as per schedule)',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc057',activity:'Complete daily diary sheets',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Site Manager',ownerName:'',sopLink:'',frequency:'Daily',notes:''},
-    {id:'pc058',activity:'Site paperwork checked and signed off (Returns)',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc059',activity:'Project Close out - EPR',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc060',activity:'Project closeout meeting (with customer)',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc061',activity:'Customer feedback',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc062',activity:'Project Review / lessons learned held with team',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'General Manager',ownerName:'Mark Stevenson',sopLink:'',frequency:'',notes:''},
-    {id:'pc063',activity:'Site SHEQ Audits - as per SHEQ Audit Programme',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc064',activity:'Financial forecasting',type:'procedure',category:'',coreProcess:'CP-0007 | Governance & Compliance',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc065',activity:'Cashflow',type:'procedure',category:'',coreProcess:'CP-0007 | Governance & Compliance',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc066',activity:'PAT testing',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'Annually',notes:''},
-    {id:'pc067',activity:'Harness inspections',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc068',activity:'Calibrations',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc069',activity:'Goods receipting - GRN (Stores)',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc070',activity:'MES Asset management',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc071',activity:'Position agreed',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc072',activity:'Job Advertisement',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc073',activity:'Interview',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc074',activity:'Interview follow up responses sent',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc075',activity:'Offer made (include new start information requirements)',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc076',activity:'IT logins setup',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc077',activity:'Induction',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc078',activity:'Training & development plans & CPD',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc079',activity:'Performance management',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc080',activity:'Appraisals',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'Annually',notes:''},
-    {id:'pc081',activity:'Absence management',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc082',activity:'Disciplinaries & Grievances',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc083',activity:'Offboarding',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc101',activity:'Build client relationships',type:'expectation',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
-    {id:'pc102',activity:'EPR Management',type:'expectation',category:'',coreProcess:'',supportProcess:'SNCP-0005 | Business Support & Systems',ownerRole:'',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc103',activity:'Schedule price planning - 100% efficiency on programme',type:'expectation',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc104',activity:'Day to day works (Ongoing)',type:'expectation',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Site Manager',ownerName:'',sopLink:'',frequency:'Daily',notes:''},
-    {id:'pc105',activity:'Weekly project review (timesheets / programme / project plans)',type:'expectation',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'Weekly',notes:''},
-    {id:'pc106',activity:'Review daily diary sheets and resolve queries',type:'expectation',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'Daily',notes:''},
-    {id:'pc107',activity:'Collate & summarise weekly timesheet returns',type:'expectation',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'Weekly',notes:''},
-    {id:'pc108',activity:'Document control on project files',type:'expectation',category:'',coreProcess:'CP-0005 | Commissioning & Handover',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc109',activity:'Sales ledger',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc110',activity:'Purchase ledger',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc111',activity:'Payroll',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc112',activity:'VAT returns',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Quarterly',notes:''},
-    {id:'pc113',activity:'Management accounts',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc114',activity:'Stores & Yard Management',type:'expectation',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc115',activity:'Transport & Plant Management (Servicing; MOTs; Repairs)',type:'expectation',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc116',activity:'Equipment inspections, certification and repair',type:'expectation',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc201',activity:'RAMS created & approved',type:'control',category:'SHEQ',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc202',activity:"MSRA's Systems",type:'control',category:'SHEQ',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc203',activity:'Site induction / client induction',type:'control',category:'SHEQ',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'Site Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc204',activity:'Quality Plans - ITP (Inspection & Test Plan)',type:'control',category:'Quality',coreProcess:'CP-0004 | Project Delivery',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''}
-  ],
-  raci:{}
-};
-
-let data = JSON.parse(JSON.stringify(DEFAULT));
-let modalMode = null;
-let modalEditId = null;
-let pcTabFilter = 'all';
-let orgDateStr = 'May 2026';
-
-// ═══════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', () => {
-  // Load from Cloudflare Worker on startup — no setup needed for staff
-  loadFromWorker().then(d => {
-    if (d) data = d;
-    renderAll();
-  });
-});
-
-function renderAll(){
-  renderOrgChart();
-  renderDepts();
-  renderRoles();
-  renderPeople();
-  renderCPs();
-  renderPCs();
-  renderRaci();
-  populateFilters();
-}
-
-// ═══════════════════════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════════════════════
-function showView(name, el){
-  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  document.getElementById('view-'+name).classList.add('active');
-  if(el) el.classList.add('active');
-}
-
-// ═══════════════════════════════════════════════
-// ORG CHART
-// ═══════════════════════════════════════════════
-function updateOrgDate(val){
-  if(!val) return;
-  const [yr, mo] = val.split('-');
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  orgDateStr = months[parseInt(mo)-1] + ' ' + yr;
-  data.orgDate = orgDateStr;
-  document.getElementById('org-date-display').textContent = orgDateStr;
-  scheduleSave();
-}
-
-function printOrgChart(){
-  showView('orgchart', document.getElementById('nav-orgchart'));
-  setTimeout(()=>window.print(), 200);
-}
-
-function renderOrgChart(){
-  if(data.orgDate) orgDateStr=data.orgDate;
-  document.getElementById('org-date-display').textContent=orgDateStr;
-
-  // Build lookups
-  const dp={};
-  data.people.forEach(p=>{ if(p.dept){if(!dp[p.dept])dp[p.dept]=[];dp[p.dept].push(p);} });
-  // Top of tree = person with no reportsTo and lowest level (or just no reportsTo)
-  const allSorted = [...data.people].sort((a,b)=>(a.level??50)-(b.level??50));
-  const neil   = allSorted.find(p=>!p.reportsTo) || data.people[0] || {name:'Managing Director',role:''};
-  // Second tier: people who report directly to neil and are managers
-  const neilReports = data.people.filter(p=>p.reportsTo===neil.name);
-  // Amanda = first manager-level person who reports to neil and manages depts (Accounts/BS/HR/FM)
-  const amandaDeptNames = ['Accounts','Business Support','HR & People','Facilities Management'];
-  const amanda = neilReports.find(p=>
-    amandaDeptNames.includes(p.dept) ||
-    data.people.some(r=>r.reportsTo===p.name && amandaDeptNames.includes(r.dept))
-  ) || data.people.find(p=>p.reportsTo===neil.name && p.isManager && p.name!==neil.name)
-    || {name:'Director',role:'Director'};
-  // Mark = GM of Projects (person who reports to neil, in Projects dept, or is manager of projects people)
-  const mark = data.people.find(p=>p.dept==='Projects'&&p.isManager&&p.reportsTo===neil.name)
-    || data.people.find(p=>p.dept==='Projects'&&p.isManager)
-    || data.people.find(p=>p.dept==='Projects'&&(p.level??50)<=35)
-    || {name:'General Manager',role:'General Manager'};
-  const projTeam = data.people.filter(p=>p.dept==='Projects'&&p.name!==mark.name).sort((a,b)=>(a.level??50)-(b.level??50));
-  const qdPpl  = (dp['Quotes & Design']||[]);
-  const cmPpl  = (dp['Commercial']||[]);
-  const sqPpl  = (dp['SHEQ']||[]);
-
-  const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const mid=(x,w)=>Math.round(x+w/2);
-
-  // ── Layout constants ──────────────────────────────────
-  const W=1360, H=315;
-
-  // Neil
-  const NX=595,NY=15,NW=200,NH=62, NCX=695;
-
-  // Level 1  y=117, bar at y=107
-  const L1Y=117, BAR1Y=107;
-  const QD={x:150,y:L1Y,w:150,h:100};
-  const CM={x:310,y:L1Y,w:150,h:100};
-  const SQ={x:470,y:L1Y,w:130,h:80};
-  const AM={x:610,y:L1Y,w:175,h:62};   // Amanda person box
-  const PR={x:990,y:L1Y,w:340,h:210};  // Projects dept box
-
-  // Level 2 — Amanda's depts, bar at y=207, boxes at y=217
-  const BAR2Y=207, L2Y=217;
-  const AC={x:428,y:L2Y,w:115,h:62};
-  const BS={x:551,y:L2Y,w:140,h:72};
-  const HR={x:699,y:L2Y,w:115,h:62};
-  const FM={x:822,y:L2Y,w:145,h:62};
-
-  // ── SVG helpers ───────────────────────────────────────
-  const rect=(x,y,w,h,fill,stroke,sw,r=8)=>
-    `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>`;
-  const tx=(x,y,t,sz,fw,fill,anchor='middle')=>
-    `<text x="${x}" y="${y}" font-size="${sz}" font-weight="${fw}" fill="${fill}" text-anchor="${anchor}" dominant-baseline="middle">${esc(t)}</text>`;
-  const ln=(x1,y1,x2,y2)=>
-    `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#5aad44" stroke-width="1.5"/>`;
-  const divLine=(x,y,w)=>
-    `<line x1="${x+8}" y1="${y}" x2="${x+w-8}" y2="${y}" stroke="#cddbc5" stroke-width="1"/>`;
-
-  // ── Department box helper ─────────────────────────────
-  function deptBox(n, label, people=[], subtitle=''){
-    const cx=mid(n.x,n.w);
-    let s='';
-    // outer rect
-    s+=rect(n.x,n.y,n.w,n.h,'#fff','#2e7020',1.5);
-    // header strip
-    s+=rect(n.x,n.y,n.w,24,'#245818','',0);
-    s+=rect(n.x,n.y+16,n.w,8,'#245818','',0,0); // fill corner gap
-    s+=tx(cx,n.y+13,label,10,700,'#fff');
-    if(subtitle){
-      s+=divLine(n.x,n.y+29,n.w);
-      s+=tx(cx,n.y+38,subtitle,9,600,'#1a3d10');
-    }
-    let py = n.y+(subtitle?52:30);
-    people.slice(0,5).forEach(p=>{
-      const star=p.isManager?'★ ':'';
-      s+=tx(cx,py,star+p.name,9,p.isManager?600:400,'#1a3d10');
-      if(p.role) { s+=tx(cx,py+10,p.role,8,400,'#7a9a6a'); py+=22; }
-      else py+=15;
-    });
-    return s;
-  }
-
-  // ── Director/person box helper ────────────────────────
-  function personBox(n, name, role, color='#1a3d10', borderColor='#f0a500', headerFill='#f0a500', headerText='#1a3d10'){
-    const cx=mid(n.x,n.w);
-    let s='';
-    s+=rect(n.x,n.y,n.w,n.h,color,borderColor,2.5);
-    s+=rect(n.x,n.y,n.w,26,headerFill,'',0);
-    s+=rect(n.x,n.y+18,n.w,8,headerFill,'',0,0);
-    s+=tx(cx,n.y+14,name,11,700,headerText);
-    s+=tx(cx,n.y+40,role,9,400,color==='#1a3d10'?'#9bbf8a':'#5a6a52');
-    return s;
-  }
-
-  // ── Projects box (special — has manager + team) ───────
-  function projectsBox(n, mgr, team){
-    const cx=mid(n.x,n.w);
-    let s='';
-    s+=rect(n.x,n.y,n.w,n.h,'#f4faf1','#245818',1.5);
-    // header
-    s+=rect(n.x,n.y,n.w,24,'#245818','',0);
-    s+=rect(n.x,n.y+16,n.w,8,'#245818','',0,0);
-    s+=tx(cx,n.y+13,'Projects',10,700,'#fff');
-    // manager sub-section
-    s+=divLine(n.x,n.y+34,n.w);
-    s+=tx(cx,n.y+44,mgr.name,10,700,'#1a3d10');
-    s+=tx(cx,n.y+56,mgr.role||'General Manager',9,400,'#5a6a52');
-    s+=divLine(n.x,n.y+66,n.w);
-    // team in 2 cols
-    const col1x=n.x+n.w*0.27, col2x=n.x+n.w*0.73;
-    let ty=n.y+80;
-    team.slice(0,14).forEach((p,i)=>{
-      const tx2 = i%2===0 ? col1x : col2x;
-      s+=`<text x="${tx2}" y="${ty}" font-size="9" fill="#245818" text-anchor="middle" dominant-baseline="middle">${esc(p.name)}</text>`;
-      if(i%2===1) ty+=14;
-    });
-    if(team.length>14) s+=tx(cx,ty+8,`+${team.length-14} more`,8,400,'#7a9a6a');
-    return s;
-  }
-
-  // ── Build SVG ─────────────────────────────────────────
-  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" `+
-        `style="width:100%;height:auto;font-family:'Segoe UI',Arial,sans-serif;display:block">`;
-
-  // ── Connector lines ───────────────────────────────────
-  // Neil → bar1
-  s+=ln(NCX, NY+NH, NCX, BAR1Y);
-  // Bar1
-  s+=ln(mid(QD.x,QD.w), BAR1Y, mid(PR.x,PR.w), BAR1Y);
-  // Bar1 → each L1 node
-  [QD,CM,SQ,AM,PR].forEach(n=>s+=ln(mid(n.x,n.w),BAR1Y,mid(n.x,n.w),n.y));
-  // Amanda → bar2
-  s+=ln(mid(AM.x,AM.w), AM.y+AM.h, mid(AM.x,AM.w), BAR2Y);
-  // Bar2
-  s+=ln(mid(AC.x,AC.w), BAR2Y, mid(FM.x,FM.w), BAR2Y);
-  // Bar2 → each L2 node
-  [AC,BS,HR,FM].forEach(n=>s+=ln(mid(n.x,n.w),BAR2Y,mid(n.x,n.w),n.y));
-
-  // ── Boxes ─────────────────────────────────────────────
-  // Neil (board box)
-  s+=personBox({x:NX,y:NY,w:NW,h:NH}, neil.name, neil.role||'Managing Director / CEO',
-               '#1a3d10','#f0a500','#f0a500','#1a3d10');
-
-  // Level 1
-  s+=deptBox(QD, 'Quotes & Design', qdPpl);
-  s+=deptBox(CM, 'Commercial', cmPpl);
-  s+=deptBox(SQ, 'SHEQ', sqPpl);
-  // Amanda — director box (white with green border)
-  s+=personBox(AM, amanda.name, amanda.role||'Finance Director',
-               '#fff','#2e7020','#2e7020','#fff');
-
-  // Projects
-  s+=projectsBox(PR, mark, projTeam);
-
-  // Level 2 — Amanda's depts
-  const amandaDepts=['Accounts','Business Support','HR & People','Facilities Management'];
-  const amBoxes=[AC,BS,HR,FM];
-  amandaDepts.forEach((dept,i)=>{
-    s+=deptBox(amBoxes[i], dept, dp[dept]||[]);
-  });
-
-  s+='</svg>';
-  document.getElementById('org-tree').innerHTML=s;
+  const svgEl=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:'Segoe UI',Arial,sans-serif;display:block">${connSVG}${boxSVG}</svg>`;
+  document.getElementById('org-tree').innerHTML=svgEl;
 }
 
 // ═══════════════════════════════════════════════
@@ -2620,6 +997,8 @@ function openModal(type,id){
     <div class="fr"><label class="fl">Primary Role</label><select class="fi" id="f-role"><option value="">— Select Role —</option>${data.roles.map(r=>`<option value="${r.name}" ${x?.role===r.name?'selected':''}>${r.name}</option>`).join('')}</select></div>
     <div class="fr"><label class="fl">Department</label><select class="fi" id="f-dept"><option value="">— Select Department —</option>${data.departments.map(d=>`<option value="${d.name}" ${x?.dept===d.name?'selected':''}>${d.name}</option>`).join('')}</select></div>
     <div class="fr"><label class="fl">Reports To</label><select class="fi" id="f-rt"><option value="">— None —</option>${data.people.filter(p=>p.id!==id).map(p=>`<option value="${p.name}" ${x?.reportsTo===p.name?'selected':''}>${p.name}</option>`).join('')}</select></div>
+    <div class="fr"><label class="fl">Seniority Level <small style="font-weight:400">(0 = most senior)</small></label><input class="fi" id="f-level" type="number" min="0" max="99" value="${x?.level??50}"></div>
+    <div class="fr"><label class="fl">Department Lead / Manager</label><select class="fi" id="f-mgr"><option value="false" ${!x?.isManager?'selected':''}>No</option><option value="true" ${x?.isManager?'selected':''}>Yes ★</option></select></div>
     <div class="fr"><label class="fl">Status</label><select class="fi" id="f-status"><option value="Active" ${x?.status==='Active'?'selected':''}>Active</option><option value="On Leave" ${x?.status==='On Leave'?'selected':''}>On Leave</option><option value="Inactive" ${x?.status==='Inactive'?'selected':''}>Inactive</option></select></div>`;
   } else if(type==='coreprocess'){
     const x=id?data.coreProcesses.find(c=>c.id===id):null;
@@ -2658,7 +1037,7 @@ function modalSave(){
     const obj={id:modalEditId||uid(),name:g('f-name'),dept:g('f-dept'),order:parseInt(g('f-order'))||50};
     if(modalEditId){ const i=data.roles.findIndex(x=>x.id===modalEditId); data.roles[i]=obj; } else data.roles.push(obj);
   } else if(modalMode==='person'){
-    const obj={id:modalEditId||uid(),name:g('f-name'),role:g('f-role'),dept:g('f-dept'),reportsTo:g('f-rt'),status:g('f-status'),level:parseInt(document.getElementById('f-level')?.value)||50,isManager:document.getElementById('f-mgr')?.value==='true'};
+    const obj={id:modalEditId||uid(),name:g('f-name'),role:g('f-role'),dept:g('f-dept'),reportsTo:g('f-rt'),status:g('f-status'),level:parseInt(document.getElementById('f-level')?.value??50)||0,isManager:document.getElementById('f-mgr')?.value==='true'};
     if(modalEditId){ const i=data.people.findIndex(x=>x.id===modalEditId); data.people[i]=obj; } else data.people.push(obj);
   } else if(modalMode==='coreprocess'){
     const obj={id:modalEditId||uid(),code:g('f-code'),name:g('f-name'),purpose:g('f-purpose')};
@@ -2673,6 +1052,41 @@ function modalSave(){
 }
 
 function modalDel(){ if(!confirm('Delete this item?')) return; delItem(modalEditId); closeModal(); }
+
+// ── SECURITY: VIEW / EDIT MODE ────────────────────────────────
+function setMode(isEdit){
+  if(isEdit){
+    document.body.classList.add('edit-mode');
+    document.getElementById('mode-badge').className='mode-badge mode-edit';
+    document.getElementById('mode-badge').textContent='✏️ Edit Mode';
+    document.getElementById('lock-btn').textContent='🔓 Lock';
+    sessionStorage.setItem('mes-edit','1');
+  } else {
+    document.body.classList.remove('edit-mode');
+    document.getElementById('mode-badge').className='mode-badge mode-view';
+    document.getElementById('mode-badge').textContent='👁 View Only';
+    document.getElementById('lock-btn').textContent='🔒 Edit Mode';
+    sessionStorage.removeItem('mes-edit');
+  }
+}
+
+function toggleEditMode(){
+  if(document.body.classList.contains('edit-mode')){
+    setMode(false);
+  } else {
+    const key=prompt('Enter the editor password:');
+    if(!key) return;
+    if(key===WRITE_KEY){
+      setMode(true);
+    } else {
+      alert('Incorrect password. Contact your system administrator.');
+    }
+  }
+}
+
+// Restore edit mode if already unlocked this session
+if(sessionStorage.getItem('mes-edit')==='1') setMode(true);
+
 </script>
 </body>
 </html>
