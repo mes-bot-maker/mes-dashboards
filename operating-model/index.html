@@ -2,965 +2,882 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>MES Power Engineering — Operating Model</title>
 <style>
-:root {
-  --g900:#0d2409; --g800:#1a3d10; --g700:#245818; --g600:#2e7020;
-  --g500:#3a8828; --g400:#5aad44; --g300:#8ecb72; --g100:#e8f5e2; --g50:#f4faf1;
-  --amber:#f0a500; --red:#d93025; --blue:#1a5fa8; --blue-lt:#e3f0ff;
-  --text:#1a1a1a; --text-lt:#5a6a52; --border:#cddbc5; --white:#fff;
-  --shadow:0 2px 10px rgba(0,0,0,.12); --radius:10px;
+:root{
+  --g900:#0d2409;--g800:#1a3d10;--g700:#245818;--g600:#2e7020;
+  --g500:#3a8828;--g400:#5aad44;--g300:#8ecb72;--g100:#e8f5e2;--g50:#f4faf1;
+  --blue:#1a5fa8;--blue-lt:#e3f0ff;--amber:#f0a500;--red:#d93025;
+  --text:#1a1a1a;--textl:#5a6a52;--border:#cddbc5;--white:#fff;
+  --shadow:0 2px 10px rgba(0,0,0,.1);--radius:10px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--g50);color:var(--text);min-height:100vh}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--g50);color:var(--text)}
 
-/* ── HEADER ── */
-.hdr{background:var(--g800);color:#fff;height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-shadow:0 2px 8px rgba(0,0,0,.35);position:sticky;top:0;z-index:50}
-.hdr-left{display:flex;align-items:center;gap:12px}
-.hdr-logo{width:36px;height:36px;border-radius:50%;overflow:hidden;background:white;display:flex;align-items:center;justify-content:center}
-.hdr-logo img{width:32px;height:32px;object-fit:contain}
-.hdr-title{font-size:15px;font-weight:700;letter-spacing:.2px}
-.hdr-sub{font-size:11px;color:var(--g300);margin-top:1px}
+/* HEADER */
+.hdr{background:var(--g800);color:#fff;height:54px;display:flex;align-items:center;
+      justify-content:space-between;padding:0 18px;box-shadow:0 2px 8px rgba(0,0,0,.3);
+      position:sticky;top:0;z-index:50}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.hdr-logo{width:34px;height:34px;border-radius:50%;overflow:hidden;background:#fff;
+           display:flex;align-items:center;justify-content:center}
+.hdr-logo img{width:30px;height:30px;object-fit:contain}
+.hdr-title{font-size:14px;font-weight:700}
+.hdr-sub{font-size:10px;color:var(--g300)}
 .hdr-right{display:flex;gap:8px;align-items:center}
-.sync-status{font-size:11px;color:var(--g300);display:flex;align-items:center;gap:5px}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--g400)}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--g400);display:inline-block}
 .sync-dot.saving{background:var(--amber);animation:pulse .8s infinite}
 .sync-dot.error{background:var(--red)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sync-txt{font-size:11px;color:var(--g300)}
+.mode-badge{font-size:11px;padding:3px 10px;border-radius:12px;font-weight:600}
+.mv{background:#e8f5e2;color:#245818}.me{background:#fff3d6;color:#8a6200}
 
-/* ── LAYOUT ── */
+/* LAYOUT */
 .layout{display:flex;height:calc(100vh - 54px)}
-.sidebar{width:190px;background:var(--g900);flex-shrink:0;overflow-y:auto;padding:10px 0}
-.nav-section{font-size:10px;font-weight:700;color:var(--g400);text-transform:uppercase;letter-spacing:1px;padding:12px 16px 4px}
-.nav-item{display:flex;align-items:center;gap:9px;padding:9px 16px;cursor:pointer;color:#9bbf8a;font-size:13px;font-weight:500;border-left:3px solid transparent;transition:.15s;white-space:nowrap}
-.nav-item:hover{background:rgba(255,255,255,.07);color:#fff}
-.nav-item.active{background:var(--g800);color:#fff;border-left-color:var(--amber)}
-.nav-icon{font-size:15px;width:17px;text-align:center}
-.main{flex:1;overflow-y:auto;padding:24px}
+.sidebar{width:185px;background:var(--g900);flex-shrink:0;overflow-y:auto;padding:8px 0}
+.ns{font-size:10px;font-weight:700;color:var(--g400);text-transform:uppercase;
+     letter-spacing:1px;padding:12px 14px 4px}
+.ni{display:flex;align-items:center;gap:8px;padding:8px 14px;cursor:pointer;
+     color:#9bbf8a;font-size:13px;font-weight:500;border-left:3px solid transparent;transition:.15s}
+.ni:hover{background:rgba(255,255,255,.07);color:#fff}
+.ni.active{background:var(--g800);color:#fff;border-left-color:var(--amber)}
+.ni-icon{font-size:14px;width:16px;text-align:center}
+.main{flex:1;overflow-y:auto;padding:22px}
 .view{display:none}.view.active{display:block}
 
-/* ── PAGE HEADER ── */
-.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
-.ph-title{font-size:19px;font-weight:800;color:var(--g800)}
-.ph-sub{font-size:12px;color:var(--text-lt);margin-top:3px}
-.ph-actions{display:flex;gap:8px;flex-wrap:wrap}
-
-/* ── BUTTONS ── */
-.btn{padding:7px 16px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:.15s;display:inline-flex;align-items:center;gap:5px}
-.btn-primary{background:var(--g600);color:#fff}.btn-primary:hover{background:var(--g700)}
-.btn-outline{background:#fff;color:var(--g700);border:1.5px solid var(--g600)}.btn-outline:hover{background:var(--g50)}
-.btn-danger{background:var(--red);color:#fff}
-.btn-ghost{background:transparent;color:var(--g700);border:1px solid var(--border)}.btn-ghost:hover{background:var(--g50)}
+/* BUTTONS */
+.btn{padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-size:13px;
+      font-weight:600;transition:.15s;display:inline-flex;align-items:center;gap:5px}
+.btn-p{background:var(--g600);color:#fff}.btn-p:hover{background:var(--g700)}
+.btn-g{background:#fff;color:var(--g700);border:1px solid var(--border)}.btn-g:hover{background:var(--g50)}
+.btn-d{background:var(--red);color:#fff}
+.btn-sm{padding:4px 10px;font-size:12px}
+.btn-ic{padding:4px 8px;font-size:13px}
 .btn-amber{background:var(--amber);color:#fff}
-.btn-sm{padding:4px 10px;font-size:12px;border-radius:5px}
-.btn-icon{padding:4px 8px;font-size:13px;border-radius:5px}
 
-/* ── TABLES ── */
-.tbl-wrap{background:#fff;border-radius:var(--radius);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow)}
+/* PAGE HEADER */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;
+     margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.ph-title{font-size:18px;font-weight:800;color:var(--g800)}
+.ph-sub{font-size:12px;color:var(--textl);margin-top:2px}
+.ph-act{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* TABLES */
+.tw{background:#fff;border-radius:var(--radius);border:1px solid var(--border);
+     overflow:hidden;box-shadow:var(--shadow)}
 table{width:100%;border-collapse:collapse;font-size:13px}
 thead tr{background:var(--g800);color:#fff}
-th{padding:10px 14px;text-align:left;font-weight:600;font-size:11px;letter-spacing:.5px;white-space:nowrap}
-td{padding:8px 14px;border-bottom:1px solid #edf2e8;vertical-align:middle}
+th{padding:9px 13px;text-align:left;font-weight:600;font-size:11px;
+    letter-spacing:.5px;white-space:nowrap}
+td{padding:7px 13px;border-bottom:1px solid #edf2e8;vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--g50)}
 
-/* ── TAGS ── */
-.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600;line-height:1.4}
+/* TAGS */
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
 .tg{background:var(--g100);color:var(--g800)}
 .ta{background:#fff3d6;color:#7a5000}
 .tb{background:var(--blue-lt);color:var(--blue)}
-.tr{background:#fdecea;color:#c62828}
 .tgr{background:#f0f0f0;color:#555}
 
-/* ── FILTER BAR ── */
-.fbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
-.search-wrap{position:relative;flex:1;min-width:180px;max-width:300px}
-.search-wrap input{width:100%;padding:7px 10px 7px 30px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff}
-.search-wrap::before{content:'🔍';position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none}
-select.fsel{padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:#fff}
+/* FILTER BAR */
+.fb{display:flex;gap:8px;margin-bottom:13px;flex-wrap:wrap;align-items:center}
+.sw{position:relative;flex:1;min-width:170px;max-width:290px}
+.sw input{width:100%;padding:7px 10px 7px 28px;border:1px solid var(--border);
+           border-radius:6px;font-size:13px;background:#fff}
+.sw::before{content:'🔍';position:absolute;left:7px;top:50%;transform:translateY(-50%);
+             font-size:11px;pointer-events:none}
+select.fs{padding:7px 9px;border:1px solid var(--border);border-radius:6px;
+           font-size:13px;background:#fff}
 
-/* ── SUB TABS ── */
-.stabs{display:flex;gap:2px;margin-bottom:14px;background:#fff;border-radius:8px;padding:4px;border:1px solid var(--border);width:fit-content}
-.stab{padding:5px 14px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text-lt);transition:.15s}
+/* SUB TABS */
+.stabs{display:flex;gap:2px;margin-bottom:13px;background:#fff;border-radius:8px;
+        padding:3px;border:1px solid var(--border);width:fit-content}
+.stab{padding:5px 13px;border-radius:6px;cursor:pointer;font-size:13px;
+       font-weight:500;color:var(--textl);transition:.15s}
 .stab.active{background:var(--g700);color:#fff}
-.stab:hover:not(.active){background:var(--g50)}
 
-/* ── STATS ── */
-.stats{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap}
-.stat{background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px 18px;min-width:110px}
-.stat-n{font-size:26px;font-weight:800;color:var(--g700)}
-.stat-l{font-size:10px;color:var(--text-lt);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+/* STATS */
+.stats{display:flex;gap:11px;margin-bottom:16px;flex-wrap:wrap}
+.stat{background:#fff;border:1px solid var(--border);border-radius:8px;padding:11px 16px}
+.stat-n{font-size:24px;font-weight:800;color:var(--g700)}
+.stat-l{font-size:10px;color:var(--textl);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
 
-/* ── ORG CHART ── */
-#org-print-area{padding:20px}
-.org-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--g700)}
-.org-header-left{display:flex;align-items:center;gap:14px}
-.org-header-logo{width:52px;height:52px;border-radius:50%;overflow:hidden;background:white;border:2px solid var(--g600)}
-.org-header-logo img{width:48px;height:48px;object-fit:contain}
-.org-header-title{font-size:22px;font-weight:800;color:var(--g800)}
-.org-header-sub{font-size:12px;color:var(--text-lt);margin-top:2px}
-.org-date{font-size:13px;font-weight:600;color:var(--g700);background:var(--g100);padding:6px 14px;border-radius:20px}
+/* NOTICE */
+.notice{background:#fff3d6;border:1px solid #f0c060;border-radius:8px;padding:9px 14px;
+         font-size:12px;color:#7a5000;margin-bottom:13px}
 
-/* CSS Tree */
-.tree{overflow-x:auto;padding:10px 20px 30px}
-.tree ul{display:flex;flex-direction:row;list-style:none;padding-top:28px;position:relative;transition:.5s}
-.tree ul::before{content:'';position:absolute;top:0;left:50%;border-left:2px solid var(--g400);height:28px;width:0}
-.tree li{display:flex;flex-direction:column;align-items:center;position:relative;padding:0 8px}
-.tree li::before,.tree li::after{content:'';position:absolute;top:0;right:50%;width:50%;height:28px;border-top:2px solid var(--g400)}
-.tree li::after{right:auto;left:50%;border-left:2px solid var(--g400)}
-.tree li:only-child::before,.tree li:only-child::after{display:none}
-.tree li:first-child::before,.tree li:last-child::after{border:0 none}
-.tree li:first-child::after{border-radius:6px 0 0 0}
-.tree li:last-child::before{border-radius:0 6px 0 0}
-.tree li:only-child{padding-top:0}
+/* ORG / PRINT HEADER */
+.doc-header{display:flex;align-items:center;justify-content:space-between;
+             margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--g700)}
+.doc-left{display:flex;align-items:center;gap:12px}
+.doc-logo{width:50px;height:50px;border-radius:50%;overflow:hidden;background:#fff;
+           border:2px solid var(--g600)}
+.doc-logo img{width:46px;height:46px;object-fit:contain}
+.doc-title{font-size:20px;font-weight:800;color:var(--g800)}
+.doc-sub{font-size:12px;color:var(--textl);margin-top:2px}
+.doc-date{font-size:13px;font-weight:600;color:var(--g700);background:var(--g100);
+           padding:5px 13px;border-radius:20px}
 
-/* Node cards */
-.org-node{border-radius:10px;min-width:140px;max-width:200px;text-align:center;box-shadow:var(--shadow);position:relative;cursor:default}
-.org-node-board{background:var(--g800);color:#fff;border:2px solid var(--amber);padding:12px 16px}
-.org-node-director{background:var(--g700);color:#fff;border:2px solid var(--g500);padding:10px 14px}
-.org-node-dept{background:#fff;border:2px solid var(--g500);padding:10px 14px}
-.org-node-person{background:#fff;border:2px solid var(--border);padding:8px 12px}
-.org-node-title{font-size:12px;font-weight:700;line-height:1.3}
-.org-node-role{font-size:10px;opacity:.8;margin-top:2px}
-.org-node-people{margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.2);font-size:10px;line-height:1.5;text-align:left}
-.org-node-dept .org-node-people{border-top-color:var(--border);color:var(--text-lt)}
-.org-node-dept .org-node-title{color:var(--g800)}
-.org-node-dept .org-node-role{color:var(--text-lt)}
-.org-node-tags{display:flex;flex-wrap:wrap;gap:3px;margin-top:5px;justify-content:center}
-.org-badge{font-size:9px;padding:1px 6px;border-radius:8px;background:rgba(255,255,255,.2);color:#fff;white-space:nowrap}
-.org-node-dept .org-badge{background:var(--g100);color:var(--g800)}
-
-/* ── RACI ── */
-.raci-wrap{overflow:auto;border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow)}
-.raci-tbl{border-collapse:collapse;font-size:11px;background:#fff;white-space:nowrap}
-.raci-tbl th{background:var(--g800);color:#fff;padding:8px 10px;font-size:10px;letter-spacing:.3px;position:sticky;top:0;z-index:2}
-.raci-tbl th.act-col{text-align:left;position:sticky;left:0;z-index:3;min-width:220px;max-width:270px;white-space:normal}
-.raci-tbl td{padding:5px 8px;border-bottom:1px solid #edf2e8;border-right:1px solid #edf2e8;text-align:center}
-.raci-tbl td.act-cell{text-align:left;background:#f8fdf5;position:sticky;left:0;z-index:1;padding:5px 10px;max-width:270px;white-space:normal;font-weight:500;font-size:12px}
-.raci-tbl tr:hover td{background:var(--g50)}.raci-tbl tr:hover td.act-cell{background:var(--g100)}
-.raci-head-role{writing-mode:vertical-rl;transform:rotate(180deg);height:130px;min-width:26px;font-size:10px;vertical-align:bottom;padding:4px 6px!important;cursor:default;white-space:nowrap}
-.rb{display:inline-block;width:22px;height:22px;border-radius:4px;font-size:11px;font-weight:800;line-height:22px;cursor:pointer;user-select:none;transition:.1s}
-.rb-R{background:#2e7020;color:#fff}.rb-A{background:var(--amber);color:#fff}
-.rb-C{background:var(--blue);color:#fff}.rb-I{background:#777;color:#fff}
-.rb-empty{background:#eee;color:#bbb;font-size:9px}
-.raci-legend{display:flex;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+/* RACI */
+.raci-wrap{overflow:auto;border-radius:var(--radius);border:1px solid var(--border);
+            box-shadow:var(--shadow)}
+.rtbl{border-collapse:collapse;font-size:11px;background:#fff;white-space:nowrap}
+.rtbl th{background:var(--g800);color:#fff;padding:8px 9px;font-size:10px;
+          letter-spacing:.3px;position:sticky;top:0;z-index:2}
+.rtbl th.ac{text-align:left;position:sticky;left:0;z-index:3;min-width:210px;max-width:260px;white-space:normal}
+.rtbl td{padding:5px 7px;border-bottom:1px solid #edf2e8;border-right:1px solid #edf2e8;text-align:center}
+.rtbl td.acel{text-align:left;background:#f8fdf5;position:sticky;left:0;z-index:1;
+               padding:5px 9px;max-width:260px;white-space:normal;font-weight:500;font-size:12px}
+.rtbl tr:hover td{background:var(--g50)}.rtbl tr:hover td.acel{background:var(--g100)}
+.rhr{writing-mode:vertical-rl;transform:rotate(180deg);height:120px;font-size:10px;
+      vertical-align:bottom;padding:4px 6px!important;white-space:nowrap}
+.rb{display:inline-block;width:22px;height:22px;border-radius:4px;font-size:11px;
+     font-weight:800;line-height:22px;cursor:pointer;user-select:none}
+.rbR{background:#2e7020;color:#fff}.rbA{background:var(--amber);color:#fff}
+.rbC{background:var(--blue);color:#fff}.rbI{background:#777;color:#fff}
+.rbE{background:#eee;color:#bbb;font-size:9px}
 .rl{display:flex;align-items:center;gap:5px;font-size:12px}
 
-/* ── MODAL ── */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center}
-.modal-bg.open{display:flex}
-.modal{background:#fff;border-radius:12px;width:540px;max-width:95vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.modal-hdr{background:var(--g800);color:#fff;padding:15px 20px;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between}
-.modal-hdr h3{font-size:15px;font-weight:700}
-.modal-x{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1}
-.modal-body{padding:20px}
-.modal-ftr{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
-.fr{margin-bottom:14px}
-.fl{display:block;font-size:11px;font-weight:700;color:var(--text-lt);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
-.fi{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:6px;font-size:13px}
+/* MODAL */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;
+      display:none;align-items:center;justify-content:center}
+.mbg.open{display:flex}
+.modal{background:#fff;border-radius:12px;width:540px;max-width:95vw;
+        max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.mhdr{background:var(--g800);color:#fff;padding:14px 18px;border-radius:12px 12px 0 0;
+       display:flex;align-items:center;justify-content:space-between}
+.mhdr h3{font-size:14px;font-weight:700}
+.mx{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1}
+.mbody{padding:18px}
+.mftr{padding:13px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.fr{margin-bottom:13px}
+.fl{display:block;font-size:11px;font-weight:700;color:var(--textl);
+     text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.fi{width:100%;padding:7px 11px;border:1px solid var(--border);border-radius:6px;font-size:13px}
 .fi:focus{outline:none;border-color:var(--g500);box-shadow:0 0 0 3px rgba(58,136,40,.15)}
-textarea.fi{min-height:65px;resize:vertical}
+textarea.fi{min-height:60px;resize:vertical}
+.fi-hint{font-size:10px;color:var(--textl);margin-top:3px}
 
-
-
-/* ── NOTICE ── */
-.notice{background:#fff3d6;border:1px solid #f0c060;border-radius:8px;padding:9px 14px;font-size:12px;color:#7a5000;margin-bottom:14px;display:flex;gap:8px;align-items:flex-start}
-
-/* ── LINK ── */
-.sop-link{color:var(--g700);text-decoration:underline;font-size:12px;cursor:pointer}
-.sop-link:hover{color:var(--g500)}
-.sop-add{font-size:11px;color:#bbb;cursor:pointer;font-style:italic}
-.sop-add:hover{color:var(--g600)}
-
-/* ── SECURITY ── */
-.edit-only{display:none}
-body.edit-mode .edit-only{display:inline-flex}
-body.edit-mode .edit-only-block{display:block}
-.edit-only-block{display:none}
-.mode-badge{font-size:11px;padding:3px 10px;border-radius:12px;font-weight:600}
-.mode-view{background:#e8f5e2;color:#245818}
-.mode-edit{background:#fff3d6;color:#8a6200}
-/* ── SCROLLBAR ── */
-::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-
-/* ── PRINT ── */
+/* PRINT */
 @media print{
-  .sidebar,.hdr,.ph-actions,.fbar,.stabs,.modal-bg,.setup-screen,.no-print{display:none!important}
+  .sidebar,.hdr,.ph-act,.fb,.stabs,.mbg,.no-print{display:none!important}
   .layout{display:block;height:auto}
   .main{padding:0;overflow:visible}
   .view{display:none!important}
-  #view-orgchart{display:block!important}
-  #org-print-area{padding:10px}
-  .tree{overflow:visible}
-  .org-node{break-inside:avoid}
+  #view-orgchart.active,#view-processflow.active{display:block!important}
   body{background:#fff}
-  @page{size:A3 landscape;margin:10mm}
+  @page{size:A3 landscape;margin:8mm}
 }
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 </style>
 </head>
 <body>
 
-
-<!-- HEADER -->
 <div class="hdr">
   <div class="hdr-left">
-    <div class="hdr-logo"><img src="data:image/png;base64,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" alt="MES Logo"></div>
+    <div class="hdr-logo"><img src="data:image/png;base64,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" alt="MES"></div>
     <div>
       <div class="hdr-title">MES Power Engineering</div>
       <div class="hdr-sub">Operating Model</div>
     </div>
   </div>
   <div class="hdr-right">
-    <div class="sync-status"><span class="sync-dot" id="sync-dot"></span><span id="sync-text">Ready</span></div>
-    <span class="mode-badge mode-view" id="mode-badge">👁 View Only</span>
-    <button class="btn btn-ghost btn-sm no-print" onclick="manualSync()">↻ Sync</button>
-    <button class="btn btn-ghost btn-sm no-print" onclick="printOrgChart()">🖨 Print Org Chart</button>
-    
+    <span class="sync-dot" id="sdot"></span>
+    <span class="sync-txt" id="stxt">Ready</span>
+    <span class="mode-badge mv" id="mbadge">👁 View Only</span>
+    <button class="btn btn-g btn-sm no-print" onclick="manualSync()">↻ Sync</button>
+    <button class="btn btn-g btn-sm no-print" id="editbtn" onclick="toggleEdit()">🔒 Edit Mode</button>
+    <button class="btn btn-g btn-sm no-print" onclick="printView()">🖨 Print</button>
   </div>
 </div>
 
 <div class="layout">
 <div class="sidebar">
-  <div class="nav-section">Structure</div>
-  <div class="nav-item active" id="nav-orgchart" onclick="showView('orgchart',this)"><span class="nav-icon">🏢</span> Org Chart</div>
-  <div class="nav-item" id="nav-departments" onclick="showView('departments',this)"><span class="nav-icon">📁</span> Departments</div>
-  <div class="nav-item" id="nav-roles" onclick="showView('roles',this)"><span class="nav-icon">🎖</span> Roles</div>
-  <div class="nav-item" id="nav-people" onclick="showView('people',this)"><span class="nav-icon">👥</span> People</div>
-  <div class="nav-section">Processes</div>
-  <div class="nav-item" id="nav-coreprocesses" onclick="showView('coreprocesses',this)"><span class="nav-icon">🔄</span> Core Processes</div>
-  <div class="nav-item" id="nav-processcontrols" onclick="showView('processcontrols',this)"><span class="nav-icon">⚙️</span> Process Controls</div>
-  <div class="nav-section">Analysis</div>
-  <div class="nav-item" id="nav-raci" onclick="showView('raci',this)"><span class="nav-icon">📊</span> RACI Matrix</div>
+  <div class="ns">Structure</div>
+  <div class="ni active" onclick="nav('orgchart',this)"><span class="ni-icon">🏢</span>Org Chart</div>
+  <div class="ni" onclick="nav('departments',this)"><span class="ni-icon">📁</span>Departments</div>
+  <div class="ni" onclick="nav('roles',this)"><span class="ni-icon">🎖</span>Roles</div>
+  <div class="ni" onclick="nav('people',this)"><span class="ni-icon">👥</span>People</div>
+  <div class="ns">Processes</div>
+  <div class="ni" onclick="nav('processflow',this)"><span class="ni-icon">🔄</span>Process Flow</div>
+  <div class="ni" onclick="nav('coreprocesses',this)"><span class="ni-icon">📋</span>Core Processes</div>
+  <div class="ni" onclick="nav('processcontrols',this)"><span class="ni-icon">⚙️</span>Controls</div>
+  <div class="ns">Analysis</div>
+  <div class="ni" onclick="nav('raci',this)"><span class="ni-icon">📊</span>RACI Matrix</div>
 </div>
 
 <div class="main">
 
-<!-- ORG CHART VIEW -->
+<!-- ORG CHART -->
 <div id="view-orgchart" class="view active">
   <div class="ph no-print">
-    <div><div class="ph-title">Organogram</div><div class="ph-sub">Reporting structure — edit People & Departments to update</div></div>
-    <div class="ph-actions">
-      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('org-date-input').showPicker?.() || document.getElementById('org-date-input').focus()">📅 Change Date</button>
-      <input type="month" id="org-date-input" style="display:none" onchange="updateOrgDate(this.value)">
-      <button class="btn btn-amber btn-sm" onclick="printOrgChart()">🖨 Print / Export PDF</button>
+    <div><div class="ph-title">Organogram</div>
+    <div class="ph-sub">Hierarchy built from Departments → Reports To Person, and People → Reports To</div></div>
+    <div class="ph-act">
+      <button class="btn btn-amber btn-sm" onclick="printView()">🖨 Print / PDF</button>
     </div>
   </div>
-  <div id="org-print-area">
-    <div class="org-header">
-      <div class="org-header-left">
-        <div class="org-header-logo"><img src="data:image/png;base64,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" alt="MES"></div>
-        <div>
-          <div class="org-header-title">MES Power Engineering</div>
-          <div class="org-header-sub">Organisation Chart — Operating Model</div>
-        </div>
+  <div id="org-print">
+    <div class="doc-header">
+      <div class="doc-left">
+        <div class="doc-logo"><img src="data:image/png;base64,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" alt="MES"></div>
+        <div><div class="doc-title">MES Power Engineering</div>
+        <div class="doc-sub">Organisation Chart — Operating Model</div></div>
       </div>
-      <div class="org-date" id="org-date-display">May 2026</div>
+      <div class="doc-date" id="org-date">May 2026</div>
     </div>
-    <div class="tree" id="org-tree"></div>
+    <div id="org-svg"></div>
   </div>
 </div>
 
 <!-- DEPARTMENTS -->
 <div id="view-departments" class="view">
-  <div class="ph"><div><div class="ph-title">Departments</div><div class="ph-sub">Business units and reporting structure</div></div>
-  <button class="btn btn-primary edit-only" onclick="openModal('dept')">+ Add Department</button></div>
-  <div id="dept-stats" class="stats"></div>
-  <div class="tbl-wrap"><table><thead><tr><th>Department</th><th>Reports To Person</th><th>Roles</th><th>Headcount</th><th></th></tr></thead><tbody id="dept-tbody"></tbody></table></div>
+  <div class="ph">
+    <div><div class="ph-title">Departments</div><div class="ph-sub">Set "Reports To Person" to control org chart hierarchy</div></div>
+    <div class="ph-act"><button class="btn btn-p btn-sm" id="btn-add-dept" style="display:none" onclick="openModal('dept')">+ Add Department</button></div>
+  </div>
+  <div class="stats" id="dept-stats"></div>
+  <div class="tw"><table><thead><tr><th>Department</th><th>Reports To Person</th><th>Roles</th><th>People</th><th></th></tr></thead>
+  <tbody id="dept-tbody"></tbody></table></div>
 </div>
 
 <!-- ROLES -->
 <div id="view-roles" class="view">
-  <div class="ph"><div><div class="ph-title">Roles</div><div class="ph-sub">All positions across the business (24 total)</div></div>
-  <button class="btn btn-primary edit-only" onclick="openModal('role')">+ Add Role</button></div>
-  <div class="fbar">
-    <div class="search-wrap"><input id="role-search" oninput="renderRoles()" placeholder="Search roles…"></div>
-    <select id="role-dept-filter" class="fsel" onchange="renderRoles()"><option value="">All Departments</option></select>
+  <div class="ph">
+    <div><div class="ph-title">Roles</div><div class="ph-sub">All positions</div></div>
+    <div class="ph-act"><button class="btn btn-p btn-sm" id="btn-add-role" style="display:none" onclick="openModal('role')">+ Add Role</button></div>
   </div>
-  <div class="tbl-wrap"><table><thead><tr><th>Role</th><th>Department</th><th>Level</th><th>Current Holder(s)</th><th></th></tr></thead><tbody id="roles-tbody"></tbody></table></div>
+  <div class="fb">
+    <div class="sw"><input id="role-q" oninput="renderRoles()" placeholder="Search…"></div>
+    <select id="role-df" class="fs" onchange="renderRoles()"><option value="">All Departments</option></select>
+  </div>
+  <div class="tw"><table><thead><tr><th>Role</th><th>Department</th><th>Level</th><th>People</th><th></th></tr></thead>
+  <tbody id="roles-tbody"></tbody></table></div>
 </div>
 
 <!-- PEOPLE -->
 <div id="view-people" class="view">
-  <div class="ph"><div><div class="ph-title">People</div><div class="ph-sub">Employees and role assignments</div></div>
-  <button class="btn btn-primary edit-only" onclick="openModal('person')">+ Add Person</button></div>
-  <div class="fbar">
-    <div class="search-wrap"><input id="ppl-search" oninput="renderPeople()" placeholder="Search people…"></div>
-    <select id="ppl-dept-filter" class="fsel" onchange="renderPeople()"><option value="">All Departments</option></select>
+  <div class="ph">
+    <div><div class="ph-title">People</div><div class="ph-sub">Set level (0=most senior) and Reports To for org chart hierarchy</div></div>
+    <div class="ph-act"><button class="btn btn-p btn-sm" id="btn-add-person" style="display:none" onclick="openModal('person')">+ Add Person</button></div>
   </div>
-  <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Primary Role</th><th>Department</th><th>Reports To</th><th>Status</th><th></th></tr></thead><tbody id="ppl-tbody"></tbody></table></div>
+  <div class="fb">
+    <div class="sw"><input id="ppl-q" oninput="renderPeople()" placeholder="Search…"></div>
+    <select id="ppl-df" class="fs" onchange="renderPeople()"><option value="">All Departments</option></select>
+  </div>
+  <div class="tw"><table><thead><tr><th>Name</th><th>Role</th><th>Department</th><th>Reports To</th><th>Level</th><th>Status</th><th></th></tr></thead>
+  <tbody id="ppl-tbody"></tbody></table></div>
+</div>
+
+<!-- PROCESS FLOW -->
+<div id="view-processflow" class="view">
+  <div class="ph no-print">
+    <div><div class="ph-title">Core Business Process Flow</div>
+    <div class="ph-sub">CP-0001 to CP-0006 in sequence — CP-0007 Governance as overarching framework</div></div>
+    <div class="ph-act"><button class="btn btn-amber btn-sm" onclick="printView()">🖨 Print / PDF</button></div>
+  </div>
+  <div id="pf-print">
+    <div class="doc-header">
+      <div class="doc-left">
+        <div class="doc-logo"><img src="data:image/png;base64,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" alt="MES"></div>
+        <div><div class="doc-title">MES Power Engineering</div>
+        <div class="doc-sub">Core Business Processes — Operating Model</div></div>
+      </div>
+      <div class="doc-date" id="pf-date">May 2026</div>
+    </div>
+    <div id="pf-svg" style="margin-top:16px"></div>
+  </div>
 </div>
 
 <!-- CORE PROCESSES -->
 <div id="view-coreprocesses" class="view">
-  <div class="ph"><div><div class="ph-title">Core Processes</div><div class="ph-sub">The 7 end-to-end business processes</div></div>
-  <button class="btn btn-primary edit-only" onclick="openModal('coreprocess')">+ Add Process</button></div>
-  <div class="tbl-wrap"><table><thead><tr><th>Code</th><th>Process Name</th><th>Purpose</th><th>Controls</th><th></th></tr></thead><tbody id="cp-tbody"></tbody></table></div>
+  <div class="ph">
+    <div><div class="ph-title">Core Processes</div><div class="ph-sub">The 7 end-to-end business processes</div></div>
+    <div class="ph-act"><button class="btn btn-p btn-sm" id="btn-add-cp" style="display:none" onclick="openModal('cp')">+ Add Process</button></div>
+  </div>
+  <div class="tw"><table><thead><tr><th>Code</th><th>Process</th><th>Purpose</th><th>Controls</th><th></th></tr></thead>
+  <tbody id="cp-tbody"></tbody></table></div>
 </div>
 
 <!-- PROCESS CONTROLS -->
 <div id="view-processcontrols" class="view">
-  <div class="ph"><div><div class="ph-title">Process Controls</div><div class="ph-sub" id="pc-count"></div></div>
-  <button class="btn btn-primary edit-only" onclick="openModal('pc')">+ Add Control</button></div>
-  <div class="notice">📎 Click <strong>+ Add link</strong> on any row to paste a SharePoint URL. Links open directly in browser.</div>
+  <div class="ph">
+    <div><div class="ph-title">Process Controls</div><div class="ph-sub" id="pc-count"></div></div>
+    <div class="ph-act"><button class="btn btn-p btn-sm" id="btn-add-pc" style="display:none" onclick="openModal('pc')">+ Add Control</button></div>
+  </div>
+  <div class="notice">📎 Click <strong>+ Add link</strong> on any row to paste a SharePoint URL — opens directly in browser</div>
   <div class="stabs">
     <div class="stab active" onclick="setPCTab('all',this)">All</div>
-    <div class="stab" onclick="setPCTab('procedure',this)">📄 Procedures / SOPs</div>
-    <div class="stab" onclick="setPCTab('expectation',this)">🎯 Role Expectations</div>
-    <div class="stab" onclick="setPCTab('control',this)">⚙️ Process Controls</div>
+    <div class="stab" onclick="setPCTab('procedure',this)">📄 Procedures</div>
+    <div class="stab" onclick="setPCTab('expectation',this)">🎯 Expectations</div>
+    <div class="stab" onclick="setPCTab('control',this)">⚙️ Controls</div>
   </div>
-  <div class="fbar">
-    <div class="search-wrap"><input id="pc-search" oninput="renderPCs()" placeholder="Search activities…"></div>
-    <select id="pc-role-f" class="fsel" onchange="renderPCs()"><option value="">All Roles</option></select>
-    <select id="pc-cp-f" class="fsel" onchange="renderPCs()"><option value="">All Core Processes</option></select>
-    <select id="pc-cat-f" class="fsel" onchange="renderPCs()"><option value="">All Categories</option></select>
+  <div class="fb">
+    <div class="sw"><input id="pc-q" oninput="renderPCs()" placeholder="Search…"></div>
+    <select id="pc-rf" class="fs" onchange="renderPCs()"><option value="">All Roles</option></select>
+    <select id="pc-cpf" class="fs" onchange="renderPCs()"><option value="">All Core Processes</option></select>
+    <select id="pc-catf" class="fs" onchange="renderPCs()"><option value="">All Categories</option></select>
   </div>
-  <div class="tbl-wrap"><table><thead><tr><th>Activity</th><th>Type</th><th>Category</th><th>Core Process</th><th>Owner Role</th><th>Owner</th><th>SharePoint Link</th><th>Freq.</th><th></th></tr></thead><tbody id="pc-tbody"></tbody></table></div>
+  <div class="tw"><table><thead><tr><th>Activity</th><th>Type</th><th>Category</th><th>Core Process</th><th>Owner Role</th><th>Owner</th><th>Link</th><th>Freq.</th><th></th></tr></thead>
+  <tbody id="pc-tbody"></tbody></table></div>
 </div>
 
 <!-- RACI -->
 <div id="view-raci" class="view">
-  <div class="ph"><div><div class="ph-title">RACI Matrix</div><div class="ph-sub">Click any cell to cycle R → A → C → I → empty</div></div>
-  <select id="raci-cp-f" class="fsel" onchange="renderRaci()"><option value="">All Core Processes</option></select></div>
-  <div class="raci-legend">
-    <div class="rl"><span class="rb rb-R">R</span> Responsible</div>
-    <div class="rl"><span class="rb rb-A">A</span> Accountable</div>
-    <div class="rl"><span class="rb rb-C">C</span> Consulted</div>
-    <div class="rl"><span class="rb rb-I">I</span> Informed</div>
+  <div class="ph">
+    <div><div class="ph-title">RACI Matrix</div><div class="ph-sub">Click any cell to cycle R→A→C→I→empty</div></div>
+    <select id="raci-cpf" class="fs" onchange="renderRaci()"><option value="">All Processes</option></select>
   </div>
-  <div class="raci-wrap"><div id="raci-container"></div></div>
+  <div class="fb">
+    <div class="rl"><span class="rb rbR">R</span>Responsible</div>
+    <div class="rl"><span class="rb rbA">A</span>Accountable</div>
+    <div class="rl"><span class="rb rbC">C</span>Consulted</div>
+    <div class="rl"><span class="rb rbI">I</span>Informed</div>
+  </div>
+  <div class="raci-wrap"><div id="raci-div"></div></div>
 </div>
 
 </div><!-- /main -->
 </div><!-- /layout -->
 
 <!-- MODAL -->
-<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <div class="modal-hdr"><h3 id="modal-title"></h3><button class="modal-x" onclick="closeModal()">✕</button></div>
-    <div class="modal-body" id="modal-body"></div>
-    <div class="modal-ftr">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-danger" id="modal-del" style="display:none" onclick="modalDel()">Delete</button>
-      <button class="btn btn-primary" onclick="modalSave()">Save</button>
+<div class="mbg" id="mbg" onclick="if(event.target===this)closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="mhdr"><h3 id="mtitle"></h3><button class="mx" onclick="closeModal()">✕</button></div>
+    <div class="mbody" id="mbody"></div>
+    <div class="mftr">
+      <button class="btn btn-g" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-d" id="mdel" style="display:none" onclick="modalDel()">Delete</button>
+      <button class="btn btn-p" onclick="modalSave()">Save</button>
     </div>
   </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════
-// CLOUDFLARE WORKER API
-// ═══════════════════════════════════════════════
-// 👇 Change these two lines after deploying your Worker
+// ═══════════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════════
 const WORKER_URL = 'https://mes-operating-model.mes-bot.workers.dev';
 const WRITE_KEY  = 'MES-internal-2026';
 
-let saveTimer = null;
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let IS_EDIT = false;
+let modalMode = null, modalId = null;
+let pcTab = 'all';
+let orgDate = 'May 2026';
 
-function setSyncStatus(state, text) {
-  const dot = document.getElementById('sync-dot');
-  const txt = document.getElementById('sync-text');
-  dot.className = 'sync-dot' + (state === 'saving' ? ' saving' : state === 'error' ? ' error' : '');
-  txt.textContent = text;
-}
-
-async function loadFromWorker() {
-  setSyncStatus('saving', 'Loading…');
-  try {
-    const res = await fetch(WORKER_URL, { cache: 'no-store' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const d = await res.json();
-    setSyncStatus('ok', 'Live');
-    return d && d.departments ? d : null;
-  } catch (e) {
-    setSyncStatus('error', 'Offline — using local');
-    console.warn('Worker load failed:', e);
-    return null;
-  }
-}
-
-async function saveToWorker() {
-  setSyncStatus('saving', 'Saving…');
-  try {
-    const res = await fetch(WORKER_URL, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'X-Write-Key': WRITE_KEY },
-      body: JSON.stringify(data)
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    setSyncStatus('ok', 'Saved ✓');
-  } catch (e) {
-    setSyncStatus('error', 'Save failed');
-    console.warn('Worker save failed:', e);
-  }
-}
-
-function scheduleSave() {
-  clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => saveToWorker(), 1200);
-}
-
-async function manualSync() {
-  const d = await loadFromWorker();
-  if (d) { data = d; renderAll(); }
-}
-
-// Stub — not used with Worker approach
-function showSetup() {
-  alert('Edit WORKER_URL and WRITE_KEY at the top of the HTML script to change the data endpoint.');
-}
-
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // DEFAULT DATA
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 const DEFAULT = {
-  orgDate: 'May 2026',
+  orgDate:'May 2026',
   departments:[
-    {id:'d1',name:'Directors',              reportsTo:'',         reportsToPerson:''},
-    {id:'d2',name:'Quotes & Design',         reportsTo:'Directors',reportsToPerson:'Neil McKenzie'},
-    {id:'d3',name:'Commercial',              reportsTo:'Directors',reportsToPerson:'Neil McKenzie'},
-    {id:'d4',name:'Projects',                reportsTo:'Directors',reportsToPerson:'Mark Stevenson'},
-    {id:'d5',name:'Accounts',                reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'},
-    {id:'d6',name:'SHEQ',                    reportsTo:'Directors',reportsToPerson:'Neil McKenzie'},
-    {id:'d7',name:'HR & People',             reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'},
-    {id:'d8',name:'Facilities Management',   reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'},
-    {id:'d9',name:'Business Support',        reportsTo:'Directors',reportsToPerson:'Amanda McKenzie'}
+    {id:'d1',name:'Directors',           reportsToPerson:''},
+    {id:'d2',name:'Quotes & Design',     reportsToPerson:'Neil McKenzie'},
+    {id:'d3',name:'Commercial',          reportsToPerson:'Neil McKenzie'},
+    {id:'d4',name:'Projects',            reportsToPerson:'Mark Stevenson'},
+    {id:'d5',name:'Accounts',            reportsToPerson:'Amanda McKenzie'},
+    {id:'d6',name:'SHEQ',                reportsToPerson:'Neil McKenzie'},
+    {id:'d7',name:'HR & People',         reportsToPerson:'Amanda McKenzie'},
+    {id:'d8',name:'Facilities Management',reportsToPerson:'Amanda McKenzie'},
+    {id:'d9',name:'Business Support',    reportsToPerson:'Amanda McKenzie'}
   ],
   roles:[
-    {id:'r1',name:'CEO',dept:'Directors',order:0},
-    {id:'r2',name:'Finance Director',dept:'Directors',order:10},
-    {id:'r3',name:'Managing Director',dept:'Directors',order:20},
-    {id:'r4',name:'Business Support Manager',dept:'Business Support',order:30},
-    {id:'r5',name:'SHEQ Manager',dept:'SHEQ',order:30},
-    {id:'r6',name:'People & Culture (HR)',dept:'HR & People',order:30},
-    {id:'r7',name:'General Manager',dept:'Projects',order:30},
-    {id:'r8',name:'Design Manager',dept:'Quotes & Design',order:30},
-    {id:'r9',name:'Commercial Manager',dept:'Commercial',order:30},
-    {id:'r10',name:'Management Accountant',dept:'Accounts',order:40},
-    {id:'r11',name:'Project Engineer',dept:'Projects',order:49},
-    {id:'r12',name:'Assessing Officer',dept:'Projects',order:49},
-    {id:'r13',name:'Electrical Engineer',dept:'Projects',order:50},
-    {id:'r14',name:'Project Manager',dept:'Projects',order:50},
-    {id:'r15',name:'FM Manager',dept:'Facilities Management',order:50},
-    {id:'r16',name:'Site Manager',dept:'Projects',order:50},
-    {id:'r17',name:'Estimator',dept:'Quotes & Design',order:50},
-    {id:'r18',name:'Chargehand',dept:'Projects',order:60},
-    {id:'r19',name:'Project Co-Ordinator',dept:'Projects',order:70},
-    {id:'r20',name:'Craftsman',dept:'Projects',order:70},
-    {id:'r21',name:'Admin Support',dept:'Business Support',order:70},
-    {id:'r22',name:'Craft Assistant',dept:'Projects',order:80},
-    {id:'r23',name:'Trainee Electrical',dept:'Projects',order:80},
-    {id:'r24',name:'Accounting (External)',dept:'Accounts',order:100}
+    {id:'r1', name:'CEO',                      dept:'Directors',           order:0},
+    {id:'r2', name:'Finance Director',         dept:'Directors',           order:10},
+    {id:'r3', name:'Managing Director',        dept:'Directors',           order:20},
+    {id:'r4', name:'Business Support Manager', dept:'Business Support',    order:30},
+    {id:'r5', name:'SHEQ Manager',             dept:'SHEQ',                order:30},
+    {id:'r6', name:'People & Culture (HR)',    dept:'HR & People',         order:30},
+    {id:'r7', name:'General Manager',          dept:'Projects',            order:30},
+    {id:'r8', name:'Design Manager',           dept:'Quotes & Design',     order:30},
+    {id:'r9', name:'Commercial Manager',       dept:'Commercial',          order:30},
+    {id:'r10',name:'Management Accountant',    dept:'Accounts',            order:40},
+    {id:'r11',name:'Project Engineer',         dept:'Projects',            order:49},
+    {id:'r12',name:'Assessing Officer',        dept:'Projects',            order:49},
+    {id:'r13',name:'Electrical Engineer',      dept:'Projects',            order:50},
+    {id:'r14',name:'Project Manager',          dept:'Projects',            order:50},
+    {id:'r15',name:'FM Manager',               dept:'Facilities Management',order:50},
+    {id:'r16',name:'Site Manager',             dept:'Projects',            order:50},
+    {id:'r17',name:'Estimator',                dept:'Quotes & Design',     order:50},
+    {id:'r18',name:'Chargehand',               dept:'Projects',            order:60},
+    {id:'r19',name:'Project Co-Ordinator',     dept:'Projects',            order:70},
+    {id:'r20',name:'Craftsman',                dept:'Projects',            order:70},
+    {id:'r21',name:'Admin Support',            dept:'Business Support',    order:70},
+    {id:'r22',name:'Craft Assistant',          dept:'Projects',            order:80},
+    {id:'r23',name:'Trainee Electrical',       dept:'Projects',            order:80},
+    {id:'r24',name:'Accounting (External)',    dept:'Accounts',            order:100}
   ],
   people:[
-    {id:'p1', name:'Neil McKenzie',    role:'Managing Director', dept:'Directors',           reportsTo:'',               status:'Active'},
-    {id:'p2', name:'Amanda McKenzie',  role:'Finance Director',  dept:'Directors',           reportsTo:'Neil McKenzie',  status:'Active'},
-    {id:'p3', name:'Andrea Moir',      role:'SHEQ Manager',      dept:'SHEQ',                reportsTo:'Neil McKenzie',  status:'Active'},
-    {id:'p4', name:'Ewan Bennett',     role:'Commercial Manager', dept:'Commercial',         reportsTo:'Neil McKenzie',  status:'Active'},
-    {id:'p5', name:'Luca Ivory-Hunter',role:'Commercial Manager', dept:'Commercial',         reportsTo:'Neil McKenzie',  status:'Active'},
-    {id:'p6', name:'Jamie Taylor',     role:'Design Manager',    dept:'Quotes & Design',     reportsTo:'Neil McKenzie',  status:'Active'},
-    {id:'p7', name:'Mark Stevenson',   role:'General Manager',   dept:'Projects',            reportsTo:'Neil McKenzie',  status:'Active'},
-    {id:'p8', name:'Chris Todd',       role:'Project Engineer',  dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p9', name:'Ethan McKenzie',   role:'Project Engineer',  dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p10',name:'Luke Mutch',       role:'Project Co-Ordinator',dept:'Projects',          reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p11',name:'Liam Duthie',      role:'Project Co-Ordinator',dept:'Projects',          reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p12',name:'Dion Moutrey',     role:'Site Manager',      dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p13',name:'Alan Bowie',       role:'Craftsman',         dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p14',name:'Oakley Allan-Cooper',role:'Craft Assistant', dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p15',name:'Josh Anderson',    role:'Trainee Electrical', dept:'Projects',           reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p16',name:'Alan Shepherd',    role:'Trainee Electrical', dept:'Projects',           reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p17',name:'Neil Ritchie',     role:'Chargehand',        dept:'Projects',            reportsTo:'Mark Stevenson', status:'Active'},
-    {id:'p18',name:'Josh Anderson',    role:'Admin Support',     dept:'Business Support',    reportsTo:'Amanda McKenzie',status:'Active'},
-    {id:'p19',name:'Luca Ivory-Hunter',role:'Estimator',         dept:'Quotes & Design',     reportsTo:'Jamie Taylor',   status:'Active'}
+    {id:'p1', name:'Neil McKenzie',     role:'Managing Director',    dept:'Directors',          reportsTo:'',              level:0,  isManager:true, status:'Active'},
+    {id:'p2', name:'Amanda McKenzie',   role:'Finance Director',     dept:'Directors',          reportsTo:'Neil McKenzie', level:10, isManager:true, status:'Active'},
+    {id:'p3', name:'Andrea Moir',       role:'SHEQ Manager',         dept:'SHEQ',               reportsTo:'Neil McKenzie', level:30, isManager:true, status:'Active'},
+    {id:'p4', name:'Ewan Bennett',      role:'Commercial Manager',   dept:'Commercial',         reportsTo:'Neil McKenzie', level:30, isManager:true, status:'Active'},
+    {id:'p5', name:'Luca Ivory-Hunter', role:'Commercial Manager',   dept:'Commercial',         reportsTo:'Neil McKenzie', level:30, isManager:false,status:'Active'},
+    {id:'p6', name:'Jamie Taylor',      role:'Design Manager',       dept:'Quotes & Design',    reportsTo:'Neil McKenzie', level:30, isManager:true, status:'Active'},
+    {id:'p7', name:'Mark Stevenson',    role:'General Manager',      dept:'Projects',           reportsTo:'Neil McKenzie', level:30, isManager:true, status:'Active'},
+    {id:'p8', name:'Chris Todd',        role:'Project Engineer',     dept:'Projects',           reportsTo:'Mark Stevenson',level:49, isManager:false,status:'Active'},
+    {id:'p9', name:'Ethan McKenzie',    role:'Project Engineer',     dept:'Projects',           reportsTo:'Mark Stevenson',level:49, isManager:false,status:'Active'},
+    {id:'p10',name:'Luke Mutch',        role:'Project Co-Ordinator', dept:'Projects',           reportsTo:'Mark Stevenson',level:70, isManager:false,status:'Active'},
+    {id:'p11',name:'Liam Duthie',       role:'Project Co-Ordinator', dept:'Projects',           reportsTo:'Mark Stevenson',level:70, isManager:false,status:'Active'},
+    {id:'p12',name:'Dion Moutrey',      role:'Site Manager',         dept:'Projects',           reportsTo:'Mark Stevenson',level:50, isManager:true, status:'Active'},
+    {id:'p13',name:'Alan Bowie',        role:'Craftsman',            dept:'Projects',           reportsTo:'Mark Stevenson',level:70, isManager:false,status:'Active'},
+    {id:'p14',name:'Oakley Allan-Cooper',role:'Craft Assistant',     dept:'Projects',           reportsTo:'Mark Stevenson',level:80, isManager:false,status:'Active'},
+    {id:'p15',name:'Josh Anderson',     role:'Trainee Electrical',   dept:'Projects',           reportsTo:'Mark Stevenson',level:80, isManager:false,status:'Active'},
+    {id:'p16',name:'Alan Shepherd',     role:'Trainee Electrical',   dept:'Projects',           reportsTo:'Mark Stevenson',level:80, isManager:false,status:'Active'},
+    {id:'p17',name:'Neil Ritchie',      role:'Chargehand',           dept:'Projects',           reportsTo:'Mark Stevenson',level:60, isManager:false,status:'Active'},
+    {id:'p18',name:'Josh Anderson',     role:'Admin Support',        dept:'Business Support',   reportsTo:'Amanda McKenzie',level:70,isManager:false,status:'Active'},
+    {id:'p19',name:'Luca Ivory-Hunter', role:'Estimator',            dept:'Quotes & Design',    reportsTo:'Jamie Taylor',  level:50, isManager:false,status:'Active'}
   ],
   coreProcesses:[
-    {id:'cp1',code:'CP-0001',name:'Bid / Estimate to Contract', purpose:'To secure commercially viable contracts'},
-    {id:'cp2',code:'CP-0002',name:'Design',                      purpose:'Design management and approval process'},
-    {id:'cp3',code:'CP-0003',name:'Pre-Construction Planning',   purpose:'Planning and mobilisation of projects'},
-    {id:'cp4',code:'CP-0004',name:'Project Delivery',            purpose:'Execution and delivery of projects on site'},
-    {id:'cp5',code:'CP-0005',name:'Commissioning & Handover',    purpose:'Commissioning, testing and client handover'},
-    {id:'cp6',code:'CP-0006',name:'Commercial Close-Out',        purpose:'Financial close-out and final accounts'},
-    {id:'cp7',code:'CP-0007',name:'Governance & Compliance',     purpose:'Business governance and compliance management'}
+    {id:'cp1',code:'CP-0001',name:'Bid / Estimate to Contract',purpose:'To secure commercially viable contracts'},
+    {id:'cp2',code:'CP-0002',name:'Design',                     purpose:'Design management and approval'},
+    {id:'cp3',code:'CP-0003',name:'Pre-Construction Planning',  purpose:'Planning and mobilisation of projects'},
+    {id:'cp4',code:'CP-0004',name:'Project Delivery',           purpose:'Execution and delivery on site'},
+    {id:'cp5',code:'CP-0005',name:'Commissioning & Handover',   purpose:'Commissioning, testing and handover'},
+    {id:'cp6',code:'CP-0006',name:'Commercial Close-Out',       purpose:'Financial close-out and final accounts'},
+    {id:'cp7',code:'CP-0007',name:'Governance & Compliance',    purpose:'Business governance across all processes'}
   ],
-  processControls:[
-    {id:'pc001',activity:'COSHH & data sheets',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Annually',notes:''},
-    {id:'pc002',activity:'DSE',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Annually',notes:''},
-    {id:'pc003',activity:'Reporting & analysis',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc004',activity:'HAVs',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc005',activity:'Site audits',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc006',activity:'Implementation & compliance with company practices',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc007',activity:'DVLA checks',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc008',activity:'First aid',type:'procedure',category:'Safety',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc009',activity:'PPE',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc010',activity:'SHEQ objectives & initiatives',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc011',activity:'NCRs',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc012',activity:'Tool box talks',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc013',activity:'Manage company BMS system',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc014',activity:'Environmental aspects & impacts',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc015',activity:'Vehicle weekly checks',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Weekly',notes:''},
-    {id:'pc016',activity:'Fire safety',type:'procedure',category:'Safety',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc017',activity:'Annual audit programme',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Annually',notes:''},
-    {id:'pc018',activity:'ISO 9001, 14001 & 45001 management',type:'procedure',category:'Systems',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc019',activity:'SHEQ legislation, standards & safe working practices',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc020',activity:'Manage SEAR + QAR databases',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc021',activity:'Subcontractor co-ordination (certification, admin etc.)',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc022',activity:'SHEQ awareness & compliance',type:'procedure',category:'Compliance',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc023',activity:'Accidents, incidents & near misses',type:'procedure',category:'Safety',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc024',activity:'SHEQ KPI',type:'procedure',category:'Quality',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc025',activity:'Company objectives & metrics',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
-    {id:'pc026',activity:'Risks & opportunities',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
-    {id:'pc027',activity:'Company Insurances',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'Annually',notes:''},
-    {id:'pc028',activity:'Social media',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
-    {id:'pc029',activity:'Website & SEO',type:'procedure',category:'',coreProcess:'',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
-    {id:'pc030',activity:'Sales & Business Development',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc031',activity:'CRM (Customer Relations Management)',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc032',activity:'Target markets & research',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc033',activity:'Competitor analysis',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc034',activity:'Enquiry received, info collated & lead added to ERP',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc035',activity:'Quotation started',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc036',activity:'Design requirements review',type:'procedure',category:'',coreProcess:'CP-0002 | Design',supportProcess:'',ownerRole:'Design Manager',ownerName:'Jamie Taylor',sopLink:'',frequency:'',notes:''},
-    {id:'pc037',activity:'High level project plan created (if required)',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc038',activity:'Prepare final quotation summary & submit to customer',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Estimator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc039',activity:'Project folder created (& docs copied over)',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc040',activity:'Design pack created & approved',type:'procedure',category:'',coreProcess:'CP-0002 | Design',supportProcess:'',ownerRole:'Design Manager',ownerName:'Jamie Taylor',sopLink:'',frequency:'',notes:''},
-    {id:'pc041',activity:'Project handover & convert quote to job in ERP',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc042',activity:'Credit control',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc043',activity:'Quote accepted, payment plan agreed & initial stage invoiced',type:'procedure',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc044',activity:'Project Purchasing',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc045',activity:'Track changes / variations throughout',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc046',activity:'Monthly applications and progress claims',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc047',activity:'Stage Invoicing',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc048',activity:'Asset claims - Connections',type:'procedure',category:'',coreProcess:'CP-0005 | Commissioning & Handover',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc049',activity:'Prepare weekly invoicing for manager sign-off',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Weekly',notes:''},
-    {id:'pc050',activity:'Final Invoice',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc051',activity:'Design & drawings review and approval throughout',type:'procedure',category:'',coreProcess:'CP-0002 | Design',supportProcess:'',ownerRole:'Design Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc052',activity:'Site team checks (NERs, qualifications, training etc)',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'General Manager',ownerName:'Mark Stevenson',sopLink:'',frequency:'',notes:''},
-    {id:'pc053',activity:'Paperwork check (Issue)',type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc054',activity:"Create PO's for project",type:'procedure',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc055',activity:'Goods receipting - GRN (Site)',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Site Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc056',activity:'Technical Audits (as per schedule)',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc057',activity:'Complete daily diary sheets',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Site Manager',ownerName:'',sopLink:'',frequency:'Daily',notes:''},
-    {id:'pc058',activity:'Site paperwork checked and signed off (Returns)',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc059',activity:'Project Close out - EPR',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc060',activity:'Project closeout meeting (with customer)',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc061',activity:'Customer feedback',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Commercial Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc062',activity:'Project Review / lessons learned held with team',type:'procedure',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'General Manager',ownerName:'Mark Stevenson',sopLink:'',frequency:'',notes:''},
-    {id:'pc063',activity:'Site SHEQ Audits - as per SHEQ Audit Programme',type:'procedure',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc064',activity:'Financial forecasting',type:'procedure',category:'',coreProcess:'CP-0007 | Governance & Compliance',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc065',activity:'Cashflow',type:'procedure',category:'',coreProcess:'CP-0007 | Governance & Compliance',supportProcess:'',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc066',activity:'PAT testing',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'Annually',notes:''},
-    {id:'pc067',activity:'Harness inspections',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc068',activity:'Calibrations',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc069',activity:'Goods receipting - GRN (Stores)',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc070',activity:'MES Asset management',type:'procedure',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc071',activity:'Position agreed',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc072',activity:'Job Advertisement',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc073',activity:'Interview',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc074',activity:'Interview follow up responses sent',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc075',activity:'Offer made (include new start information requirements)',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc076',activity:'IT logins setup',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc077',activity:'Induction',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc078',activity:'Training & development plans & CPD',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc079',activity:'Performance management',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc080',activity:'Appraisals',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'Annually',notes:''},
-    {id:'pc081',activity:'Absence management',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc082',activity:'Disciplinaries & Grievances',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc083',activity:'Offboarding',type:'procedure',category:'HR',coreProcess:'',supportProcess:'SNCP-0003 | People & HR',ownerRole:'People & Culture (HR)',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc101',activity:'Build client relationships',type:'expectation',category:'',coreProcess:'CP-0001 | Bid / Estimate to Contract',supportProcess:'',ownerRole:'Managing Director',ownerName:'Neil McKenzie',sopLink:'',frequency:'',notes:''},
-    {id:'pc102',activity:'EPR Management',type:'expectation',category:'',coreProcess:'',supportProcess:'SNCP-0005 | Business Support & Systems',ownerRole:'',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc103',activity:'Schedule price planning - 100% efficiency on programme',type:'expectation',category:'',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc104',activity:'Day to day works (Ongoing)',type:'expectation',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Site Manager',ownerName:'',sopLink:'',frequency:'Daily',notes:''},
-    {id:'pc105',activity:'Weekly project review (timesheets / programme / project plans)',type:'expectation',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'Weekly',notes:''},
-    {id:'pc106',activity:'Review daily diary sheets and resolve queries',type:'expectation',category:'',coreProcess:'CP-0004 | Project Delivery',supportProcess:'',ownerRole:'Project Manager',ownerName:'',sopLink:'',frequency:'Daily',notes:''},
-    {id:'pc107',activity:'Collate & summarise weekly timesheet returns',type:'expectation',category:'',coreProcess:'CP-0006 | Commercial Close-Out',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'Weekly',notes:''},
-    {id:'pc108',activity:'Document control on project files',type:'expectation',category:'',coreProcess:'CP-0005 | Commissioning & Handover',supportProcess:'',ownerRole:'Project Co-Ordinator',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc109',activity:'Sales ledger',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc110',activity:'Purchase ledger',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc111',activity:'Payroll',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc112',activity:'VAT returns',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Quarterly',notes:''},
-    {id:'pc113',activity:'Management accounts',type:'expectation',category:'Finance',coreProcess:'',supportProcess:'SNCP-0002 | Finance & Accounts',ownerRole:'Management Accountant',ownerName:'',sopLink:'',frequency:'Monthly',notes:''},
-    {id:'pc114',activity:'Stores & Yard Management',type:'expectation',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc115',activity:'Transport & Plant Management (Servicing; MOTs; Repairs)',type:'expectation',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc116',activity:'Equipment inspections, certification and repair',type:'expectation',category:'',coreProcess:'',supportProcess:'SNCP-0004 | Stores, Plant & Facilities',ownerRole:'FM Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc201',activity:'RAMS created & approved',type:'control',category:'SHEQ',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc202',activity:"MSRA's Systems",type:'control',category:'SHEQ',coreProcess:'',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''},
-    {id:'pc203',activity:'Site induction / client induction',type:'control',category:'SHEQ',coreProcess:'CP-0003 | Pre-Construction Planning',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'Site Manager',ownerName:'',sopLink:'',frequency:'',notes:''},
-    {id:'pc204',activity:'Quality Plans - ITP (Inspection & Test Plan)',type:'control',category:'Quality',coreProcess:'CP-0004 | Project Delivery',supportProcess:'SNCP-0001 | SHEQ & Compliance',ownerRole:'SHEQ Manager',ownerName:'Andrea Moir',sopLink:'',frequency:'',notes:''}
-  ],
+  processControls:[],
   raci:{}
 };
 
+// ═══════════════════════════════════════════════════════════════
+// DATA LAYER
+// ═══════════════════════════════════════════════════════════════
 let data = JSON.parse(JSON.stringify(DEFAULT));
-let modalMode = null;
-let modalEditId = null;
-let pcTabFilter = 'all';
-let orgDateStr = 'May 2026';
+let saveTimer = null;
 
-// ═══════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════
-window.addEventListener('DOMContentLoaded', () => {
-  // Load from Cloudflare Worker on startup — no setup needed for staff
-  loadFromWorker().then(d => {
-    if (d) data = d;
-    renderAll();
-  });
-});
-
-function renderAll(){
-  renderOrgChart();
-  renderDepts();
-  renderRoles();
-  renderPeople();
-  renderCPs();
-  renderPCs();
-  renderRaci();
-  populateFilters();
+function sync(state,txt){
+  const d=document.getElementById('sdot'), t=document.getElementById('stxt');
+  d.className='sync-dot'+(state==='saving'?' saving':state==='error'?' error':'');
+  t.textContent=txt;
 }
 
-// ═══════════════════════════════════════════════
+async function loadData(){
+  try{
+    sync('saving','Loading…');
+    const r=await fetch(WORKER_URL,{cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const d=await r.json();
+    if(d&&d.departments){ data=d; sync('ok','Live'); return true; }
+    sync('ok','Default data');
+  }catch(e){ sync('error','Offline'); }
+  return false;
+}
+
+async function saveData(){
+  if(!IS_EDIT) return;
+  sync('saving','Saving…');
+  try{
+    const r=await fetch(WORKER_URL,{method:'PUT',
+      headers:{'Content-Type':'application/json','X-Write-Key':WRITE_KEY},
+      body:JSON.stringify(data)});
+    sync(r.ok?'ok':'error', r.ok?'Saved ✓':'Save failed');
+  }catch(e){ sync('error','Save failed'); }
+}
+
+function scheduleSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(saveData,1500); }
+
+async function manualSync(){
+  const ok=await loadData();
+  if(ok) renderAll();
+}
+
+// ═══════════════════════════════════════════════════════════════
 // NAVIGATION
-// ═══════════════════════════════════════════════
-function showView(name, el){
+// ═══════════════════════════════════════════════════════════════
+function nav(name, el){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
   document.getElementById('view-'+name).classList.add('active');
-  if(el) el.classList.add('active');
+  el.classList.add('active');
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// EDIT MODE
+// ═══════════════════════════════════════════════════════════════
+function toggleEdit(){
+  if(IS_EDIT){
+    IS_EDIT=false;
+    document.getElementById('mbadge').className='mode-badge mv';
+    document.getElementById('mbadge').textContent='👁 View Only';
+    document.getElementById('editbtn').textContent='🔒 Edit Mode';
+    sessionStorage.removeItem('mes-edit');
+  } else {
+    const k=prompt('Enter editor password:');
+    if(!k) return;
+    if(k!==WRITE_KEY){ alert('Incorrect password.'); return; }
+    IS_EDIT=true;
+    document.getElementById('mbadge').className='mode-badge me';
+    document.getElementById('mbadge').textContent='✏️ Edit Mode';
+    document.getElementById('editbtn').textContent='🔓 Lock';
+    sessionStorage.setItem('mes-edit','1');
+  }
+  // Show/hide all edit buttons
+  ['btn-add-dept','btn-add-role','btn-add-person','btn-add-cp','btn-add-pc']
+    .forEach(id=>{ const el=document.getElementById(id); if(el) el.style.display=IS_EDIT?'':'none'; });
+  renderAll(); // re-render tables so row edit/delete buttons appear
+}
+
+function editBtns(id,fn){
+  if(!IS_EDIT) return '';
+  return `<div style="display:flex;gap:4px">
+    <button class="btn btn-g btn-sm btn-ic" onclick="${fn}('${id}')">✏️</button>
+    <button class="btn btn-d btn-sm btn-ic" onclick="delItem('${id}')">🗑</button></div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
 // ORG CHART
-// ═══════════════════════════════════════════════
-function updateOrgDate(val){
-  if(!val) return;
-  const [yr, mo] = val.split('-');
-  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  orgDateStr = months[parseInt(mo)-1] + ' ' + yr;
-  data.orgDate = orgDateStr;
-  document.getElementById('org-date-display').textContent = orgDateStr;
-  scheduleSave();
-}
-
-function printOrgChart(){
-  showView('orgchart', document.getElementById('nav-orgchart'));
-  setTimeout(()=>window.print(), 200);
-}
-
+// ═══════════════════════════════════════════════════════════════
 function renderOrgChart(){
-  if(data.orgDate) orgDateStr=data.orgDate;
-  document.getElementById('org-date-display').textContent=orgDateStr;
-
+  if(data.orgDate) orgDate=data.orgDate;
+  document.getElementById('org-date').textContent=orgDate;
   const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  // ── Build tree from data ──────────────────────────────────────────
-  const byLevel=[...data.people].sort((a,b)=>(a.level??50)-(b.level??50));
-  const root=byLevel.find(p=>!p.reportsTo)||byLevel[0];
-  if(!root){
-    document.getElementById('org-tree').innerHTML='<p style="padding:20px;color:#888">Add people to generate the org chart.</p>';
-    return;
-  }
+  // Lookups
+  const byLvl=[...data.people].sort((a,b)=>(a.level??50)-(b.level??50));
+  const root=byLvl.find(p=>!p.reportsTo)||byLvl[0];
+  if(!root){ document.getElementById('org-svg').innerHTML='<p style="padding:20px;color:#888">Add people to build the org chart.</p>'; return; }
+  const dp={};
+  data.people.forEach(p=>{ if(p.dept){ if(!dp[p.dept])dp[p.dept]=[]; dp[p.dept].push(p); } });
 
-  const deptPpl={};
-  data.people.forEach(p=>{if(p.dept){if(!deptPpl[p.dept])deptPpl[p.dept]=[];deptPpl[p.dept].push(p);}});
+  // Detect "structural" people — those who have depts or people under them
+  const hasDept=new Set(data.departments.filter(d=>d.reportsToPerson&&d.name!=='Directors').map(d=>d.reportsToPerson));
+  const hasReport=new Set(data.people.filter(p=>p.reportsTo).map(p=>p.reportsTo));
+  const structural=p=>hasDept.has(p.name)||hasReport.has(p.name);
 
-  const visited=new Set();
-  function buildNode(person,depth){
-    if(visited.has(person.id)) return null;
-    visited.add(person.id);
-    // Depts reporting to this person
+  const seen=new Set();
+  function buildNode(p,depth){
+    if(seen.has(p.id)) return null; seen.add(p.id);
     const depts=data.departments
-      .filter(d=>d.reportsToPerson===person.name&&d.name!=='Directors')
+      .filter(d=>d.reportsToPerson===p.name&&d.name!=='Directors')
       .map(d=>({type:'dept',data:d,depth:depth+1,
-                people:(deptPpl[d.name]||[]).sort((a,b)=>(a.level??50)-(b.level??50)),
-                children:[],subW:0,x:0,y:0}));
-    // People who directly report to this person
-    const reports=byLevel
-      .filter(p=>p.reportsTo===person.name&&p.id!==person.id)
-      .map(p=>buildNode(p,depth+1)).filter(Boolean);
-    return {type:'person',data:person,depth,children:[...depts,...reports],subW:0,x:0,y:0};
+                people:(dp[d.name]||[]).sort((a,b)=>(a.level??50)-(b.level??50)),
+                children:[],sw:0,x:0,y:0}));
+    const reps=byLvl.filter(r=>r.reportsTo===p.name&&r.id!==p.id&&structural(r))
+                    .map(r=>buildNode(r,depth+1)).filter(Boolean);
+    return {type:'person',data:p,depth,children:[...depts,...reps],sw:0,x:0,y:0};
   }
   const tree=buildNode(root,0);
-  if(!tree){document.getElementById('org-tree').innerHTML='';return;}
+  if(!tree){ document.getElementById('org-svg').innerHTML=''; return; }
 
-  // ── Layout constants ──────────────────────────────────────────────
-  const NW=165, HGAP=14, VGAP=68;
+  // Layout
+  const NW=168,HG=14,VG=70;
   function nh(n){
     if(n.type==='person') return 66;
-    const r=Math.min((n.people||[]).length,6);
-    return Math.max(72,30+r*20+8);
+    const ppl=n.people||[];
+    const m=ppl.filter(p=>(p.level??50)<=35);
+    const s=ppl.filter(p=>(p.level??50)>35&&(p.level??50)<=60);
+    const j=ppl.filter(p=>(p.level??50)>60);
+    const rows=(m.length?m.length+1:0)+(s.length?s.length+1:0)+(j.length?j.length+1:0)||1;
+    return Math.max(78,32+rows*18+8);
   }
-
-  // Pass 1: subtree widths (bottom-up)
   function calcW(n){
-    if(!n.children.length){n.subW=NW;return;}
+    if(!n.children.length){n.sw=NW;return;}
     n.children.forEach(calcW);
-    const tot=n.children.reduce((s,c)=>s+c.subW,0)+HGAP*(n.children.length-1);
-    n.subW=Math.max(NW,tot);
+    const tot=n.children.reduce((s,c)=>s+c.sw,0)+HG*(n.children.length-1);
+    n.sw=Math.max(NW,tot);
   }
-
-  // Pass 2: assign positions (top-down)
   function place(n,x,y){
     n.y=y;
-    if(!n.children.length){n.x=x+n.subW/2;return;}
-    let cx=x;
-    n.children.forEach(c=>{place(c,cx,y+nh(n)+VGAP);cx+=c.subW+HGAP;});
+    if(!n.children.length){n.x=x+n.sw/2;return;}
+    let cx=x; n.children.forEach(c=>{place(c,cx,y+nh(n)+VG);cx+=c.sw+HG;});
     n.x=Math.round((n.children[0].x+n.children[n.children.length-1].x)/2);
   }
-
   calcW(tree); place(tree,10,15);
+  let mx=0,my=0;
+  function bnd(n){mx=Math.max(mx,n.x+NW/2+10);my=Math.max(my,n.y+nh(n)+10);n.children.forEach(bnd);}
+  bnd(tree);
 
-  // SVG bounds
-  let maxX=0,maxY=0;
-  function bounds(n){
-    maxX=Math.max(maxX,n.x+NW/2+10);
-    maxY=Math.max(maxY,n.y+nh(n)+10);
-    n.children.forEach(bounds);
-  }
-  bounds(tree);
-  const W=Math.ceil(maxX), H=Math.ceil(maxY);
-
-  // ── SVG helpers ───────────────────────────────────────────────────
+  // Colors by depth — green palette, no orange
+  const DBG=['#1a3d10','#245818','#2e7020','#3a8828'];
+  const DBD=['#2e7020','#3a8828','#5aad44','#7ecb65'];
+  const DSB=['#6db85a','#8ecb72','#aad890','#c0e8a8'];
   const ln=(x1,y1,x2,y2)=>`<line x1="${Math.round(x1)}" y1="${Math.round(y1)}" x2="${Math.round(x2)}" y2="${Math.round(y2)}" stroke="#5aad44" stroke-width="1.5" stroke-linecap="round"/>`;
 
   function drawPerson(n){
-    const bx=n.x-NW/2, h=nh(n), isRoot=n.depth===0;
-    const bg=isRoot?'#1a3d10':'#fff';
-    const bc=isRoot?'#f0a500':'#2e7020';
-    const hf=isRoot?'#f0a500':'#2e7020';
-    const nf=isRoot?'#1a3d10':'#fff';
-    const rf=isRoot?'#9bbf8a':'#5a6a52';
-    return `<rect x="${bx}" y="${n.y}" width="${NW}" height="${h}" rx="8" fill="${bg}" stroke="${bc}" stroke-width="${isRoot?2.5:2}"/>
-<rect x="${bx}" y="${n.y}" width="${NW}" height="26" rx="8" fill="${hf}"/>
-<rect x="${bx}" y="${n.y+18}" width="${NW}" height="8" fill="${hf}"/>
-<text x="${n.x}" y="${n.y+14}" font-size="11" font-weight="700" fill="${nf}" text-anchor="middle" dominant-baseline="middle">${esc(n.data.name)}</text>
-<text x="${n.x}" y="${n.y+42}" font-size="9" fill="${rf}" text-anchor="middle" dominant-baseline="middle">${esc(n.data.role||'')}</text>`;
+    const d=Math.min(n.depth,3),bx=n.x-NW/2,h=nh(n);
+    return `<rect x="${bx}" y="${n.y}" width="${NW}" height="${h}" rx="8" fill="${DBG[d]}" stroke="${DBD[d]}" stroke-width="2"/>
+<rect x="${bx}" y="${n.y}" width="${NW}" height="26" rx="8" fill="${DBD[d]}"/>
+<rect x="${bx}" y="${n.y+18}" width="${NW}" height="8" fill="${DBD[d]}"/>
+<text x="${n.x}" y="${n.y+14}" font-size="11" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="middle">${esc(n.data.name)}</text>
+<text x="${n.x}" y="${n.y+44}" font-size="9" fill="${DSB[d]}" text-anchor="middle" dominant-baseline="middle">${esc(n.data.role||'')}</text>`;
   }
 
   function drawDept(n){
-    const bx=n.x-NW/2, h=nh(n);
-    let s=`<rect x="${bx}" y="${n.y}" width="${NW}" height="${h}" rx="8" fill="#fff" stroke="#2e7020" stroke-width="1.5"/>
+    const bx=n.x-NW/2,h=nh(n),ppl=n.people||[];
+    const mgr=ppl.filter(p=>(p.level??50)<=35);
+    const snr=ppl.filter(p=>(p.level??50)>35&&(p.level??50)<=60);
+    const jnr=ppl.filter(p=>(p.level??50)>60);
+    let s=`<rect x="${bx}" y="${n.y}" width="${NW}" height="${h}" rx="8" fill="#fff" stroke="#3a8828" stroke-width="1.5"/>
 <rect x="${bx}" y="${n.y}" width="${NW}" height="24" rx="8" fill="#245818"/>
 <rect x="${bx}" y="${n.y+16}" width="${NW}" height="8" fill="#245818"/>
 <text x="${n.x}" y="${n.y+13}" font-size="10" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="middle">${esc(n.data.name)}</text>`;
-    (n.people||[]).slice(0,6).forEach((p,i)=>{
-      const py=n.y+30+i*20;
-      const star=p.isManager?'★ ':'';
-      s+=`<text x="${n.x}" y="${py}" font-size="9" font-weight="${p.isManager?600:400}" fill="#1a3d10" text-anchor="middle" dominant-baseline="middle">${esc(star+p.name)}</text>`;
-    });
-    if((n.people||[]).length>6) s+=`<text x="${n.x}" y="${n.y+h-8}" font-size="8" fill="#9bbf8a" text-anchor="middle">+${n.people.length-6} more</text>`;
+    let py=n.y+30;
+    function band(items,lbl,col){
+      if(!items.length) return;
+      s+=`<text x="${bx+6}" y="${py}" font-size="8" font-weight="700" fill="${col}" dominant-baseline="middle">${lbl}</text>`;
+      py+=14;
+      items.forEach(p=>{
+        s+=`<text x="${n.x}" y="${py}" font-size="9" font-weight="${p.isManager?600:400}" fill="#1a3d10" text-anchor="middle" dominant-baseline="middle">${esc((p.isManager?'★ ':'')+p.name)}</text>`;
+        py+=17;
+      });
+    }
+    band(mgr,'Management','#245818');
+    band(snr,'Professional','#2e7020');
+    band(jnr,'Operational','#5aad44');
     return s;
   }
 
-  // ── Render: connectors first, boxes on top ────────────────────────
-  let connSVG='', boxSVG='';
+  let conn='',boxes='';
   function render(n){
     if(n.children.length){
-      const barY=n.y+nh(n)+Math.round(VGAP/2);
-      connSVG+=ln(n.x,n.y+nh(n),n.x,barY);
-      if(n.children.length>1) connSVG+=ln(n.children[0].x,barY,n.children[n.children.length-1].x,barY);
-      n.children.forEach(c=>{connSVG+=ln(c.x,barY,c.x,c.y);render(c);});
+      const barY=n.y+nh(n)+Math.round(VG/2);
+      conn+=ln(n.x,n.y+nh(n),n.x,barY);
+      if(n.children.length>1) conn+=ln(n.children[0].x,barY,n.children[n.children.length-1].x,barY);
+      n.children.forEach(c=>{conn+=ln(c.x,barY,c.x,c.y);render(c);});
     }
-    boxSVG+=n.type==='person'?drawPerson(n):drawDept(n);
+    boxes+=n.type==='person'?drawPerson(n):drawDept(n);
   }
   render(tree);
-
-  const svgEl=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:'Segoe UI',Arial,sans-serif;display:block">${connSVG}${boxSVG}</svg>`;
-  document.getElementById('org-tree').innerHTML=svgEl;
+  document.getElementById('org-svg').innerHTML=
+    `<svg viewBox="0 0 ${Math.ceil(mx)} ${Math.ceil(my)}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:'Segoe UI',Arial,sans-serif;display:block">${conn}${boxes}</svg>`;
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// PROCESS FLOW
+// ═══════════════════════════════════════════════════════════════
+function renderProcessFlow(){
+  document.getElementById('pf-date').textContent=orgDate;
+  const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const cnt={};
+  data.processControls.forEach(pc=>{const c=(pc.coreProcess||'').split('|')[0].trim();if(c)cnt[c]=(cnt[c]||0)+1;});
+  const flow=data.coreProcesses.filter(cp=>cp.code!=='CP-0007').sort((a,b)=>a.code.localeCompare(b.code));
+  const gov=data.coreProcesses.find(cp=>cp.code==='CP-0007');
+  const W=1060,BW=138,BH=145,BG=18,AW=26,n=flow.length;
+  const total=n*BW+(n-1)*(BG+AW);
+  const sx=Math.round((W-total)/2);
+  const BY=75,GP=22;
+  const GX=sx-GP,GW=total+GP*2,GY=18,GH=BY+BH-GY+GP;
+  const H=GH+GY+25;
+  const cols=['#245818','#1a4a8a','#2e7020','#245818','#1a4a8a','#2e7020'];
+  const bgs=['#f4faf1','#e8f0ff','#edf7e8','#f4faf1','#e8f0ff','#edf7e8'];
+  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:'Segoe UI',Arial,sans-serif;display:block">`;
+  if(gov){
+    s+=`<rect x="${GX}" y="${GY}" width="${GW}" height="${GH}" rx="10" fill="#f4faf1" stroke="#1a3d10" stroke-width="2.5" stroke-dasharray="8,4"/>`;
+    s+=`<rect x="${GX}" y="${GY}" width="${GW}" height="26" rx="10" fill="#1a3d10"/>`;
+    s+=`<rect x="${GX}" y="${GY+18}" width="${GW}" height="8" fill="#1a3d10"/>`;
+    s+=`<text x="${GX+GW/2}" y="${GY+14}" font-size="11" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="middle">${esc(gov.code)} — ${esc(gov.name)} (Overarching)</text>`;
+  }
+  flow.forEach((cp,i)=>{
+    const bx=sx+i*(BW+BG+AW),c=cols[i]||cols[0],bg=bgs[i]||bgs[0],n2=cnt[cp.code]||0;
+    s+=`<rect x="${bx}" y="${BY}" width="${BW}" height="${BH}" rx="8" fill="${bg}" stroke="${c}" stroke-width="1.5"/>`;
+    s+=`<rect x="${bx}" y="${BY}" width="${BW}" height="26" rx="8" fill="${c}"/>`;
+    s+=`<rect x="${bx}" y="${BY+18}" width="${BW}" height="8" fill="${c}"/>`;
+    s+=`<text x="${bx+BW/2}" y="${BY+14}" font-size="10" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="middle">${esc(cp.code)}</text>`;
+    const words=cp.name.split(' ');
+    let line='',lines=[],MAX=15;
+    words.forEach(w=>{if((line+' '+w).trim().length>MAX){lines.push(line.trim());line=w;}else line=(line+' '+w).trim();});
+    if(line)lines.push(line.trim());
+    lines.slice(0,4).forEach((l,li)=>{s+=`<text x="${bx+BW/2}" y="${BY+40+li*16}" font-size="10" font-weight="600" fill="#1a3d10" text-anchor="middle" dominant-baseline="middle">${esc(l)}</text>`;});
+    s+=`<text x="${bx+BW/2}" y="${BY+BH-12}" font-size="9" fill="${c}" text-anchor="middle" dominant-baseline="middle">${n2} control${n2!==1?'s':''}</text>`;
+    if(i<flow.length-1){
+      const ax=bx+BW+4,ay=BY+BH/2,ax2=ax+AW-8;
+      s+=`<line x1="${ax}" y1="${ay}" x2="${ax2}" y2="${ay}" stroke="#5aad44" stroke-width="2"/>`;
+      s+=`<polygon points="${ax2},${ay-5} ${ax2+8},${ay} ${ax2},${ay+5}" fill="#5aad44"/>`;
+    }
+  });
+  s+='</svg>';
+  document.getElementById('pf-svg').innerHTML=s;
+}
+
+// ═══════════════════════════════════════════════════════════════
 // DEPARTMENTS
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 function renderDepts(){
-  const rc={}, pc={};
-  data.roles.forEach(r=>{ rc[r.dept]=(rc[r.dept]||0)+1; });
-  data.people.forEach(p=>{ if(p.dept) pc[p.dept]=(pc[p.dept]||0)+1; });
-  const total = data.departments.length;
-  document.getElementById('dept-stats').innerHTML = `
-    <div class="stat"><div class="stat-n">${total}</div><div class="stat-l">Departments</div></div>
-    <div class="stat"><div class="stat-n">${data.roles.length}</div><div class="stat-l">Roles</div></div>
-    <div class="stat"><div class="stat-n">${data.people.length}</div><div class="stat-l">People</div></div>
-  `;
-  document.getElementById('dept-tbody').innerHTML = data.departments.map(d=>`<tr>
-    <td><strong>${d.name}</strong></td>
-    <td>${d.reportsTo?rtag(d.reportsTo):'<span style="color:#bbb">—</span>'}</td>
-    <td><span class="tag tgr">${rc[d.name]||0} roles</span></td>
-    <td><span class="tag tg">${pc[d.name]||0} people</span></td>
-    <td>${abtn(d.id,'editDept')}</td>
-  </tr>`).join('');
+  const rc={},pc={};
+  data.roles.forEach(r=>{rc[r.dept]=(rc[r.dept]||0)+1;});
+  data.people.forEach(p=>{if(p.dept)pc[p.dept]=(pc[p.dept]||0)+1;});
+  document.getElementById('dept-stats').innerHTML=
+    `<div class="stat"><div class="stat-n">${data.departments.length}</div><div class="stat-l">Departments</div></div>
+     <div class="stat"><div class="stat-n">${data.roles.length}</div><div class="stat-l">Roles</div></div>
+     <div class="stat"><div class="stat-n">${data.people.length}</div><div class="stat-l">People</div></div>`;
+  document.getElementById('dept-tbody').innerHTML=data.departments.map(d=>
+    `<tr><td><strong>${d.name}</strong></td>
+     <td style="font-size:12px">${d.reportsToPerson||'<span style="color:#bbb">—</span>'}</td>
+     <td><span class="tag tgr">${rc[d.name]||0}</span></td>
+     <td><span class="tag tg">${pc[d.name]||0}</span></td>
+     <td>${editBtns(d.id,'editDept')}</td></tr>`).join('');
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // ROLES
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 function renderRoles(){
-  const q=(document.getElementById('role-search')?.value||'').toLowerCase();
-  const df=document.getElementById('role-dept-filter')?.value||'';
-  const pByRole={};
-  data.people.forEach(p=>{ if(p.role){ if(!pByRole[p.role]) pByRole[p.role]=[]; pByRole[p.role].push(p.name); }});
-  const rows = data.roles.filter(r=>(!q||r.name.toLowerCase().includes(q))&&(!df||r.dept===df)).sort((a,b)=>a.order-b.order);
-  document.getElementById('roles-tbody').innerHTML = rows.map(r=>`<tr>
-    <td><strong>${r.name}</strong></td>
-    <td>${rtag(r.dept)}</td>
-    <td><span class="tag tgr">${r.order}</span></td>
-    <td style="font-size:12px">${(pByRole[r.name]||[]).join(', ')||'<span style="color:#bbb">Unassigned</span>'}</td>
-    <td>${abtn(r.id,'editRole')}</td>
-  </tr>`).join('');
+  const q=(document.getElementById('role-q')?.value||'').toLowerCase();
+  const df=document.getElementById('role-df')?.value||'';
+  // Populate dept filter
+  const sel=document.getElementById('role-df');
+  if(sel&&sel.options.length<=1){
+    data.departments.forEach(d=>{const o=new Option(d.name,d.name);sel.add(o);});
+  }
+  const pByR={};
+  data.people.forEach(p=>{if(p.role){if(!pByR[p.role])pByR[p.role]=[];pByR[p.role].push(p.name);}});
+  const rows=data.roles.filter(r=>(!q||r.name.toLowerCase().includes(q))&&(!df||r.dept===df))
+                       .sort((a,b)=>a.order-b.order);
+  document.getElementById('roles-tbody').innerHTML=rows.map(r=>
+    `<tr><td><strong>${r.name}</strong></td>
+     <td><span class="tag tg">${r.dept}</span></td>
+     <td><span class="tag tgr">${r.order}</span></td>
+     <td style="font-size:12px">${(pByR[r.name]||[]).join(', ')||'<span style="color:#bbb">Unassigned</span>'}</td>
+     <td>${editBtns(r.id,'editRole')}</td></tr>`).join('');
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // PEOPLE
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 function renderPeople(){
-  const q=(document.getElementById('ppl-search')?.value||'').toLowerCase();
-  const df=document.getElementById('ppl-dept-filter')?.value||'';
+  const q=(document.getElementById('ppl-q')?.value||'').toLowerCase();
+  const df=document.getElementById('ppl-df')?.value||'';
+  const sel=document.getElementById('ppl-df');
+  if(sel&&sel.options.length<=1) data.departments.forEach(d=>sel.add(new Option(d.name,d.name)));
   const rows=data.people.filter(p=>(!q||p.name.toLowerCase().includes(q))&&(!df||p.dept===df));
-  document.getElementById('ppl-tbody').innerHTML = rows.map(p=>`<tr>
-    <td><strong>${p.name}</strong></td>
-    <td style="font-size:12px">${p.role||'<span style="color:#bbb">—</span>'}</td>
-    <td>${p.dept?rtag(p.dept):'<span style="color:#bbb">—</span>'}</td>
-    <td style="font-size:12px">${p.reportsTo||'<span style="color:#bbb">—</span>'}</td>
-    <td><span class="tag ${p.status==='Active'?'tg':'tgr'}">${p.status||'Active'}</span></td>
-    <td>${abtn(p.id,'editPerson')}</td>
-  </tr>`).join('');
+  document.getElementById('ppl-tbody').innerHTML=rows.map(p=>
+    `<tr><td><strong>${p.name}</strong></td>
+     <td style="font-size:12px">${p.role||'—'}</td>
+     <td><span class="tag tg">${p.dept||'—'}</span></td>
+     <td style="font-size:12px">${p.reportsTo||'<span style="color:#bbb">—</span>'}</td>
+     <td><span class="tag tgr">${p.level??50}</span>${p.isManager?'<span class="tag ta" style="font-size:10px;margin-left:3px">★</span>':''}</td>
+     <td><span class="tag ${p.status==='Active'?'tg':'tgr'}">${p.status||'Active'}</span></td>
+     <td>${editBtns(p.id,'editPerson')}</td></tr>`).join('');
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // CORE PROCESSES
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 function renderCPs(){
   const cnt={};
-  data.processControls.forEach(pc=>{ const c=pc.coreProcess.split('|')[0]?.trim(); if(c) cnt[c]=(cnt[c]||0)+1; });
-  document.getElementById('cp-tbody').innerHTML = data.coreProcesses.map(cp=>`<tr>
-    <td><strong>${cp.code}</strong></td>
-    <td><strong>${cp.name}</strong></td>
-    <td style="font-size:12px;color:var(--text-lt)">${cp.purpose||'—'}</td>
-    <td><span class="tag tg">${cnt[cp.code]||0} controls</span></td>
-    <td>${abtn(cp.id,'editCP')}</td>
-  </tr>`).join('');
+  data.processControls.forEach(pc=>{const c=(pc.coreProcess||'').split('|')[0].trim();if(c)cnt[c]=(cnt[c]||0)+1;});
+  document.getElementById('cp-tbody').innerHTML=data.coreProcesses.map(cp=>
+    `<tr><td><strong>${cp.code}</strong></td>
+     <td><strong>${cp.name}</strong></td>
+     <td style="font-size:12px;color:var(--textl)">${cp.purpose||'—'}</td>
+     <td><span class="tag tg">${cnt[cp.code]||0} controls</span></td>
+     <td>${editBtns(cp.id,'editCP')}</td></tr>`).join('');
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // PROCESS CONTROLS
-// ═══════════════════════════════════════════════
-let pcTab = 'all';
-function setPCTab(t,el){ pcTab=t; document.querySelectorAll('.stab').forEach(s=>s.classList.remove('active')); el.classList.add('active'); renderPCs(); }
+// ═══════════════════════════════════════════════════════════════
+let pcTab='all';
+function setPCTab(t,el){pcTab=t;document.querySelectorAll('.stab').forEach(s=>s.classList.remove('active'));el.classList.add('active');renderPCs();}
 
 function renderPCs(){
-  const q=(document.getElementById('pc-search')?.value||'').toLowerCase();
-  const rf=document.getElementById('pc-role-f')?.value||'';
-  const cpf=document.getElementById('pc-cp-f')?.value||'';
-  const catf=document.getElementById('pc-cat-f')?.value||'';
+  const q=(document.getElementById('pc-q')?.value||'').toLowerCase();
+  const rf=document.getElementById('pc-rf')?.value||'';
+  const cpf=document.getElementById('pc-cpf')?.value||'';
+  const catf=document.getElementById('pc-catf')?.value||'';
+  // Populate filters once
+  const prf=document.getElementById('pc-rf');
+  if(prf&&prf.options.length<=1){
+    [...new Set(data.processControls.map(p=>p.ownerRole).filter(Boolean))].sort()
+      .forEach(r=>prf.add(new Option(r,r)));
+  }
+  const cpff=document.getElementById('pc-cpf');
+  if(cpff&&cpff.options.length<=1){
+    data.coreProcesses.forEach(cp=>cpff.add(new Option(cp.code+' | '+cp.name,cp.code)));
+  }
+  const catff=document.getElementById('pc-catf');
+  if(catff&&catff.options.length<=1){
+    [...new Set(data.processControls.map(p=>p.category).filter(Boolean))].sort()
+      .forEach(c=>catff.add(new Option(c,c)));
+  }
   let rows=data.processControls.filter(pc=>{
     if(pcTab==='procedure'&&pc.type!=='procedure') return false;
     if(pcTab==='expectation'&&pc.type!=='expectation') return false;
     if(pcTab==='control'&&pc.type!=='control') return false;
     if(q&&!pc.activity.toLowerCase().includes(q)) return false;
     if(rf&&pc.ownerRole!==rf) return false;
-    if(cpf&&!pc.coreProcess.includes(cpf)) return false;
+    if(cpf&&!(pc.coreProcess||'').includes(cpf)) return false;
     if(catf&&pc.category!==catf) return false;
     return true;
   });
-  document.getElementById('pc-count').textContent = rows.length+' controls shown';
-  document.getElementById('pc-tbody').innerHTML = rows.map(pc=>`<tr>
-    <td style="max-width:260px">${pc.activity}</td>
-    <td>${ttag(pc.type)}</td>
-    <td>${pc.category?'<span class="tag tgr">'+pc.category+'</span>':''}</td>
-    <td style="font-size:11px">${pc.coreProcess?'<span class="tag tb" style="font-size:10px">'+pc.coreProcess.split('|')[0].trim()+'</span>':(pc.supportProcess?'<span style="font-size:10px;color:var(--text-lt)">'+pc.supportProcess+'</span>':'')}</td>
-    <td style="font-size:12px">${pc.ownerRole||'<span style="color:#bbb">—</span>'}</td>
-    <td style="font-size:12px">${pc.ownerName||'<span style="color:#bbb">—</span>'}</td>
-    <td>${pc.sopLink?'<a class="sop-link" href="'+pc.sopLink+'" target="_blank">📎 Open</a>':'<span class="sop-add" onclick="quickLink(\''+pc.id+'\')">+ Add link</span>'}</td>
-    <td style="font-size:11px">${pc.frequency?'<span class="tag tgr" style="font-size:10px">'+pc.frequency+'</span>':''}</td>
-    <td>${abtn(pc.id,'editPC')}</td>
-  </tr>`).join('');
+  document.getElementById('pc-count').textContent=rows.length+' controls';
+  const typeTag=t=>t==='procedure'?'<span class="tag tb">📄 Procedure</span>':
+                   t==='expectation'?'<span class="tag tg">🎯 Expectation</span>':
+                   '<span class="tag ta">⚙️ Control</span>';
+  document.getElementById('pc-tbody').innerHTML=rows.map(pc=>
+    `<tr><td style="max-width:250px">${pc.activity}</td>
+     <td>${typeTag(pc.type)}</td>
+     <td>${pc.category?'<span class="tag tgr">'+pc.category+'</span>':''}</td>
+     <td style="font-size:11px">${pc.coreProcess?'<span class="tag tb" style="font-size:10px">'+pc.coreProcess.split('|')[0].trim()+'</span>':(pc.supportProcess?'<span style="font-size:10px;color:var(--textl)">'+pc.supportProcess+'</span>':'')}</td>
+     <td style="font-size:12px">${pc.ownerRole||'<span style="color:#bbb">—</span>'}</td>
+     <td style="font-size:12px">${pc.ownerName||'<span style="color:#bbb">—</span>'}</td>
+     <td>${pc.sopLink?'<a href="'+pc.sopLink+'" target="_blank" style="color:var(--g600);font-size:12px">📎 Open</a>':'<span style="color:#bbb;font-size:11px;cursor:pointer" onclick="quickLink(''+pc.id+'')">+ Add link</span>'}</td>
+     <td style="font-size:11px">${pc.frequency?'<span class="tag tgr" style="font-size:10px">'+pc.frequency+'</span>':''}</td>
+     <td>${editBtns(pc.id,'editPC')}</td></tr>`).join('');
 }
 
 function quickLink(id){
+  if(!IS_EDIT){ alert('Enable Edit Mode first.'); return; }
   const url=prompt('Paste SharePoint / SOP URL:');
   if(url&&url.trim()){
     const pc=data.processControls.find(p=>p.id===id);
-    if(pc){ pc.sopLink=url.trim(); renderPCs(); scheduleSave(); }
+    if(pc){pc.sopLink=url.trim();renderPCs();scheduleSave();}
   }
 }
 
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // RACI
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 function renderRaci(){
-  const cpf=document.getElementById('raci-cp-f')?.value||'';
+  const cpf=document.getElementById('raci-cpf')?.value||'';
+  const rf=document.getElementById('raci-cpf');
+  if(rf&&rf.options.length<=1) data.coreProcesses.forEach(cp=>rf.add(new Option(cp.code+' | '+cp.name,cp.code)));
   let acts=data.processControls.filter(pc=>pc.type==='expectation'||pc.ownerRole);
-  if(cpf) acts=acts.filter(pc=>pc.coreProcess.includes(cpf)||pc.supportProcess.includes(cpf));
-  const roles=data.roles.filter(r=>r.order<=70).sort((a,b)=>a.order-b.order);
-  if(!acts.length){ document.getElementById('raci-container').innerHTML='<div style="padding:40px;text-align:center;color:var(--text-lt)">No activities to show</div>'; return; }
-  let html=`<table class="raci-tbl"><thead><tr><th class="act-col">Activity</th>${roles.map(r=>`<th class="raci-head-role" title="${r.dept}">${r.name}</th>`).join('')}</tr></thead><tbody>`;
+  if(cpf) acts=acts.filter(pc=>(pc.coreProcess||'').includes(cpf)||(pc.supportProcess||'').includes(cpf));
+  const roles=data.roles.filter(r=>(r.order||0)<=70).sort((a,b)=>a.order-b.order);
+  if(!acts.length){document.getElementById('raci-div').innerHTML='<div style="padding:30px;color:#888;text-align:center">No activities to display. Try changing the filter or add process controls.</div>';return;}
+  let h=`<table class="rtbl"><thead><tr><th class="ac">Activity</th>${roles.map(r=>'<th class="rhr" title="'+r.dept+'">'+r.name+'</th>').join('')}</tr></thead><tbody>`;
   acts.forEach(pc=>{
-    html+=`<tr><td class="act-cell">${pc.activity}<br><span style="font-size:9px;color:#aaa">${pc.type==='expectation'?'Role Expectation':pc.type==='procedure'?'Procedure':'Control'}</span></td>`;
+    h+=`<tr><td class="acel">${pc.activity}<br><span style="font-size:9px;color:#aaa">${pc.type==='expectation'?'Expectation':pc.type==='procedure'?'Procedure':'Control'}</span></td>`;
     roles.forEach(r=>{
       const key=pc.id+'|'+r.id;
-      const preAssign = pc.ownerRole===r.name ? 'R' : '';
-      const val=data.raci[key]!==undefined?data.raci[key]:preAssign;
-      html+=`<td onclick="cycleRaci('${pc.id}','${r.id}',this)">${val?'<span class="rb rb-'+val+'">'+val+'</span>':'<span class="rb rb-empty">·</span>'}</td>`;
+      const pre=pc.ownerRole===r.name?'R':'';
+      const val=data.raci[key]!==undefined?data.raci[key]:pre;
+      h+=`<td onclick="cycleRaci('${pc.id}','${r.id}',this)">${val?'<span class="rb rb'+val+'">'+val+'</span>':'<span class="rb rbE">·</span>'}</td>`;
     });
-    html+='</tr>';
+    h+='</tr>';
   });
-  html+='</tbody></table>';
-  document.getElementById('raci-container').innerHTML=html;
-
-  // Populate RACI filter
-  const f=document.getElementById('raci-cp-f');
-  if(f.options.length<=1) data.coreProcesses.forEach(cp=>{ const o=document.createElement('option'); o.value=cp.code; o.textContent=cp.code+' | '+cp.name; f.appendChild(o); });
+  h+='</tbody></table>';
+  document.getElementById('raci-div').innerHTML=h;
 }
 
-function cycleRaci(pcId, rId, cell){
+function cycleRaci(pcId,rId,cell){
   const key=pcId+'|'+rId;
-  const order=['','R','A','C','I'];
+  const ord=['','R','A','C','I'];
   const cur=data.raci[key]||'';
-  const next=order[(order.indexOf(cur)+1)%order.length];
-  if(next) data.raci[key]=next; else delete data.raci[key];
-  cell.innerHTML=next?'<span class="rb rb-'+next+'">'+next+'</span>':'<span class="rb rb-empty">·</span>';
+  const nxt=ord[(ord.indexOf(cur)+1)%ord.length];
+  if(nxt)data.raci[key]=nxt;else delete data.raci[key];
+  cell.innerHTML=nxt?'<span class="rb rb'+nxt+'">'+nxt+'</span>':'<span class="rb rbE">·</span>';
   scheduleSave();
 }
 
-// ═══════════════════════════════════════════════
-// POPULATE FILTERS
-// ═══════════════════════════════════════════════
-function populateFilters(){
-  // Role dept filter
-  const rdf=document.getElementById('role-dept-filter');
-  rdf.innerHTML='<option value="">All Departments</option>';
-  data.departments.forEach(d=>{ const o=document.createElement('option'); o.value=d.name; o.textContent=d.name; rdf.appendChild(o); });
-
-  // People dept filter
-  const pdf=document.getElementById('ppl-dept-filter');
-  pdf.innerHTML='<option value="">All Departments</option>';
-  data.departments.forEach(d=>{ const o=document.createElement('option'); o.value=d.name; o.textContent=d.name; pdf.appendChild(o); });
-
-  // PC role filter
-  const prf=document.getElementById('pc-role-f');
-  prf.innerHTML='<option value="">All Roles</option>';
-  [...new Set(data.processControls.map(p=>p.ownerRole).filter(Boolean))].sort().forEach(r=>{ const o=document.createElement('option'); o.value=r; o.textContent=r; prf.appendChild(o); });
-
-  // PC core process filter
-  const cpf=document.getElementById('pc-cp-f');
-  cpf.innerHTML='<option value="">All Core Processes</option>';
-  data.coreProcesses.forEach(cp=>{ const o=document.createElement('option'); o.value=cp.code; o.textContent=cp.code+' | '+cp.name; cpf.appendChild(o); });
-
-  // PC category filter
-  const catf=document.getElementById('pc-cat-f');
-  catf.innerHTML='<option value="">All Categories</option>';
-  [...new Set(data.processControls.map(p=>p.category).filter(Boolean))].sort().forEach(c=>{ const o=document.createElement('option'); o.value=c; o.textContent=c; catf.appendChild(o); });
-}
-
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 // HELPERS
-// ═══════════════════════════════════════════════
-function rtag(t){ return '<span class="tag tg">'+t+'</span>'; }
-function ttag(t){ return t==='procedure'?'<span class="tag tb">📄 Procedure</span>':t==='expectation'?'<span class="tag tg">🎯 Expectation</span>':'<span class="tag ta">⚙️ Control</span>'; }
-function abtn(id, fn){ return '<div style="display:flex;gap:4px"><button class="btn btn-ghost btn-sm btn-icon" onclick="'+fn+'(\''+id+'\')">✏️</button><button class="btn btn-danger btn-sm btn-icon" onclick="delItem(\''+id+'\')">🗑</button></div>'; }
-function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
-function g(id){ return document.getElementById(id)?.value||''; }
+// ═══════════════════════════════════════════════════════════════
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
+function gv(id){return document.getElementById(id)?.value||'';}
 
 function delItem(id){
+  if(!IS_EDIT) return;
   if(!confirm('Delete this item?')) return;
   data.departments=data.departments.filter(x=>x.id!==id);
   data.roles=data.roles.filter(x=>x.id!==id);
@@ -970,123 +887,179 @@ function delItem(id){
   renderAll(); scheduleSave();
 }
 
-// ═══════════════════════════════════════════════
+function printView(){
+  window.print();
+}
+
+// ═══════════════════════════════════════════════════════════════
 // MODALS
-// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
 function openModal(type,id){
-  modalMode=type; modalEditId=id||null;
-  document.getElementById('modal-del').style.display=id?'block':'none';
-  document.getElementById('modal-bg').classList.add('open');
-  const body=document.getElementById('modal-body');
+  if(!IS_EDIT) return;
+  modalMode=type; modalId=id||null;
+  document.getElementById('mdel').style.display=id?'block':'none';
+  document.getElementById('mbg').classList.add('open');
+  const body=document.getElementById('mbody');
+  const pplOpts=data.people.sort((a,b)=>(a.level??50)-(b.level??50))
+    .map(p=>'<option value="'+p.name+'" '+(!id||data[type]?.find?.(x=>x.id===id)?.reportsToPerson!==p.name?'':'selected')+'>'+p.name+(p.role?' — '+p.role:'')+'</option>').join('');
 
   if(type==='dept'){
     const x=id?data.departments.find(d=>d.id===id):null;
-    document.getElementById('modal-title').textContent=id?'Edit Department':'Add Department';
-    body.innerHTML=`<div class="fr"><label class="fl">Department Name</label><input class="fi" id="f-name" value="${x?.name||''}"></div>
-    <div class="fr"><label class="fl">Reports To</label><select class="fi" id="f-rt"><option value="">None (Top Level)</option>${data.departments.filter(d=>d.id!==id).map(d=>`<option value="${d.name}" ${x?.reportsTo===d.name?'selected':''}>${d.name}</option>`).join('')}</select></div>`;
+    document.getElementById('mtitle').textContent=id?'Edit Department':'Add Department';
+    body.innerHTML=`
+      <div class="fr"><label class="fl">Department Name</label><input class="fi" id="f-name" value="${x?.name||''}"></div>
+      <div class="fr"><label class="fl">Reports To Person <small style="font-weight:400">(who leads this dept — controls org chart position)</small></label>
+        <select class="fi" id="f-rtp"><option value="">— None / Board Level —</option>
+        ${data.people.sort((a,b)=>(a.level??50)-(b.level??50)).map(p=>`<option value="${p.name}" ${x?.reportsToPerson===p.name?'selected':''}>${p.name}${p.role?' — '+p.role:''}</option>`).join('')}
+        </select></div>`;
   } else if(type==='role'){
     const x=id?data.roles.find(r=>r.id===id):null;
-    document.getElementById('modal-title').textContent=id?'Edit Role':'Add Role';
-    body.innerHTML=`<div class="fr"><label class="fl">Role Name</label><input class="fi" id="f-name" value="${x?.name||''}"></div>
-    <div class="fr"><label class="fl">Department</label><select class="fi" id="f-dept">${data.departments.map(d=>`<option value="${d.name}" ${x?.dept===d.name?'selected':''}>${d.name}</option>`).join('')}</select></div>
-    <div class="fr"><label class="fl">Seniority Order (lower = more senior)</label><input class="fi" id="f-order" type="number" value="${x?.order??50}"></div>`;
+    document.getElementById('mtitle').textContent=id?'Edit Role':'Add Role';
+    body.innerHTML=`
+      <div class="fr"><label class="fl">Role Name</label><input class="fi" id="f-name" value="${x?.name||''}"></div>
+      <div class="fr"><label class="fl">Department</label>
+        <select class="fi" id="f-dept">${data.departments.map(d=>`<option value="${d.name}" ${x?.dept===d.name?'selected':''}>${d.name}</option>`).join('')}</select></div>
+      <div class="fr"><label class="fl">Seniority Order (lower = more senior)</label>
+        <input class="fi" id="f-order" type="number" value="${x?.order??50}"></div>`;
   } else if(type==='person'){
     const x=id?data.people.find(p=>p.id===id):null;
-    document.getElementById('modal-title').textContent=id?'Edit Person':'Add Person';
-    body.innerHTML=`<div class="fr"><label class="fl">Full Name</label><input class="fi" id="f-name" value="${x?.name||''}"></div>
-    <div class="fr"><label class="fl">Primary Role</label><select class="fi" id="f-role"><option value="">— Select Role —</option>${data.roles.map(r=>`<option value="${r.name}" ${x?.role===r.name?'selected':''}>${r.name}</option>`).join('')}</select></div>
-    <div class="fr"><label class="fl">Department</label><select class="fi" id="f-dept"><option value="">— Select Department —</option>${data.departments.map(d=>`<option value="${d.name}" ${x?.dept===d.name?'selected':''}>${d.name}</option>`).join('')}</select></div>
-    <div class="fr"><label class="fl">Reports To</label><select class="fi" id="f-rt"><option value="">— None —</option>${data.people.filter(p=>p.id!==id).map(p=>`<option value="${p.name}" ${x?.reportsTo===p.name?'selected':''}>${p.name}</option>`).join('')}</select></div>
-    <div class="fr"><label class="fl">Seniority Level <small style="font-weight:400">(0 = most senior)</small></label><input class="fi" id="f-level" type="number" min="0" max="99" value="${x?.level??50}"></div>
-    <div class="fr"><label class="fl">Department Lead / Manager</label><select class="fi" id="f-mgr"><option value="false" ${!x?.isManager?'selected':''}>No</option><option value="true" ${x?.isManager?'selected':''}>Yes ★</option></select></div>
-    <div class="fr"><label class="fl">Status</label><select class="fi" id="f-status"><option value="Active" ${x?.status==='Active'?'selected':''}>Active</option><option value="On Leave" ${x?.status==='On Leave'?'selected':''}>On Leave</option><option value="Inactive" ${x?.status==='Inactive'?'selected':''}>Inactive</option></select></div>`;
-  } else if(type==='coreprocess'){
+    document.getElementById('mtitle').textContent=id?'Edit Person':'Add Person';
+    body.innerHTML=`
+      <div class="fr"><label class="fl">Full Name</label><input class="fi" id="f-name" value="${x?.name||''}"></div>
+      <div class="fr"><label class="fl">Primary Role</label>
+        <select class="fi" id="f-role"><option value="">—</option>
+        ${data.roles.map(r=>`<option value="${r.name}" ${x?.role===r.name?'selected':''}>${r.name}</option>`).join('')}</select></div>
+      <div class="fr"><label class="fl">Department</label>
+        <select class="fi" id="f-dept"><option value="">—</option>
+        ${data.departments.map(d=>`<option value="${d.name}" ${x?.dept===d.name?'selected':''}>${d.name}</option>`).join('')}</select></div>
+      <div class="fr"><label class="fl">Reports To</label>
+        <select class="fi" id="f-rt"><option value="">— None (top level) —</option>
+        ${data.people.filter(p=>p.id!==id).map(p=>`<option value="${p.name}" ${x?.reportsTo===p.name?'selected':''}>${p.name}${p.role?' — '+p.role:''}</option>`).join('')}</select></div>
+      <div class="fr"><label class="fl">Level <small style="font-weight:400">(0 = most senior)</small></label>
+        <input class="fi" id="f-level" type="number" min="0" max="99" value="${x?.level??50}"></div>
+      <div class="fr"><label class="fl">Department Lead / Manager</label>
+        <select class="fi" id="f-mgr"><option value="false" ${!x?.isManager?'selected':''}>No</option><option value="true" ${x?.isManager?'selected':''}>Yes ★</option></select></div>
+      <div class="fr"><label class="fl">Status</label>
+        <select class="fi" id="f-status">
+          <option value="Active" ${(x?.status||'Active')==='Active'?'selected':''}>Active</option>
+          <option value="On Leave" ${x?.status==='On Leave'?'selected':''}>On Leave</option>
+          <option value="Inactive" ${x?.status==='Inactive'?'selected':''}>Inactive</option>
+        </select></div>`;
+  } else if(type==='cp'){
     const x=id?data.coreProcesses.find(c=>c.id===id):null;
-    document.getElementById('modal-title').textContent=id?'Edit Core Process':'Add Core Process';
-    body.innerHTML=`<div class="fr"><label class="fl">Process Code (e.g. CP-0008)</label><input class="fi" id="f-code" value="${x?.code||''}"></div>
-    <div class="fr"><label class="fl">Process Name</label><input class="fi" id="f-name" value="${x?.name||''}"></div>
-    <div class="fr"><label class="fl">Purpose</label><textarea class="fi" id="f-purpose">${x?.purpose||''}</textarea></div>`;
+    document.getElementById('mtitle').textContent=id?'Edit Core Process':'Add Core Process';
+    body.innerHTML=`
+      <div class="fr"><label class="fl">Code (e.g. CP-0008)</label><input class="fi" id="f-code" value="${x?.code||''}"></div>
+      <div class="fr"><label class="fl">Process Name</label><input class="fi" id="f-name" value="${x?.name||''}"></div>
+      <div class="fr"><label class="fl">Purpose</label><textarea class="fi" id="f-purpose">${x?.purpose||''}</textarea></div>`;
   } else if(type==='pc'){
     const x=id?data.processControls.find(p=>p.id===id):null;
-    document.getElementById('modal-title').textContent=id?'Edit Process Control':'Add Process Control';
-    body.innerHTML=`<div class="fr"><label class="fl">Activity</label><textarea class="fi" id="f-act">${x?.activity||''}</textarea></div>
-    <div class="fr"><label class="fl">Type</label><select class="fi" id="f-type"><option value="procedure" ${x?.type==='procedure'?'selected':''}>📄 Procedure / SOP</option><option value="expectation" ${x?.type==='expectation'?'selected':''}>🎯 Role Expectation</option><option value="control" ${x?.type==='control'?'selected':''}>⚙️ Process Control</option></select></div>
-    <div class="fr"><label class="fl">Category</label><input class="fi" id="f-cat" value="${x?.category||''}"></div>
-    <div class="fr"><label class="fl">Core Process</label><select class="fi" id="f-cp"><option value="">— None —</option>${data.coreProcesses.map(cp=>`<option value="${cp.code} | ${cp.name}" ${x?.coreProcess?.includes(cp.code)?'selected':''}>${cp.code} | ${cp.name}</option>`).join('')}</select></div>
-    <div class="fr"><label class="fl">Support Process</label><input class="fi" id="f-sp" value="${x?.supportProcess||''}"></div>
-    <div class="fr"><label class="fl">Owner Role</label><select class="fi" id="f-oRole"><option value="">— Unassigned —</option>${data.roles.map(r=>`<option value="${r.name}" ${x?.ownerRole===r.name?'selected':''}>${r.name}</option>`).join('')}</select></div>
-    <div class="fr"><label class="fl">Owner Name</label><select class="fi" id="f-oName"><option value="">— Unassigned —</option>${data.people.map(p=>`<option value="${p.name}" ${x?.ownerName===p.name?'selected':''}>${p.name}</option>`).join('')}</select></div>
-    <div class="fr"><label class="fl">SharePoint / SOP Link</label><input class="fi" id="f-link" placeholder="https://mespower.sharepoint.com/…" value="${x?.sopLink||''}"></div>
-    <div class="fr"><label class="fl">Frequency</label><select class="fi" id="f-freq"><option value="">—</option>${['Daily','Weekly','Monthly','Quarterly','Annually'].map(f=>`<option value="${f}" ${x?.frequency===f?'selected':''}>${f}</option>`).join('')}</select></div>
-    <div class="fr"><label class="fl">Notes</label><textarea class="fi" id="f-notes">${x?.notes||''}</textarea></div>`;
+    document.getElementById('mtitle').textContent=id?'Edit Process Control':'Add Process Control';
+    body.innerHTML=`
+      <div class="fr"><label class="fl">Activity</label><textarea class="fi" id="f-act">${x?.activity||''}</textarea></div>
+      <div class="fr"><label class="fl">Type</label>
+        <select class="fi" id="f-type">
+          <option value="procedure" ${x?.type==='procedure'?'selected':''}>📄 Procedure / SOP</option>
+          <option value="expectation" ${x?.type==='expectation'?'selected':''}>🎯 Role Expectation</option>
+          <option value="control" ${x?.type==='control'?'selected':''}>⚙️ Process Control</option>
+        </select></div>
+      <div class="fr"><label class="fl">Category</label><input class="fi" id="f-cat" value="${x?.category||''}"></div>
+      <div class="fr"><label class="fl">Core Process</label>
+        <select class="fi" id="f-cp"><option value="">— None —</option>
+        ${data.coreProcesses.map(cp=>`<option value="${cp.code} | ${cp.name}" ${(x?.coreProcess||'').includes(cp.code)?'selected':''}>${cp.code} | ${cp.name}</option>`).join('')}</select></div>
+      <div class="fr"><label class="fl">Support Process</label><input class="fi" id="f-sp" value="${x?.supportProcess||''}"></div>
+      <div class="fr"><label class="fl">Owner Role</label>
+        <select class="fi" id="f-or"><option value="">—</option>
+        ${data.roles.map(r=>`<option value="${r.name}" ${x?.ownerRole===r.name?'selected':''}>${r.name}</option>`).join('')}</select></div>
+      <div class="fr"><label class="fl">Owner Name</label>
+        <select class="fi" id="f-on"><option value="">—</option>
+        ${data.people.map(p=>`<option value="${p.name}" ${x?.ownerName===p.name?'selected':''}>${p.name}</option>`).join('')}</select></div>
+      <div class="fr"><label class="fl">SharePoint / SOP Link</label>
+        <input class="fi" id="f-link" placeholder="https://mespower.sharepoint.com/…" value="${x?.sopLink||''}"></div>
+      <div class="fr"><label class="fl">Frequency</label>
+        <select class="fi" id="f-freq"><option value="">—</option>
+        ${['Daily','Weekly','Monthly','Quarterly','Annually'].map(f=>`<option value="${f}" ${x?.frequency===f?'selected':''}>${f}</option>`).join('')}</select></div>
+      <div class="fr"><label class="fl">Notes</label><textarea class="fi" id="f-notes">${x?.notes||''}</textarea></div>`;
   }
 }
 
-function editDept(id){ openModal('dept',id); }
-function editRole(id){ openModal('role',id); }
-function editPerson(id){ openModal('person',id); }
-function editCP(id){ openModal('coreprocess',id); }
-function editPC(id){ openModal('pc',id); }
-function closeModal(){ document.getElementById('modal-bg').classList.remove('open'); modalMode=null; modalEditId=null; }
+function editDept(id){openModal('dept',id);}
+function editRole(id){openModal('role',id);}
+function editPerson(id){openModal('person',id);}
+function editCP(id){openModal('cp',id);}
+function editPC(id){openModal('pc',id);}
+
+function closeModal(){
+  document.getElementById('mbg').classList.remove('open');
+  modalMode=null; modalId=null;
+}
 
 function modalSave(){
   if(modalMode==='dept'){
-    const obj={id:modalEditId||uid(),name:g('f-name'),reportsTo:'',reportsToPerson:g('f-rtp')};
-    if(modalEditId){ const i=data.departments.findIndex(x=>x.id===modalEditId); data.departments[i]=obj; } else data.departments.push(obj);
+    const obj={id:modalId||uid(),name:gv('f-name'),reportsToPerson:gv('f-rtp')};
+    if(modalId){const i=data.departments.findIndex(x=>x.id===modalId);data.departments[i]=obj;}
+    else data.departments.push(obj);
   } else if(modalMode==='role'){
-    const obj={id:modalEditId||uid(),name:g('f-name'),dept:g('f-dept'),order:parseInt(g('f-order'))||50};
-    if(modalEditId){ const i=data.roles.findIndex(x=>x.id===modalEditId); data.roles[i]=obj; } else data.roles.push(obj);
+    const obj={id:modalId||uid(),name:gv('f-name'),dept:gv('f-dept'),order:parseInt(gv('f-order'))||50};
+    if(modalId){const i=data.roles.findIndex(x=>x.id===modalId);data.roles[i]=obj;}
+    else data.roles.push(obj);
   } else if(modalMode==='person'){
-    const obj={id:modalEditId||uid(),name:g('f-name'),role:g('f-role'),dept:g('f-dept'),reportsTo:g('f-rt'),status:g('f-status'),level:parseInt(document.getElementById('f-level')?.value??50)||0,isManager:document.getElementById('f-mgr')?.value==='true'};
-    if(modalEditId){ const i=data.people.findIndex(x=>x.id===modalEditId); data.people[i]=obj; } else data.people.push(obj);
-  } else if(modalMode==='coreprocess'){
-    const obj={id:modalEditId||uid(),code:g('f-code'),name:g('f-name'),purpose:g('f-purpose')};
-    if(modalEditId){ const i=data.coreProcesses.findIndex(x=>x.id===modalEditId); data.coreProcesses[i]=obj; } else data.coreProcesses.push(obj);
+    const lvl=parseInt(document.getElementById('f-level')?.value);
+    const obj={id:modalId||uid(),name:gv('f-name'),role:gv('f-role'),dept:gv('f-dept'),
+               reportsTo:gv('f-rt'),level:isNaN(lvl)?50:lvl,
+               isManager:gv('f-mgr')==='true',status:gv('f-status')};
+    if(modalId){const i=data.people.findIndex(x=>x.id===modalId);data.people[i]=obj;}
+    else data.people.push(obj);
+  } else if(modalMode==='cp'){
+    const obj={id:modalId||uid(),code:gv('f-code'),name:gv('f-name'),purpose:gv('f-purpose')};
+    if(modalId){const i=data.coreProcesses.findIndex(x=>x.id===modalId);data.coreProcesses[i]=obj;}
+    else data.coreProcesses.push(obj);
   } else if(modalMode==='pc'){
-    const obj={id:modalEditId||uid(),activity:g('f-act'),type:g('f-type'),category:g('f-cat'),coreProcess:g('f-cp'),supportProcess:g('f-sp'),ownerRole:g('f-oRole'),ownerName:g('f-oName'),sopLink:g('f-link'),frequency:g('f-freq'),notes:g('f-notes')};
-    if(modalEditId){ const i=data.processControls.findIndex(x=>x.id===modalEditId); data.processControls[i]=obj; } else data.processControls.push(obj);
+    const obj={id:modalId||uid(),activity:gv('f-act'),type:gv('f-type'),category:gv('f-cat'),
+               coreProcess:gv('f-cp'),supportProcess:gv('f-sp'),ownerRole:gv('f-or'),
+               ownerName:gv('f-on'),sopLink:gv('f-link'),frequency:gv('f-freq'),notes:gv('f-notes')};
+    if(modalId){const i=data.processControls.findIndex(x=>x.id===modalId);data.processControls[i]=obj;}
+    else data.processControls.push(obj);
   }
-  closeModal();
+  closeModal(); renderAll(); scheduleSave();
+}
+
+function modalDel(){
+  if(!confirm('Delete this item?')) return;
+  delItem(modalId); closeModal();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════════════════════════════════
+function renderAll(){
+  renderOrgChart();
+  renderProcessFlow();
+  renderDepts();
+  renderRoles();
+  renderPeople();
+  renderCPs();
+  renderPCs();
+  renderRaci();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', async ()=>{
+  const ok = await loadData();
+  if(ok) data = data; // already set in loadData
   renderAll();
-  scheduleSave();
-}
-
-function modalDel(){ if(!confirm('Delete this item?')) return; delItem(modalEditId); closeModal(); }
-
-// ── SECURITY: VIEW / EDIT MODE ────────────────────────────────
-function setMode(isEdit){
-  if(isEdit){
-    document.body.classList.add('edit-mode');
-    document.getElementById('mode-badge').className='mode-badge mode-edit';
-    document.getElementById('mode-badge').textContent='✏️ Edit Mode';
-    document.getElementById('lock-btn').textContent='🔓 Lock';
-    sessionStorage.setItem('mes-edit','1');
-  } else {
-    document.body.classList.remove('edit-mode');
-    document.getElementById('mode-badge').className='mode-badge mode-view';
-    document.getElementById('mode-badge').textContent='👁 View Only';
-    document.getElementById('lock-btn').textContent='🔒 Edit Mode';
-    sessionStorage.removeItem('mes-edit');
+  // Restore edit mode if it was active
+  if(sessionStorage.getItem('mes-edit')==='1'){
+    IS_EDIT=true;
+    document.getElementById('mbadge').className='mode-badge me';
+    document.getElementById('mbadge').textContent='✏️ Edit Mode';
+    document.getElementById('editbtn').textContent='🔓 Lock';
+    ['btn-add-dept','btn-add-role','btn-add-person','btn-add-cp','btn-add-pc']
+      .forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='';});
   }
-}
-
-function toggleEditMode(){
-  if(document.body.classList.contains('edit-mode')){
-    setMode(false);
-  } else {
-    const key=prompt('Enter the editor password:');
-    if(!key) return;
-    if(key===WRITE_KEY){
-      setMode(true);
-    } else {
-      alert('Incorrect password. Contact your system administrator.');
-    }
-  }
-}
-
-// Restore edit mode if already unlocked this session
-if(sessionStorage.getItem('mes-edit')==='1') setMode(true);
-
+});
 </script>
 </body>
 </html>
