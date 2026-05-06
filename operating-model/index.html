@@ -414,27 +414,28 @@ const DEFAULT = {
     {id:'r22',name:'Craft Assistant',          dept:'Projects',            order:80},
     {id:'r23',name:'Trainee Electrical',       dept:'Projects',            order:80},
     {id:'r24',name:'Accounting (External)',    dept:'Accounts',            order:100}
+  
   ],
   people:[
-    {id:'p1', name:'Neil McKenzie',     role:'Managing Director',    dept:'Directors',          reportsTo:'',              level:0,  isManager:true, status:'Active'},
-    {id:'p2', name:'Amanda McKenzie',   role:'Finance Director',     dept:'Directors',          reportsTo:'Neil McKenzie', level:10, isManager:true, status:'Active'},
-    {id:'p3', name:'Andrea Moir',       role:'SHEQ Manager',         dept:'SHEQ',               reportsTo:'Neil McKenzie', level:30, isManager:true, status:'Active'},
-    {id:'p4', name:'Ewan Bennett',      role:'Commercial Manager',   dept:'Commercial',         reportsTo:'Neil McKenzie', level:30, isManager:true, status:'Active'},
-    {id:'p5', name:'Luca Ivory-Hunter', role:'Commercial Manager',   dept:'Commercial',         reportsTo:'Neil McKenzie', level:30, isManager:false,status:'Active'},
-    {id:'p6', name:'Jamie Taylor',      role:'Design Manager',       dept:'Quotes & Design',    reportsTo:'Neil McKenzie', level:30, isManager:true, status:'Active'},
-    {id:'p7', name:'Mark Stevenson',    role:'General Manager',      dept:'Projects',           reportsTo:'Neil McKenzie', level:30, isManager:true, status:'Active'},
-    {id:'p8', name:'Chris Todd',        role:'Project Engineer',     dept:'Projects',           reportsTo:'Mark Stevenson',level:49, isManager:false,status:'Active'},
-    {id:'p9', name:'Ethan McKenzie',    role:'Project Engineer',     dept:'Projects',           reportsTo:'Mark Stevenson',level:49, isManager:false,status:'Active'},
-    {id:'p10',name:'Luke Mutch',        role:'Project Co-Ordinator', dept:'Projects',           reportsTo:'Mark Stevenson',level:70, isManager:false,status:'Active'},
-    {id:'p11',name:'Liam Duthie',       role:'Project Co-Ordinator', dept:'Projects',           reportsTo:'Mark Stevenson',level:70, isManager:false,status:'Active'},
-    {id:'p12',name:'Dion Moutrey',      role:'Site Manager',         dept:'Projects',           reportsTo:'Mark Stevenson',level:50, isManager:true, status:'Active'},
-    {id:'p13',name:'Alan Bowie',        role:'Craftsman',            dept:'Projects',           reportsTo:'Mark Stevenson',level:70, isManager:false,status:'Active'},
-    {id:'p14',name:'Oakley Allan-Cooper',role:'Craft Assistant',     dept:'Projects',           reportsTo:'Mark Stevenson',level:80, isManager:false,status:'Active'},
-    {id:'p15',name:'Josh Anderson',     role:'Trainee Electrical',   dept:'Projects',           reportsTo:'Mark Stevenson',level:80, isManager:false,status:'Active'},
-    {id:'p16',name:'Alan Shepherd',     role:'Trainee Electrical',   dept:'Projects',           reportsTo:'Mark Stevenson',level:80, isManager:false,status:'Active'},
-    {id:'p17',name:'Neil Ritchie',      role:'Chargehand',           dept:'Projects',           reportsTo:'Mark Stevenson',level:60, isManager:false,status:'Active'},
-    {id:'p18',name:'Josh Anderson',     role:'Admin Support',        dept:'Business Support',   reportsTo:'Amanda McKenzie',level:70,isManager:false,status:'Active'},
-    {id:'p19',name:'Luca Ivory-Hunter', role:'Estimator',            dept:'Quotes & Design',    reportsTo:'Jamie Taylor',  level:50, isManager:false,status:'Active'}
+    {id:'p1', name:'Neil McKenzie',     role:'Managing Director', dept:'Directors',          reportsTo:'',               level:0,  isManager:true, status:'Active'},
+    {id:'p2', name:'Amanda McKenzie',   role:'Finance Director',  dept:'Directors',          reportsTo:'Neil McKenzie',  level:10, isManager:true, status:'Active'},
+    {id:'p3', name:'Andrea Moir',       role:'SHEQ Manager',      dept:'SHEQ',               reportsTo:'Neil McKenzie',  level:30, isManager:true, status:'Active'},
+    {id:'p4', name:'Ewan Bennett',      role:'Commercial Manager', dept:'Commercial',        reportsTo:'Neil McKenzie',  level:30, isManager:true, status:'Active'},
+    {id:'p5', name:'Luca Ivory-Hunter', role:'Commercial Manager', dept:'Commercial',        reportsTo:'Neil McKenzie',  level:30, isManager:false,status:'Active'},
+    {id:'p6', name:'Jamie Taylor',      role:'Design Manager',    dept:'Quotes & Design',    reportsTo:'Neil McKenzie',  level:30, isManager:true, status:'Active'},
+    {id:'p7', name:'Mark Stevenson',    role:'General Manager',   dept:'Projects',           reportsTo:'Neil McKenzie',  level:30, isManager:true, status:'Active'},
+    {id:'p8', name:'Chris Todd',        role:'Project Engineer',  dept:'Projects',           reportsTo:'Mark Stevenson', level:49, isManager:false,status:'Active'},
+    {id:'p9', name:'Ethan McKenzie',    role:'Project Engineer',  dept:'Projects',           reportsTo:'Mark Stevenson', level:49, isManager:false,status:'Active'},
+    {id:'p10',name:'Luke Mutch',        role:'Project Co-Ordinator',dept:'Projects',         reportsTo:'Mark Stevenson', level:70, isManager:false,status:'Active'},
+    {id:'p11',name:'Liam Duthie',       role:'Project Co-Ordinator',dept:'Projects',         reportsTo:'Mark Stevenson', level:70, isManager:false,status:'Active'},
+    {id:'p12',name:'Dion Moutrey',      role:'Site Manager',      dept:'Projects',           reportsTo:'Mark Stevenson', level:50, isManager:true, status:'Active'},
+    {id:'p13',name:'Alan Bowie',        role:'Assessing Officer', dept:'Projects',           reportsTo:'Mark Stevenson', level:49, isManager:false,status:'Active'},
+    {id:'p14',name:'Oakley Allan-Cooper',role:'Craft Assistant',  dept:'Projects',           reportsTo:'Mark Stevenson', level:80, isManager:false,status:'Active'},
+    {id:'p15',name:'Josh Anderson',     role:'Trainee Electrical', dept:'Projects',          reportsTo:'Mark Stevenson', level:80, isManager:false,status:'Active'},
+    {id:'p16',name:'Alan Shepherd',     role:'Trainee Electrical', dept:'Projects',          reportsTo:'Mark Stevenson', level:80, isManager:false,status:'Active'},
+    {id:'p17',name:'Neil Ritchie',      role:'Chargehand',        dept:'Projects',           reportsTo:'Mark Stevenson', level:60, isManager:false,status:'Active'},
+    {id:'p18',name:'Josh Anderson',     role:'Admin Support',     dept:'Business Support',   reportsTo:'Amanda McKenzie',level:70, isManager:false,status:'Active'},
+    {id:'p19',name:'Luca Ivory-Hunter', role:'Estimator',         dept:'Quotes & Design',    reportsTo:'Jamie Taylor',   level:50, isManager:false,status:'Active'}
   ],
   coreProcesses:[
     {id:'cp1',code:'CP-0001',name:'Bid / Estimate to Contract',purpose:'To secure commercially viable contracts'},
@@ -597,11 +598,8 @@ function renderOrgChart(){
   function nh(n){
     if(n.type==='person') return 66;
     const ppl=n.people||[];
-    const m=ppl.filter(p=>(p.level??50)<=35);
-    const s=ppl.filter(p=>(p.level??50)>35&&(p.level??50)<=60);
-    const j=ppl.filter(p=>(p.level??50)>60);
-    const rows=(m.length?m.length+1:0)+(s.length?s.length+1:0)+(j.length?j.length+1:0)||1;
-    return Math.max(78,32+rows*18+8);
+    // Each person takes ~26px (2 lines: name + role), minimum 78
+    return Math.max(78, 32 + ppl.length * 26 + 8);
   }
   function calcW(n){
     if(!n.children.length){n.sw=NW;return;}
@@ -645,18 +643,23 @@ function renderOrgChart(){
 <rect x="${bx}" y="${n.y+16}" width="${NW}" height="8" fill="#245818"/>
 <text x="${n.x}" y="${n.y+13}" font-size="10" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="middle">${esc(n.data.name)}</text>`;
     let py=n.y+30;
-    function band(items,lbl,col){
-      if(!items.length) return;
-      s+=`<text x="${bx+6}" y="${py}" font-size="8" font-weight="700" fill="${col}" dominant-baseline="middle">${lbl}</text>`;
-      py+=14;
-      items.forEach(p=>{
-        s+=`<text x="${n.x}" y="${py}" font-size="9" font-weight="${p.isManager?600:400}" fill="#1a3d10" text-anchor="middle" dominant-baseline="middle">${esc((p.isManager?'★ ':'')+p.name)}</text>`;
-        py+=17;
-      });
-    }
-    band(mgr,'Management','#245818');
-    band(snr,'Professional','#2e7020');
-    band(jnr,'Operational','#5aad44');
+    // Show all people as "Name [Role]" like the example org chart
+    ppl.forEach(p=>{
+      const nameStr = p.isManager ? '★ '+p.name : p.name;
+      const roleStr = p.role ? ' ['+p.role+']' : '';
+      const fullStr = nameStr + roleStr;
+      // Split long lines
+      const maxLen = 28;
+      if(fullStr.length > maxLen){
+        s+=`<text x="${n.x}" y="${py}" font-size="8" font-weight="${p.isManager?600:400}" fill="#1a3d10" text-anchor="middle" dominant-baseline="middle">${esc(nameStr)}</text>`;
+        py+=12;
+        s+=`<text x="${n.x}" y="${py}" font-size="7.5" fill="#5a6a52" text-anchor="middle" dominant-baseline="middle">${esc(roleStr.replace('[','').replace(']',''))}</text>`;
+        py+=14;
+      } else {
+        s+=`<text x="${n.x}" y="${py}" font-size="8" font-weight="${p.isManager?600:400}" fill="#1a3d10" text-anchor="middle" dominant-baseline="middle">${esc(fullStr)}</text>`;
+        py+=14;
+      }
+    });
     return s;
   }
 
