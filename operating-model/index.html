@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>MES Power Engineering — Operating Model</title>
+<title>MES Power Engineering — Operating Model v10</title>
 <style>
 :root{
   --g900:#0d2409;--g800:#1a3d10;--g700:#245818;--g600:#2e7020;
@@ -171,6 +171,7 @@ textarea.fi{min-height:60px;resize:vertical}
   body{background:#fff}
   @page{size:A3 landscape;margin:8mm}
 }
+.sop-add{color:#aaa;font-size:11px;cursor:pointer;font-style:italic}.sop-add:hover{color:var(--g600)}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 </style>
@@ -812,20 +813,32 @@ function renderPCs(){
   const typeTag=t=>t==='procedure'?'<span class="tag tb">📄 Procedure</span>':
                    t==='expectation'?'<span class="tag tg">🎯 Expectation</span>':
                    '<span class="tag ta">⚙️ Control</span>';
-  document.getElementById('pc-tbody').innerHTML=rows.map(pc=>
-    `<tr><td style="max-width:250px">${pc.activity}</td>
-     <td>${typeTag(pc.type)}</td>
-     <td>${pc.category?'<span class="tag tgr">'+pc.category+'</span>':''}</td>
-     <td style="font-size:11px">${pc.coreProcess?'<span class="tag tb" style="font-size:10px">'+pc.coreProcess.split('|')[0].trim()+'</span>':(pc.supportProcess?'<span style="font-size:10px;color:var(--textl)">'+pc.supportProcess+'</span>':'')}</td>
-     <td style="font-size:12px">${pc.ownerRole||'<span style="color:#bbb">—</span>'}</td>
-     <td style="font-size:12px">${pc.ownerName||'<span style="color:#bbb">—</span>'}</td>
-     <td>${pc.sopLink?'<a href="'+pc.sopLink+'" target="_blank" style="color:var(--g600);font-size:12px">📎 Open</a>':'<span style="color:#bbb;font-size:11px;cursor:pointer" onclick="quickLink(\''+pc.id+'\'')">+ Add link</span>'}</td>
-     <td style="font-size:11px">${pc.frequency?'<span class="tag tgr" style="font-size:10px">'+pc.frequency+'</span>':''}</td>
-     <td>${editBtns(pc.id,'editPC')}</td></tr>`).join('');
+  document.getElementById('pc-tbody').innerHTML=rows.map(pc=>{
+    const cpTag = pc.coreProcess
+      ? '<span class="tag tb" style="font-size:10px">'+pc.coreProcess.split('|')[0].trim()+'</span>'
+      : (pc.supportProcess ? '<span style="font-size:10px;color:var(--textl)">'+pc.supportProcess+'</span>' : '');
+    const catTag = pc.category ? '<span class="tag tgr">'+pc.category+'</span>' : '';
+    const frqTag = pc.frequency ? '<span class="tag tgr" style="font-size:10px">'+pc.frequency+'</span>' : '';
+    const linkCell = pc.sopLink
+      ? '<a href="'+pc.sopLink+'" target="_blank" style="color:var(--g600);font-size:12px">&#128206; Open</a>'
+      : '<span class="sop-add" data-pcid="'+pc.id+'" onclick="quickLink(this)">+ Add link</span>';
+    return '<tr>'
+      +'<td style="max-width:250px">'+pc.activity+'</td>'
+      +'<td>'+typeTag(pc.type)+'</td>'
+      +'<td>'+catTag+'</td>'
+      +'<td style="font-size:11px">'+cpTag+'</td>'
+      +'<td style="font-size:12px">'+(pc.ownerRole||'<span style="color:#bbb">-</span>')+'</td>'
+      +'<td style="font-size:12px">'+(pc.ownerName||'<span style="color:#bbb">-</span>')+'</td>'
+      +'<td>'+linkCell+'</td>'
+      +'<td style="font-size:11px">'+frqTag+'</td>'
+      +'<td>'+editBtns(pc.id,'editPC')+'</td>'
+      +'</tr>';
+  }).join('');
 }
 
-function quickLink(id){
+function quickLink(el){
   if(!IS_EDIT){ alert('Enable Edit Mode first.'); return; }
+  const id=el.getAttribute('data-pcid');
   const url=prompt('Paste SharePoint / SOP URL:');
   if(url&&url.trim()){
     const pc=data.processControls.find(p=>p.id===id);
