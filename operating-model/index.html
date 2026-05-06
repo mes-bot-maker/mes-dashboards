@@ -271,11 +271,14 @@ textarea.fi{min-height:60px;resize:vertical}
 
 const WORKER_URL='https://mes-operating-model.mes-bot.workers.dev';
 const WRITE_KEY='MES-internal-2026';
-let IS_EDIT=false, modalMode=null, modalId=null, pcTab='all', orgDate='May 2026', saveTimer=null;
+let IS_EDIT=false, modalMode=null, modalId=null, pcTab='all', saveTimer=null;
+var _now=new Date();
+var _months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+var orgDate=_months[_now.getMonth()]+' '+_now.getFullYear();
 
 // ── DEFAULT DATA ─────────────────────────────────────────────
 const DEF={
-  orgDate:'May 2026',
+  orgDate:orgDate,
   departments:[
     {id:'d1',name:'Directors',             lane:'',                rtp:''},
     {id:'d2',name:'Quotes & Design',       lane:'Operations',      rtp:'Neil McKenzie'},
@@ -435,7 +438,8 @@ async function loadData(){
       });
       var dp={};DEF.people.forEach(function(x){dp[x.name]=x;});
       d.people=d.people.map(function(p){
-        return Object.assign({ldr:dp[p.name]?dp[p.name].ldr:false,level:dp[p.name]?dp[p.name].level:50},p);
+        var def=dp[p.name]||{};
+        return Object.assign({ldr:def.ldr||false,level:def.level!==undefined?def.level:50},p);
       });
       // If saved data has no processControls, use defaults
       if(!d.processControls||d.processControls.length===0){
@@ -528,7 +532,12 @@ function renderOrgChart(){
   Object.keys(dp).forEach(function(k){dp[k].sort(function(a,b){return (a.level||50)-(b.level||50);});});
 
   // Leaders
-  var leaders=data.people.filter(function(p){return p.ldr;}).sort(function(a,b){return (a.level||50)-(b.level||50);});
+  var leaders=data.people.filter(function(p){return p.ldr;}).sort(function(a,b){
+    var la=(a.level!==undefined?a.level:50), lb=(b.level!==undefined?b.level:50);
+    if(la!==lb)return la-lb;
+    // tiebreaker: sort by id so p1 always before p2
+    return (a.id||'').localeCompare(b.id||'');
+  });
 
   // Lanes
   var lanes=[];
