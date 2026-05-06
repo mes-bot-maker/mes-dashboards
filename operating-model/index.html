@@ -467,7 +467,30 @@ async function loadData(){
     const r=await fetch(WORKER_URL,{cache:'no-store'});
     if(!r.ok) throw new Error('HTTP '+r.status);
     const d=await r.json();
-    if(d&&d.departments){ data=d; sync('ok','Live'); return true; }
+    if(d&&d.departments){
+      // Merge with defaults — ensure new fields added in later versions are present
+      // Departments: add reportsToPerson if missing
+      const defDeptMap={};
+      DEFAULT.departments.forEach(dd=>defDeptMap[dd.name]=dd);
+      d.departments=d.departments.map(dep=>({
+        ...dep,
+        reportsToPerson: dep.reportsToPerson!==undefined
+          ? dep.reportsToPerson
+          : (defDeptMap[dep.name]?.reportsToPerson||'')
+      }));
+      // People: add level, isManager, reportsTo if missing
+      const defPplMap={};
+      DEFAULT.people.forEach(dp=>defPplMap[dp.name]=dp);
+      d.people=d.people.map(p=>({
+        level: defPplMap[p.name]?.level??50,
+        isManager: defPplMap[p.name]?.isManager||false,
+        reportsTo: defPplMap[p.name]?.reportsTo||'',
+        ...p  // saved values override defaults
+      }));
+      data=d;
+      sync('ok','Live');
+      return true;
+    }
     sync('ok','Default data');
   }catch(e){ sync('error','Offline'); }
   return false;
