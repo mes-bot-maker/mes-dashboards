@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>MES Power Engineering — Operating Model v10</title>
+<title>MES Power Engineering — Operating Model</title>
 <style>
 :root{
   --g900:#0d2409;--g800:#1a3d10;--g700:#245818;--g600:#2e7020;
@@ -171,7 +171,6 @@ textarea.fi{min-height:60px;resize:vertical}
   body{background:#fff}
   @page{size:A3 landscape;margin:8mm}
 }
-.sop-add{color:#aaa;font-size:11px;cursor:pointer;font-style:italic}.sop-add:hover{color:var(--g600)}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 </style>
@@ -242,7 +241,7 @@ textarea.fi{min-height:60px;resize:vertical}
     <div class="ph-act"><button class="btn btn-p btn-sm" id="btn-add-dept" style="display:none" onclick="openModal('dept')">+ Add Department</button></div>
   </div>
   <div class="stats" id="dept-stats"></div>
-  <div class="tw"><table><thead><tr><th>Department</th><th>Reports To Person</th><th>Roles</th><th>People</th><th></th></tr></thead>
+  <div class="tw"><table><thead><tr><th>Department</th><th>Swim Lane</th><th>Reports To Person</th><th>Roles</th><th>People</th><th></th></tr></thead>
   <tbody id="dept-tbody"></tbody></table></div>
 </div>
 
@@ -270,7 +269,7 @@ textarea.fi{min-height:60px;resize:vertical}
     <div class="sw"><input id="ppl-q" oninput="renderPeople()" placeholder="Search…"></div>
     <select id="ppl-df" class="fs" onchange="renderPeople()"><option value="">All Departments</option></select>
   </div>
-  <div class="tw"><table><thead><tr><th>Name</th><th>Role</th><th>Department</th><th>Reports To</th><th>Level</th><th>Status</th><th></th></tr></thead>
+  <div class="tw"><table><thead><tr><th>Name</th><th>Role</th><th>Department</th><th>Group</th><th>Level</th><th>Status</th><th></th></tr></thead>
   <tbody id="ppl-tbody"></tbody></table></div>
 </div>
 
@@ -380,14 +379,14 @@ const DEFAULT = {
   orgDate:'May 2026',
   departments:[
     {id:'d1',name:'Directors',           reportsToPerson:''},
-    {id:'d2',name:'Quotes & Design',     reportsToPerson:'Neil McKenzie'},
-    {id:'d3',name:'Commercial',          reportsToPerson:'Neil McKenzie'},
-    {id:'d4',name:'Projects',            reportsToPerson:'Mark Stevenson'},
-    {id:'d5',name:'Accounts',            reportsToPerson:'Amanda McKenzie'},
-    {id:'d6',name:'SHEQ',                reportsToPerson:'Neil McKenzie'},
-    {id:'d7',name:'HR & People',         reportsToPerson:'Amanda McKenzie'},
-    {id:'d8',name:'Facilities Management',reportsToPerson:'Amanda McKenzie'},
-    {id:'d9',name:'Business Support',    reportsToPerson:'Amanda McKenzie'}
+    {id:'d2',name:'Quotes & Design',     swimLane:'Operations',       reportsToPerson:'Neil McKenzie'},
+    {id:'d3',name:'Commercial',          swimLane:'Operations',       reportsToPerson:'Neil McKenzie'},
+    {id:'d4',name:'Projects',            swimLane:'Operations',       reportsToPerson:'Mark Stevenson'},
+    {id:'d5',name:'Accounts',            swimLane:'Business Support', reportsToPerson:'Amanda McKenzie'},
+    {id:'d6',name:'SHEQ',                swimLane:'Operations',       reportsToPerson:'Neil McKenzie'},
+    {id:'d7',name:'HR & People',         swimLane:'Business Support', reportsToPerson:'Amanda McKenzie'},
+    {id:'d8',name:'Facilities Management',swimLane:'Business Support',reportsToPerson:'Amanda McKenzie'},
+    {id:'d9',name:'Business Support',    swimLane:'Business Support', reportsToPerson:'Amanda McKenzie'}
   ],
   roles:[
     {id:'r1', name:'CEO',                      dept:'Directors',           order:0},
@@ -414,28 +413,27 @@ const DEFAULT = {
     {id:'r22',name:'Craft Assistant',          dept:'Projects',            order:80},
     {id:'r23',name:'Trainee Electrical',       dept:'Projects',            order:80},
     {id:'r24',name:'Accounting (External)',    dept:'Accounts',            order:100}
-  
   ],
   people:[
-    {id:'p1', name:'Neil McKenzie',     role:'Managing Director', dept:'Directors',          reportsTo:'',               level:0,  isManager:true, status:'Active'},
-    {id:'p2', name:'Amanda McKenzie',   role:'Finance Director',  dept:'Directors',          reportsTo:'Neil McKenzie',  level:10, isManager:true, status:'Active'},
-    {id:'p3', name:'Andrea Moir',       role:'SHEQ Manager',      dept:'SHEQ',               reportsTo:'Neil McKenzie',  level:30, isManager:true, status:'Active'},
-    {id:'p4', name:'Ewan Bennett',      role:'Commercial Manager', dept:'Commercial',        reportsTo:'Neil McKenzie',  level:30, isManager:true, status:'Active'},
-    {id:'p5', name:'Luca Ivory-Hunter', role:'Commercial Manager', dept:'Commercial',        reportsTo:'Neil McKenzie',  level:30, isManager:false,status:'Active'},
-    {id:'p6', name:'Jamie Taylor',      role:'Design Manager',    dept:'Quotes & Design',    reportsTo:'Neil McKenzie',  level:30, isManager:true, status:'Active'},
-    {id:'p7', name:'Mark Stevenson',    role:'General Manager',   dept:'Projects',           reportsTo:'Neil McKenzie',  level:30, isManager:true, status:'Active'},
-    {id:'p8', name:'Chris Todd',        role:'Project Engineer',  dept:'Projects',           reportsTo:'Mark Stevenson', level:49, isManager:false,status:'Active'},
-    {id:'p9', name:'Ethan McKenzie',    role:'Project Engineer',  dept:'Projects',           reportsTo:'Mark Stevenson', level:49, isManager:false,status:'Active'},
-    {id:'p10',name:'Luke Mutch',        role:'Project Co-Ordinator',dept:'Projects',         reportsTo:'Mark Stevenson', level:70, isManager:false,status:'Active'},
-    {id:'p11',name:'Liam Duthie',       role:'Project Co-Ordinator',dept:'Projects',         reportsTo:'Mark Stevenson', level:70, isManager:false,status:'Active'},
-    {id:'p12',name:'Dion Moutrey',      role:'Site Manager',      dept:'Projects',           reportsTo:'Mark Stevenson', level:50, isManager:true, status:'Active'},
-    {id:'p13',name:'Alan Bowie',        role:'Assessing Officer', dept:'Projects',           reportsTo:'Mark Stevenson', level:49, isManager:false,status:'Active'},
-    {id:'p14',name:'Oakley Allan-Cooper',role:'Craft Assistant',  dept:'Projects',           reportsTo:'Mark Stevenson', level:80, isManager:false,status:'Active'},
-    {id:'p15',name:'Josh Anderson',     role:'Trainee Electrical', dept:'Projects',          reportsTo:'Mark Stevenson', level:80, isManager:false,status:'Active'},
-    {id:'p16',name:'Alan Shepherd',     role:'Trainee Electrical', dept:'Projects',          reportsTo:'Mark Stevenson', level:80, isManager:false,status:'Active'},
-    {id:'p17',name:'Neil Ritchie',      role:'Chargehand',        dept:'Projects',           reportsTo:'Mark Stevenson', level:60, isManager:false,status:'Active'},
-    {id:'p18',name:'Josh Anderson',     role:'Admin Support',     dept:'Business Support',   reportsTo:'Amanda McKenzie',level:70, isManager:false,status:'Active'},
-    {id:'p19',name:'Luca Ivory-Hunter', role:'Estimator',         dept:'Quotes & Design',    reportsTo:'Jamie Taylor',   level:50, isManager:false,status:'Active'}
+    {id:'p1', name:'Neil McKenzie',     role:'Managing Director',    dept:'Directors',          reportsTo:'',              level:0,  isManager:true, group:'Leadership', status:'Active'},
+    {id:'p2', name:'Amanda McKenzie',   role:'Finance Director',     dept:'Directors',          reportsTo:'Neil McKenzie', level:10, isManager:true, group:'Leadership', status:'Active'},
+    {id:'p3', name:'Andrea Moir',       role:'SHEQ Manager',         dept:'SHEQ',               reportsTo:'Neil McKenzie', level:30, isManager:true, status:'Active'},
+    {id:'p4', name:'Ewan Bennett',      role:'Commercial Manager',   dept:'Commercial',         reportsTo:'Neil McKenzie', level:30, isManager:true, status:'Active'},
+    {id:'p5', name:'Luca Ivory-Hunter', role:'Commercial Manager',   dept:'Commercial',         reportsTo:'Neil McKenzie', level:30, isManager:false,status:'Active'},
+    {id:'p6', name:'Jamie Taylor',      role:'Design Manager',       dept:'Quotes & Design',    reportsTo:'Neil McKenzie', level:30, isManager:true, status:'Active'},
+    {id:'p7', name:'Mark Stevenson',    role:'General Manager',      dept:'Projects',           reportsTo:'Neil McKenzie', level:30, isManager:true, status:'Active'},
+    {id:'p8', name:'Chris Todd',        role:'Project Engineer',     dept:'Projects',           reportsTo:'Mark Stevenson',level:49, isManager:false,status:'Active'},
+    {id:'p9', name:'Ethan McKenzie',    role:'Project Engineer',     dept:'Projects',           reportsTo:'Mark Stevenson',level:49, isManager:false,status:'Active'},
+    {id:'p10',name:'Luke Mutch',        role:'Project Co-Ordinator', dept:'Projects',           reportsTo:'Mark Stevenson',level:70, isManager:false,status:'Active'},
+    {id:'p11',name:'Liam Duthie',       role:'Project Co-Ordinator', dept:'Projects',           reportsTo:'Mark Stevenson',level:70, isManager:false,status:'Active'},
+    {id:'p12',name:'Dion Moutrey',      role:'Site Manager',         dept:'Projects',           reportsTo:'Mark Stevenson',level:50, isManager:true, status:'Active'},
+    {id:'p13',name:'Alan Bowie',        role:'Craftsman',            dept:'Projects',           reportsTo:'Mark Stevenson',level:70, isManager:false,status:'Active'},
+    {id:'p14',name:'Oakley Allan-Cooper',role:'Craft Assistant',     dept:'Projects',           reportsTo:'Mark Stevenson',level:80, isManager:false,status:'Active'},
+    {id:'p15',name:'Josh Anderson',     role:'Trainee Electrical',   dept:'Projects',           reportsTo:'Mark Stevenson',level:80, isManager:false,status:'Active'},
+    {id:'p16',name:'Alan Shepherd',     role:'Trainee Electrical',   dept:'Projects',           reportsTo:'Mark Stevenson',level:80, isManager:false,status:'Active'},
+    {id:'p17',name:'Neil Ritchie',      role:'Chargehand',           dept:'Projects',           reportsTo:'Mark Stevenson',level:60, isManager:false,status:'Active'},
+    {id:'p18',name:'Josh Anderson',     role:'Admin Support',        dept:'Business Support',   reportsTo:'Amanda McKenzie',level:70,isManager:false,status:'Active'},
+    {id:'p19',name:'Luca Ivory-Hunter', role:'Estimator',            dept:'Quotes & Design',    reportsTo:'Jamie Taylor',  level:50, isManager:false,status:'Active'}
   ],
   coreProcesses:[
     {id:'cp1',code:'CP-0001',name:'Bid / Estimate to Contract',purpose:'To secure commercially viable contracts'},
@@ -468,30 +466,7 @@ async function loadData(){
     const r=await fetch(WORKER_URL,{cache:'no-store'});
     if(!r.ok) throw new Error('HTTP '+r.status);
     const d=await r.json();
-    if(d&&d.departments){
-      // Merge with defaults — ensure new fields added in later versions are present
-      // Departments: add reportsToPerson if missing
-      const defDeptMap={};
-      DEFAULT.departments.forEach(dd=>defDeptMap[dd.name]=dd);
-      d.departments=d.departments.map(dep=>({
-        ...dep,
-        reportsToPerson: dep.reportsToPerson!==undefined
-          ? dep.reportsToPerson
-          : (defDeptMap[dep.name]?.reportsToPerson||'')
-      }));
-      // People: add level, isManager, reportsTo if missing
-      const defPplMap={};
-      DEFAULT.people.forEach(dp=>defPplMap[dp.name]=dp);
-      d.people=d.people.map(p=>({
-        level: defPplMap[p.name]?.level??50,
-        isManager: defPplMap[p.name]?.isManager||false,
-        reportsTo: defPplMap[p.name]?.reportsTo||'',
-        ...p  // saved values override defaults
-      }));
-      data=d;
-      sync('ok','Live');
-      return true;
-    }
+    if(d&&d.departments){ data=d; sync('ok','Live'); return true; }
     sync('ok','Default data');
   }catch(e){ sync('error','Offline'); }
   return false;
@@ -562,120 +537,129 @@ function editBtns(id,fn){
 // ORG CHART
 // ═══════════════════════════════════════════════════════════════
 function renderOrgChart(){
-  if(data.orgDate) orgDate=data.orgDate;
+  if(data.orgDate)orgDate=data.orgDate;
   document.getElementById('org-date').textContent=orgDate;
-  const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const E=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
-  // Lookups
-  const byLvl=[...data.people].sort((a,b)=>(a.level??50)-(b.level??50));
-  const root=byLvl.find(p=>!p.reportsTo)||byLvl[0];
-  if(!root){ document.getElementById('org-svg').innerHTML='<p style="padding:20px;color:#888">Add people to build the org chart.</p>'; return; }
+  // People per dept sorted by level
   const dp={};
-  data.people.forEach(p=>{ if(p.dept){ if(!dp[p.dept])dp[p.dept]=[]; dp[p.dept].push(p); } });
+  data.people.forEach(p=>{if(p.dept){if(!dp[p.dept])dp[p.dept]=[];dp[p.dept].push(p);}});
+  Object.values(dp).forEach(arr=>arr.sort((a,b)=>(a.level??50)-(b.level??50)));
 
-  // Detect "structural" people — those who have depts or people under them
-  const hasDept=new Set(data.departments.filter(d=>d.reportsToPerson&&d.name!=='Directors').map(d=>d.reportsToPerson));
-  const hasReport=new Set(data.people.filter(p=>p.reportsTo).map(p=>p.reportsTo));
-  const structural=p=>hasDept.has(p.name)||hasReport.has(p.name);
+  // Leadership box people
+  const leaders=data.people
+    .filter(p=>p.group==='Leadership'||(p.dept==='Directors'&&p.group!=='none'))
+    .sort((a,b)=>(a.level??50)-(b.level??50));
 
-  const seen=new Set();
-  function buildNode(p,depth){
-    if(seen.has(p.id)) return null; seen.add(p.id);
-    const depts=data.departments
-      .filter(d=>d.reportsToPerson===p.name&&d.name!=='Directors')
-      .map(d=>({type:'dept',data:d,depth:depth+1,
-                people:(dp[d.name]||[]).sort((a,b)=>(a.level??50)-(b.level??50)),
-                children:[],sw:0,x:0,y:0}));
-    const reps=byLvl.filter(r=>r.reportsTo===p.name&&r.id!==p.id&&structural(r))
-                    .map(r=>buildNode(r,depth+1)).filter(Boolean);
-    return {type:'person',data:p,depth,children:[...depts,...reps],sw:0,x:0,y:0};
-  }
-  const tree=buildNode(root,0);
-  if(!tree){ document.getElementById('org-svg').innerHTML=''; return; }
+  // Swim lanes (ordered, deduplicated)
+  const lanes=[...new Set(data.departments.filter(d=>d.swimLane).map(d=>d.swimLane))];
 
-  // Layout
-  const NW=168,HG=14,VG=70;
-  function nh(n){
-    if(n.type==='person') return 66;
-    const ppl=n.people||[];
-    // Each person takes ~26px (2 lines: name + role), minimum 78
-    return Math.max(78, 32 + ppl.length * 26 + 8);
-  }
-  function calcW(n){
-    if(!n.children.length){n.sw=NW;return;}
-    n.children.forEach(calcW);
-    const tot=n.children.reduce((s,c)=>s+c.sw,0)+HG*(n.children.length-1);
-    n.sw=Math.max(NW,tot);
-  }
-  function place(n,x,y){
-    n.y=y;
-    if(!n.children.length){n.x=x+n.sw/2;return;}
-    let cx=x; n.children.forEach(c=>{place(c,cx,y+nh(n)+VG);cx+=c.sw+HG;});
-    n.x=Math.round((n.children[0].x+n.children[n.children.length-1].x)/2);
-  }
-  calcW(tree); place(tree,10,15);
-  let mx=0,my=0;
-  function bnd(n){mx=Math.max(mx,n.x+NW/2+10);my=Math.max(my,n.y+nh(n)+10);n.children.forEach(bnd);}
-  bnd(tree);
+  // --- Layout constants ---
+  const DEPTW=185, LINE_H=16, PAD=10;
+  const LANE_PAD=16, LANE_GAP=24, DEPT_GAP=12;
+  const LEAD_W=320;
+  const LEAD_H=60+Math.max(leaders.length,1)*20;
+  const V_GAP=48;
 
-  // Colors by depth — green palette, no orange
-  const DBG=['#1a3d10','#245818','#2e7020','#3a8828'];
-  const DBD=['#2e7020','#3a8828','#5aad44','#7ecb65'];
-  const DSB=['#6db85a','#8ecb72','#aad890','#c0e8a8'];
+  function deptPeople(name){return dp[name]||[];}
+  function deptH(name){
+    const ppl=deptPeople(name);
+    const d=data.departments.find(x=>x.name===name);
+    const hasMgr=!!(d&&d.reportsToPerson);
+    return 28+( hasMgr?18:0 )+(ppl.length?18+ppl.length*LINE_H:0)+PAD;
+  }
+  function laneInnerW(lane){
+    const depts=data.departments.filter(d=>d.swimLane===lane);
+    return depts.length*DEPTW+(depts.length-1)*DEPT_GAP;
+  }
+  function laneW(lane){return laneInnerW(lane)+LANE_PAD*2;}
+  function laneH(lane){
+    const depts=data.departments.filter(d=>d.swimLane===lane);
+    const maxDH=Math.max(...depts.map(d=>deptH(d.name)),60);
+    return maxDH+LANE_PAD*2+22; // 22 for lane title above
+  }
+
+  const laneWidths=lanes.map(laneW);
+  const totalLaneW=laneWidths.reduce((s,w)=>s+w,0)+LANE_GAP*(lanes.length-1);
+  const SVG_W=Math.max(LEAD_W,totalLaneW)+60;
+  const maxLH=Math.max(...lanes.map(laneH),100);
+  const SVG_H=LEAD_H+V_GAP+maxLH+50;
+
+  let connSVG='', boxSVG='';
   const ln=(x1,y1,x2,y2)=>`<line x1="${Math.round(x1)}" y1="${Math.round(y1)}" x2="${Math.round(x2)}" y2="${Math.round(y2)}" stroke="#5aad44" stroke-width="1.5" stroke-linecap="round"/>`;
 
-  function drawPerson(n){
-    const d=Math.min(n.depth,3),bx=n.x-NW/2,h=nh(n);
-    return `<rect x="${bx}" y="${n.y}" width="${NW}" height="${h}" rx="8" fill="${DBG[d]}" stroke="${DBD[d]}" stroke-width="2"/>
-<rect x="${bx}" y="${n.y}" width="${NW}" height="26" rx="8" fill="${DBD[d]}"/>
-<rect x="${bx}" y="${n.y+18}" width="${NW}" height="8" fill="${DBD[d]}"/>
-<text x="${n.x}" y="${n.y+14}" font-size="11" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="middle">${esc(n.data.name)}</text>
-<text x="${n.x}" y="${n.y+44}" font-size="9" fill="${DSB[d]}" text-anchor="middle" dominant-baseline="middle">${esc(n.data.role||'')}</text>`;
-  }
+  // --- Leadership box ---
+  const LX=Math.round((SVG_W-LEAD_W)/2), LY=15;
+  boxSVG+=`<rect x="${LX}" y="${LY}" width="${LEAD_W}" height="${LEAD_H}" rx="8" fill="#1a3d10" stroke="#3a8828" stroke-width="2"/>`;
+  boxSVG+=`<rect x="${LX}" y="${LY}" width="${LEAD_W}" height="28" rx="8" fill="#3a8828"/>`;
+  boxSVG+=`<rect x="${LX}" y="${LY+20}" width="${LEAD_W}" height="8" fill="#3a8828"/>`;
+  boxSVG+=`<text x="${LX+LEAD_W/2}" y="${LY+15}" font-size="11" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="middle">LEADERSHIP</text>`;
+  let lyy=LY+40;
+  leaders.forEach(p=>{
+    boxSVG+=`<text x="${LX+LEAD_W/2}" y="${lyy}" font-size="10" fill="#fff" text-anchor="middle" dominant-baseline="middle">${E(p.name)} [${E(p.role||'')}]</text>`;
+    lyy+=20;
+  });
 
-  function drawDept(n){
-    const bx=n.x-NW/2,h=nh(n),ppl=n.people||[];
-    const mgr=ppl.filter(p=>(p.level??50)<=35);
-    const snr=ppl.filter(p=>(p.level??50)>35&&(p.level??50)<=60);
-    const jnr=ppl.filter(p=>(p.level??50)>60);
-    let s=`<rect x="${bx}" y="${n.y}" width="${NW}" height="${h}" rx="8" fill="#fff" stroke="#3a8828" stroke-width="1.5"/>
-<rect x="${bx}" y="${n.y}" width="${NW}" height="24" rx="8" fill="#245818"/>
-<rect x="${bx}" y="${n.y+16}" width="${NW}" height="8" fill="#245818"/>
-<text x="${n.x}" y="${n.y+13}" font-size="10" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="middle">${esc(n.data.name)}</text>`;
-    let py=n.y+30;
-    // Show all people as "Name [Role]" like the example org chart
-    ppl.forEach(p=>{
-      const nameStr = p.isManager ? '★ '+p.name : p.name;
-      const roleStr = p.role ? ' ['+p.role+']' : '';
-      const fullStr = nameStr + roleStr;
-      // Split long lines
-      const maxLen = 28;
-      if(fullStr.length > maxLen){
-        s+=`<text x="${n.x}" y="${py}" font-size="8" font-weight="${p.isManager?600:400}" fill="#1a3d10" text-anchor="middle" dominant-baseline="middle">${esc(nameStr)}</text>`;
-        py+=12;
-        s+=`<text x="${n.x}" y="${py}" font-size="7.5" fill="#5a6a52" text-anchor="middle" dominant-baseline="middle">${esc(roleStr.replace('[','').replace(']',''))}</text>`;
-        py+=14;
-      } else {
-        s+=`<text x="${n.x}" y="${py}" font-size="8" font-weight="${p.isManager?600:400}" fill="#1a3d10" text-anchor="middle" dominant-baseline="middle">${esc(fullStr)}</text>`;
-        py+=14;
+  // --- Connectors from leadership to lanes ---
+  const LEAD_CX=LX+LEAD_W/2, LEAD_BOT=LY+LEAD_H;
+  const LANE_TOP=LEAD_BOT+V_GAP;
+  const barY=LEAD_BOT+Math.round(V_GAP/2);
+
+  const margin=Math.round((SVG_W-totalLaneW)/2);
+  let laneXs=[],lx=margin;
+  lanes.forEach((_,i)=>{laneXs.push(lx);lx+=laneWidths[i]+LANE_GAP;});
+
+  connSVG+=ln(LEAD_CX,LEAD_BOT,LEAD_CX,barY);
+  if(lanes.length>1){
+    const bl=laneXs[0]+laneWidths[0]/2, br=laneXs[lanes.length-1]+laneWidths[lanes.length-1]/2;
+    connSVG+=ln(bl,barY,br,barY);
+  }
+  lanes.forEach((lane,i)=>{
+    const lcx=laneXs[i]+laneWidths[i]/2;
+    connSVG+=ln(lcx,barY,lcx,LANE_TOP);
+  });
+
+  // --- Swim lanes + department boxes ---
+  lanes.forEach((lane,li)=>{
+    const LNX=laneXs[li], LNW=laneWidths[li], LNH=maxLH, LNY=LANE_TOP;
+
+    // Lane label above dashed border
+    boxSVG+=`<text x="${LNX+LNW/2}" y="${LNY-8}" font-size="10" font-weight="700" fill="#3a8828" text-anchor="middle" letter-spacing="1.5">${E(lane.toUpperCase())}</text>`;
+    // Dashed border
+    boxSVG+=`<rect x="${LNX}" y="${LNY}" width="${LNW}" height="${LNH}" rx="10" fill="rgba(58,136,40,0.04)" stroke="#5aad44" stroke-width="1.5" stroke-dasharray="8,4"/>`;
+
+    const depts=data.departments.filter(d=>d.swimLane===lane);
+    let dx=LNX+LANE_PAD;
+
+    depts.forEach(dept=>{
+      const DY=LNY+LANE_PAD, DH=deptH(dept.name);
+      const ppl=deptPeople(dept.name);
+
+      // Dept box
+      boxSVG+=`<rect x="${dx}" y="${DY}" width="${DEPTW}" height="${DH}" rx="8" fill="#fff" stroke="#2e7020" stroke-width="1.5"/>`;
+      boxSVG+=`<rect x="${dx}" y="${DY}" width="${DEPTW}" height="24" rx="8" fill="#245818"/>`;
+      boxSVG+=`<rect x="${dx}" y="${DY+16}" width="${DEPTW}" height="8" fill="#245818"/>`;
+      boxSVG+=`<text x="${dx+DEPTW/2}" y="${DY+13}" font-size="10" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="middle">${E(dept.name.toUpperCase())}</text>`;
+
+      let py=DY+30;
+      if(dept.reportsToPerson){
+        boxSVG+=`<text x="${dx+DEPTW/2}" y="${py}" font-size="8" fill="#5a6a52" text-anchor="middle" dominant-baseline="middle">Mgr: ${E(dept.reportsToPerson)}</text>`;
+        py+=16;
       }
+      if(ppl.length){
+        boxSVG+=`<text x="${dx+6}" y="${py}" font-size="8" font-weight="700" fill="#245818" dominant-baseline="middle">Team</text>`;
+        py+=15;
+        ppl.forEach(p=>{
+          boxSVG+=`<text x="${dx+DEPTW/2}" y="${py}" font-size="9" fill="#1a3d10" text-anchor="middle" dominant-baseline="middle">${E(p.name)} [${E(p.role||'')}]</text>`;
+          py+=LINE_H;
+        });
+      }
+      dx+=DEPTW+DEPT_GAP;
     });
-    return s;
-  }
+  });
 
-  let conn='',boxes='';
-  function render(n){
-    if(n.children.length){
-      const barY=n.y+nh(n)+Math.round(VG/2);
-      conn+=ln(n.x,n.y+nh(n),n.x,barY);
-      if(n.children.length>1) conn+=ln(n.children[0].x,barY,n.children[n.children.length-1].x,barY);
-      n.children.forEach(c=>{conn+=ln(c.x,barY,c.x,c.y);render(c);});
-    }
-    boxes+=n.type==='person'?drawPerson(n):drawDept(n);
-  }
-  render(tree);
-  document.getElementById('org-svg').innerHTML=
-    `<svg viewBox="0 0 ${Math.ceil(mx)} ${Math.ceil(my)}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:'Segoe UI',Arial,sans-serif;display:block">${conn}${boxes}</svg>`;
+  const svgEl=`<svg viewBox="0 0 ${Math.ceil(SVG_W)} ${Math.ceil(SVG_H)}" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:'Segoe UI',Arial,sans-serif;display:block">${connSVG}${boxSVG}</svg>`;
+  document.getElementById('org-svg').innerHTML=svgEl;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -839,32 +823,20 @@ function renderPCs(){
   const typeTag=t=>t==='procedure'?'<span class="tag tb">📄 Procedure</span>':
                    t==='expectation'?'<span class="tag tg">🎯 Expectation</span>':
                    '<span class="tag ta">⚙️ Control</span>';
-  document.getElementById('pc-tbody').innerHTML=rows.map(pc=>{
-    const cpTag = pc.coreProcess
-      ? '<span class="tag tb" style="font-size:10px">'+pc.coreProcess.split('|')[0].trim()+'</span>'
-      : (pc.supportProcess ? '<span style="font-size:10px;color:var(--textl)">'+pc.supportProcess+'</span>' : '');
-    const catTag = pc.category ? '<span class="tag tgr">'+pc.category+'</span>' : '';
-    const frqTag = pc.frequency ? '<span class="tag tgr" style="font-size:10px">'+pc.frequency+'</span>' : '';
-    const linkCell = pc.sopLink
-      ? '<a href="'+pc.sopLink+'" target="_blank" style="color:var(--g600);font-size:12px">&#128206; Open</a>'
-      : '<span class="sop-add" data-pcid="'+pc.id+'" onclick="quickLink(this)">+ Add link</span>';
-    return '<tr>'
-      +'<td style="max-width:250px">'+pc.activity+'</td>'
-      +'<td>'+typeTag(pc.type)+'</td>'
-      +'<td>'+catTag+'</td>'
-      +'<td style="font-size:11px">'+cpTag+'</td>'
-      +'<td style="font-size:12px">'+(pc.ownerRole||'<span style="color:#bbb">-</span>')+'</td>'
-      +'<td style="font-size:12px">'+(pc.ownerName||'<span style="color:#bbb">-</span>')+'</td>'
-      +'<td>'+linkCell+'</td>'
-      +'<td style="font-size:11px">'+frqTag+'</td>'
-      +'<td>'+editBtns(pc.id,'editPC')+'</td>'
-      +'</tr>';
-  }).join('');
+  document.getElementById('pc-tbody').innerHTML=rows.map(pc=>
+    `<tr><td style="max-width:250px">${pc.activity}</td>
+     <td>${typeTag(pc.type)}</td>
+     <td>${pc.category?'<span class="tag tgr">'+pc.category+'</span>':''}</td>
+     <td style="font-size:11px">${pc.coreProcess?'<span class="tag tb" style="font-size:10px">'+pc.coreProcess.split('|')[0].trim()+'</span>':(pc.supportProcess?'<span style="font-size:10px;color:var(--textl)">'+pc.supportProcess+'</span>':'')}</td>
+     <td style="font-size:12px">${pc.ownerRole||'<span style="color:#bbb">—</span>'}</td>
+     <td style="font-size:12px">${pc.ownerName||'<span style="color:#bbb">—</span>'}</td>
+     <td>${pc.sopLink?'<a href="'+pc.sopLink+'" target="_blank" style="color:var(--g600);font-size:12px">📎 Open</a>':'<span style="color:#bbb;font-size:11px;cursor:pointer" onclick="quickLink(''+pc.id+'')">+ Add link</span>'}</td>
+     <td style="font-size:11px">${pc.frequency?'<span class="tag tgr" style="font-size:10px">'+pc.frequency+'</span>':''}</td>
+     <td>${editBtns(pc.id,'editPC')}</td></tr>`).join('');
 }
 
-function quickLink(el){
+function quickLink(id){
   if(!IS_EDIT){ alert('Enable Edit Mode first.'); return; }
-  const id=el.getAttribute('data-pcid');
   const url=prompt('Paste SharePoint / SOP URL:');
   if(url&&url.trim()){
     const pc=data.processControls.find(p=>p.id===id);
@@ -973,7 +945,12 @@ function openModal(type,id){
       <div class="fr"><label class="fl">Reports To</label>
         <select class="fi" id="f-rt"><option value="">— None (top level) —</option>
         ${data.people.filter(p=>p.id!==id).map(p=>`<option value="${p.name}" ${x?.reportsTo===p.name?'selected':''}>${p.name}${p.role?' — '+p.role:''}</option>`).join('')}</select></div>
-      <div class="fr"><label class="fl">Level <small style="font-weight:400">(0 = most senior)</small></label>
+      <div class="fr"><label class="fl">Group</label>
+        <select class="fi" id="f-group">
+          <option value="" ${x?.group!=='Leadership'?'selected':''}>— Standard —</option>
+          <option value="Leadership" ${x?.group==='Leadership'?'selected':''}>★ Leadership (appears in top box)</option>
+        </select></div>
+    <div class="fr"><label class="fl">Level <small style="font-weight:400">(0 = most senior, controls order in dept box)</small></label>
         <input class="fi" id="f-level" type="number" min="0" max="99" value="${x?.level??50}"></div>
       <div class="fr"><label class="fl">Department Lead / Manager</label>
         <select class="fi" id="f-mgr"><option value="false" ${!x?.isManager?'selected':''}>No</option><option value="true" ${x?.isManager?'selected':''}>Yes ★</option></select></div>
@@ -1034,7 +1011,7 @@ function closeModal(){
 
 function modalSave(){
   if(modalMode==='dept'){
-    const obj={id:modalId||uid(),name:gv('f-name'),reportsToPerson:gv('f-rtp')};
+    const obj={id:modalId||uid(),name:gv('f-name'),swimLane:gv('f-lane'),reportsToPerson:gv('f-rtp')};
     if(modalId){const i=data.departments.findIndex(x=>x.id===modalId);data.departments[i]=obj;}
     else data.departments.push(obj);
   } else if(modalMode==='role'){
