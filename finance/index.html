@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MES Power — Finance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--mes:#007A3D;--mes-dark:#005C2E;--mes-mid:#009A4D;--bg:#f2f6f3;--surface:#fff;--surface2:#edf4ef;--border:#cce0d4;--text:#1a2e1f;--muted:#5a7a65;--good:#007A3D;--bad:#c62828;--amber:#e65100;--blue:#1565c0;--purple:#6a1b9a;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;min-height:100vh;}
+header{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:var(--mes-dark);border-bottom:3px solid var(--mes-mid);position:sticky;top:0;z-index:100;}
+.logo-wrap{display:flex;align-items:center;gap:12px;}.logo-img{height:30px;}.logo-div{width:1px;height:22px;background:rgba(255,255,255,0.3);}.logo-name{font-size:15px;font-weight:700;color:#fff;}.logo-tag{font-size:10px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;}
+nav{display:flex;gap:8px;}nav a{font-size:11px;color:rgba(255,255,255,0.7);text-decoration:none;padding:4px 12px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);}nav a.on{color:#fff;border-color:#fff;background:rgba(255,255,255,0.15);font-weight:600;}
+.live{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,0.55);font-family:'DM Mono',monospace;}.dot{width:7px;height:7px;border-radius:50%;background:#69f0ae;box-shadow:0 0 6px #69f0ae;animation:blink 2s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+main{max-width:1700px;margin:0 auto;padding:20px 28px;}
+.note{background:var(--surface);border-left:3px solid var(--mes);padding:8px 14px;font-size:11px;color:var(--muted);margin-bottom:14px;border-radius:0 6px 6px 0;box-shadow:0 1px 4px rgba(0,0,0,0.07);}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:16px;}
+.kpi{background:var(--surface);border-radius:10px;padding:16px 20px;border-top:3px solid var(--kc,var(--mes));box-shadow:0 1px 4px rgba(0,0,0,0.07);}
+.klabel{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:5px;}.kval{font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1.05;}.ksub{font-size:10px;color:var(--muted);margin-top:4px;}
+.panel{background:var(--surface);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.07);margin-bottom:14px;}
+.ph{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface2);}
+.pt{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-family:'DM Mono',monospace;}.pb{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);}
+.buckets{display:grid;grid-template-columns:repeat(4,1fr);}
+.bucket{padding:16px;border-right:1px solid var(--border);text-align:center;}.bucket:last-child{border-right:none;}
+.b-label{font-size:9px;text-transform:uppercase;letter-spacing:1.5px;font-family:'DM Mono',monospace;margin-bottom:6px;}.b-val{font-size:22px;font-weight:800;letter-spacing:-.5px;}.b-count{font-size:10px;color:var(--muted);margin-top:3px;}
+.current .b-label,.current .b-val{color:var(--mes);}.days30 .b-label,.days30 .b-val{color:var(--amber);}.days60 .b-label,.days60 .b-val{color:#d84315;}.days90 .b-label,.days90 .b-val{color:var(--bad);}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.bar-body{padding:14px 16px;}.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}.bar-row:last-child{margin-bottom:0;}
+.bar-lbl{font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;width:150px;flex-shrink:0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.bar-track{flex:1;background:var(--surface2);border-radius:3px;height:16px;overflow:hidden;border:1px solid var(--border);}.bar-fill{height:100%;border-radius:3px;}.bar-val{font-size:10px;font-weight:600;font-family:'DM Mono',monospace;min-width:62px;text-align:right;}
+.pay-row{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid var(--border);}.pay-row:last-child{border-bottom:none;}
+.pay-name{font-size:12px;font-weight:500;flex:1;}.pay-age{font-size:10px;font-family:'DM Mono',monospace;margin-right:12px;}.pay-val{font-size:12px;font-weight:700;font-family:'DM Mono',monospace;}
+.twrap{overflow-x:auto;max-height:440px;overflow-y:auto;}
+table{width:100%;border-collapse:collapse;min-width:700px;}
+th{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-family:'DM Mono',monospace;padding:8px 14px;text-align:left;font-weight:600;position:sticky;top:0;background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:8px 14px;font-size:12px;border-bottom:1px solid var(--border);vertical-align:middle;}tr:hover td{background:#f5fbf7;}tr:last-child td{border-bottom:none;}
+.mono{font-family:'DM Mono',monospace;}.chip{font-size:9px;padding:2px 7px;border-radius:4px;font-family:'DM Mono',monospace;font-weight:600;white-space:nowrap;}
+.err{background:#ffebee;border:1px solid #ffcdd2;border-radius:8px;padding:10px 16px;margin-bottom:14px;color:var(--bad);font-size:12px;display:none;}
+@keyframes spin{to{transform:rotate(360deg);}}.spin{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--mes);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle;margin-right:6px;}
+.loading{padding:24px;text-align:center;color:var(--muted);font-size:12px;}
+::-webkit-scrollbar{width:5px;height:5px;}::-webkit-scrollbar-track{background:var(--surface2);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+@media(max-width:1200px){.kpis{grid-template-columns:1fr 1fr 1fr}.two-col{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo-wrap">
+    <img src="https://raw.githubusercontent.com/mes-bot-maker/mes-dashboards/main/assets/mes-white.png" alt="MES" class="logo-img" onerror="this.style.display='none'">
+    <div class="logo-div"></div>
+    <div><div class="logo-name">MES Power Engineering</div><div class="logo-tag">Finance Dashboard</div></div>
+  </div>
+  <nav>
+    <a href="../bd/">BD</a><a href="../quotes/">Quotes</a><a href="../projects/">Projects</a>
+    <a href="../finance/" class="on">Finance</a><a href="../operations/">Operations</a>
+  </nav>
+  <div class="live"><div class="dot"></div><span id="updated">Loading...</span></div>
+</header>
+<main>
+  <div id="err" class="err"></div>
+  <div class="note">Live data from Xero via Tugger · Detailed weekly report emailed every Monday 8am · Dashboard refreshes every 15 minutes</div>
+  <div class="kpis">
+    <div class="kpi" style="--kc:var(--bad)"><div class="klabel">Total Outstanding</div><div class="kval" id="k-out">—</div><div class="ksub" id="ks-out">invoices awaiting payment</div></div>
+    <div class="kpi" style="--kc:var(--amber)"><div class="klabel">Overdue &gt;30 Days</div><div class="kval" id="k-ov">—</div><div class="ksub" id="ks-ov">needs chasing</div></div>
+    <div class="kpi" style="--kc:var(--mes)"><div class="klabel">Collected YTD 2026</div><div class="kval" id="k-col">—</div><div class="ksub">cash received this year · Xero</div></div>
+    <div class="kpi" style="--kc:var(--blue)"><div class="klabel">Creditors (Payables)</div><div class="kval" id="k-cred">—</div><div class="ksub" id="ks-cred">owed to suppliers</div></div>
+    <div class="kpi" style="--kc:var(--purple)"><div class="klabel">CIS Deductions</div><div class="kval" id="k-cis">—</div><div class="ksub">held by customers · reclaimable</div></div>
+  </div>
+  <div class="panel">
+    <div class="ph"><span class="pt">Aged Debtors</span><span class="pb" id="aged-total">—</span></div>
+    <div class="buckets">
+      <div class="bucket current"><div class="b-label">Current</div><div class="b-val" id="b-cur">—</div><div class="b-count" id="bn-cur">—</div></div>
+      <div class="bucket days30"><div class="b-label">1–30 Days Overdue</div><div class="b-val" id="b-30">—</div><div class="b-count" id="bn-30">—</div></div>
+      <div class="bucket days60"><div class="b-label">31–60 Days Overdue</div><div class="b-val" id="b-60">—</div><div class="b-count" id="bn-60">—</div></div>
+      <div class="bucket days90"><div class="b-label">60+ Days Overdue</div><div class="b-val" id="b-90">—</div><div class="b-count" id="bn-90">—</div></div>
+    </div>
+  </div>
+  <div class="two-col">
+    <div class="panel" style="margin-bottom:0">
+      <div class="ph"><span class="pt">Top Debtors by Balance</span><span class="pb" id="deb-count">—</span></div>
+      <div class="bar-body" id="deb-bars"><div class="loading"><span class="spin"></span>Loading...</div></div>
+    </div>
+    <div class="panel" style="margin-bottom:0">
+      <div class="ph"><span class="pt">Outstanding Supplier Bills</span><span class="pb" id="pay-count">—</span></div>
+      <div id="pay-list"><div class="loading"><span class="spin"></span>Loading...</div></div>
+    </div>
+  </div>
+  <div style="margin-top:14px" class="panel">
+    <div class="ph"><span class="pt">All Outstanding Invoices</span><span class="pb" id="inv-count">—</span></div>
+    <div class="twrap">
+      <table>
+        <thead><tr>
+          <th>Invoice #</th><th>Customer</th><th style="text-align:right">Amount Due</th>
+          <th style="text-align:right">Invoice Total</th><th>Invoice Date</th><th>Due Date</th>
+          <th>Age</th><th>CIS</th><th>Status</th>
+        </tr></thead>
+        <tbody id="inv-body"><tr><td colspan="9" class="loading"><span class="spin"></span>Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+<script>
+var API='https://mes-api.mes-bot.workers.dev/api/finance';
+function fmt(n){var a=Math.abs(n),s=n<0?'-':'';if(a>=1e6)return s+'£'+(a/1e6).toFixed(2)+'M';if(a>=1e3)return s+'£'+(a/1e3).toFixed(1)+'K';return s+'£'+Math.round(a);}
+function fmtFull(n){return '£'+Number(n).toLocaleString('en-GB',{minimumFractionDigits:0,maximumFractionDigits:0});}
+function fmtDate(d){if(!d)return '—';var dt=new Date(d);if(isNaN(dt.getTime()))return '—';return dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'});}
+function daysOv(d){if(!d)return -999;return Math.floor((Date.now()-new Date(d).getTime())/86400000);}
+function ageCol(d){return d<=0?'var(--mes)':d<=30?'var(--amber)':d<=60?'#d84315':'var(--bad)';}
+function ageLbl(d){if(d<0)return 'Due in '+Math.abs(d)+'d';if(d===0)return 'Due today';return d+'d overdue';}
+function load(){
+  fetch(API)
+    .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+    .then(function(d){render(d);document.getElementById('updated').textContent=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});document.getElementById('err').style.display='none';})
+    .catch(function(e){var el=document.getElementById('err');el.style.display='block';el.textContent='Error: '+e.message+' — retrying in 60s';setTimeout(load,60000);});
+}
+function render(d){
+  var inv=d.receivables||[],pay=d.payables||[],ytd=d.ytdCollected||0;
+  var totalDue=inv.reduce(function(s,i){return s+(+i.due||0);},0);
+  var totalCIS=inv.reduce(function(s,i){return s+(+i.cis||0);},0);
+  var totalPay=pay.reduce(function(s,i){return s+(+i.due||0);},0);
+  var ov30=inv.filter(function(i){return daysOv(i.dueDate)>30;});
+  document.getElementById('k-out').textContent=fmt(totalDue);document.getElementById('ks-out').textContent=inv.length+' invoices outstanding';
+  document.getElementById('k-ov').textContent=fmt(ov30.reduce(function(s,i){return s+(+i.due||0);},0));document.getElementById('ks-ov').textContent=ov30.length+' invoices need chasing';
+  document.getElementById('k-col').textContent=fmt(ytd);
+  document.getElementById('k-cred').textContent=fmt(totalPay);document.getElementById('ks-cred').textContent=pay.length+' supplier bills';
+  document.getElementById('k-cis').textContent=fmt(totalCIS);
+  document.getElementById('aged-total').textContent=fmt(totalDue)+' · '+inv.length+' invoices';
+  var bc=0,b30=0,b60=0,b90=0,nc=0,n30=0,n60=0,n90=0;
+  inv.forEach(function(i){var d=daysOv(i.dueDate);if(d<=0){bc+=(+i.due);nc++;}else if(d<=30){b30+=(+i.due);n30++;}else if(d<=60){b60+=(+i.due);n60++;}else{b90+=(+i.due);n90++;}});
+  document.getElementById('b-cur').textContent=fmt(bc);document.getElementById('bn-cur').textContent=nc+' invoices';
+  document.getElementById('b-30').textContent=fmt(b30);document.getElementById('bn-30').textContent=n30+' invoices';
+  document.getElementById('b-60').textContent=fmt(b60);document.getElementById('bn-60').textContent=n60+' invoices';
+  document.getElementById('b-90').textContent=fmt(b90);document.getElementById('bn-90').textContent=n90+' invoices';
+  var byC={};inv.forEach(function(i){var n=i.customer||'Unknown';if(!byC[n])byC[n]=0;byC[n]+=(+i.due);});
+  var sorted=Object.entries(byC).sort(function(a,b){return b[1]-a[1];}).slice(0,12);var mx=sorted[0]?sorted[0][1]:1;
+  document.getElementById('deb-count').textContent=Object.keys(byC).length+' customers';
+  document.getElementById('deb-bars').innerHTML=sorted.map(function(e){var p=(e[1]/mx*100).toFixed(1);var c=e[1]>100000?'var(--bad)':e[1]>50000?'var(--amber)':'var(--mes)';return '<div class="bar-row"><div class="bar-lbl" title="'+e[0]+'">'+e[0].slice(0,22)+'</div><div class="bar-track"><div class="bar-fill" style="width:'+p+'%;background:'+c+'"></div></div><div class="bar-val" style="color:'+c+'">'+fmt(e[1])+'</div></div>';}).join('');
+  document.getElementById('pay-count').textContent=pay.length+' · '+fmt(totalPay);
+  document.getElementById('pay-list').innerHTML=pay.slice(0,14).map(function(p){var d=daysOv(p.dueDate);var c=ageCol(d);return '<div class="pay-row"><div class="pay-name">'+( p.customer||'—')+'</div><div class="pay-age" style="color:'+c+'">'+(p.dueDate?ageLbl(d):'—')+'</div><div class="pay-val" style="color:'+c+'">'+fmtFull(+p.due||0)+'</div></div>';}).join('');
+  document.getElementById('inv-count').textContent=inv.length+' · '+fmt(totalDue);
+  document.getElementById('inv-body').innerHTML=inv.slice().sort(function(a,b){return (+b.due)-(+a.due);}).map(function(i){var d=daysOv(i.dueDate);var c=ageCol(d);var sc=i.status==='PAID'?'var(--mes)':i.status==='AUTHORISED'?'var(--blue)':'var(--amber)';return '<tr><td class="mono" style="font-size:11px;color:var(--muted)">'+( i.number||'—')+'</td><td style="font-weight:500;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+( i.customer||'—')+'</td><td class="mono" style="text-align:right;font-weight:700;color:'+c+'">'+fmtFull(+i.due||0)+'</td><td class="mono" style="text-align:right;color:var(--muted)">'+fmtFull(+i.total||0)+'</td><td class="mono" style="font-size:11px;color:var(--muted)">'+fmtDate(i.date)+'</td><td class="mono" style="font-size:11px;color:'+c+'">'+fmtDate(i.dueDate)+'</td><td class="mono" style="font-size:11px;font-weight:600;color:'+c+'">'+ageLbl(d)+'</td><td class="mono" style="font-size:11px;color:var(--muted)">'+(+i.cis>0?fmt(+i.cis):'—')+'</td><td><span class="chip" style="background:'+sc+'22;color:'+sc+';border:1px solid '+sc+'55">'+( i.status||'—')+'</span></td></tr>';}).join('');
+}
+load();setInterval(load,15*60*1000);
+</script>
+</body>
+</html>
